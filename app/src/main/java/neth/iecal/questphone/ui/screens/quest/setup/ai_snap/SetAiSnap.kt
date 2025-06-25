@@ -44,16 +44,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.QuestInfoState
 import neth.iecal.questphone.data.quest.ai.snap.AiSnap
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
-import neth.iecal.questphone.ui.screens.quest.setup.components.SetBaseQuest
+import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
 import neth.iecal.questphone.utils.QuestHelper
-import neth.iecal.questphone.utils.Supabase
 import neth.iecal.questphone.utils.json
 
 @SuppressLint("UnrememberedMutableState")

@@ -1,4 +1,4 @@
-package neth.iecal.questphone.ui.screens.quest.setup.components
+package neth.iecal.questphone.ui.screens.quest.setup
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +20,9 @@ import kotlinx.coroutines.flow.first
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.QuestInfoState
+import neth.iecal.questphone.ui.screens.quest.setup.components.AutoDestruct
+import neth.iecal.questphone.ui.screens.quest.setup.components.SelectDaysOfWeek
+import neth.iecal.questphone.ui.screens.quest.setup.components.SetTimeRange
 import neth.iecal.questphone.utils.getCurrentDate
 import neth.iecal.questphone.utils.getCurrentDay
 
@@ -28,7 +31,7 @@ fun SetBaseQuest(questInfoState: QuestInfoState, isTimeRangeSupported: Boolean =
 
     val allQuestTitles = mutableSetOf<String>()
 
-    var isTitleDublicate by remember { mutableStateOf(false) }
+    var isTitleDuplicate by remember { mutableStateOf(false) }
     val dao = QuestDatabaseProvider.getInstance(LocalContext.current).questDao()
 
     LaunchedEffect(Unit) {
@@ -43,22 +46,37 @@ fun SetBaseQuest(questInfoState: QuestInfoState, isTimeRangeSupported: Boolean =
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
         onValueChange = {
-            isTitleDublicate = allQuestTitles.contains(it)
+            isTitleDuplicate = allQuestTitles.contains(it)
             questInfoState.title = it
                         },
         label = { Text("Quest Title") },
         modifier = Modifier.fillMaxWidth(),
-        isError = isTitleDublicate
+        isError = isTitleDuplicate
     )
-    if(isTitleDublicate){
+    if(isTitleDuplicate){
         Text(text = "Title already exists", color = MaterialTheme.colorScheme.error)
     }
 
     if(questInfoState.selectedDays.contains(getCurrentDay()) && User.userInfo.getCreatedOnString() != getCurrentDate()){
         Text("To prevent abuse, you can't perform this quest today. You'll be able to do it starting from the next time it occurs.")
     }
-    SelectDaysOfWeek(questInfoState)
 
+//    OutlinedTextField(
+//        value = questInfoState.reward.toString(),
+//        singleLine = true,
+//        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+//        onValueChange = {
+//            val count = it.toIntOrNull() ?: 0
+//            if(count<5){
+//                questInfoState.reward = count
+//            }
+//        },
+//        label = { Text("Rewarded Coins") },
+//        modifier = Modifier.fillMaxWidth(),
+//        isError = isTitleDuplicate
+//    )
+//
+    SelectDaysOfWeek(questInfoState)
 
     OutlinedTextField(
         value = questInfoState.instructions,
