@@ -27,7 +27,7 @@ It was started in April 2024 under the name *DigipawFull* and is now continued a
 
 
 > [!CAUTION]
-> This is a continuation of the [DigipawsFull Project](github.com/nethical6/digipaws)
+> This is a continuation of the [DigipawsFull Project](https://www.github.com/nethical6/digipaws)
 ---
 
 ## 🚀 Features
