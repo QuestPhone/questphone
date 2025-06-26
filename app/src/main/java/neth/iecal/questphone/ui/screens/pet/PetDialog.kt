@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -443,7 +444,7 @@ fun PetDialog(
             )
         ) {
             Box(
-                modifier = Modifier.fillMaxSize(), // Fill screen for dialog background/dimming
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.BottomCenter // Align card to bottom
             ) {
                 Card(
@@ -459,6 +460,7 @@ fun PetDialog(
                     Column(
                         modifier = Modifier
                             .padding(20.dp)
+                            .navigationBarsPadding()
                             .fillMaxWidth()
                     ) {
                         // Section for Pet Image and Dialog Text

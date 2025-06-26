@@ -22,11 +22,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,7 +43,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -52,10 +55,8 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.utils.VibrationHelper
 import neth.iecal.questphone.MainActivity
 import neth.iecal.questphone.services.AppBlockerService
-import neth.iecal.questphone.ui.screens.account.SetupProfileScreen
 import neth.iecal.questphone.utils.checkNotificationPermission
 import neth.iecal.questphone.utils.checkUsagePermission
 
@@ -80,6 +81,7 @@ fun OnboardingScreen(
     onFinishOnboarding: () -> Unit,
     pages: List<OnboardingContent>
 ) {
+    val haptic = LocalHapticFeedback.current
     // Remember the pager state
     val pagerState = rememberPagerState(pageCount = { pages.size })
 
@@ -90,6 +92,8 @@ fun OnboardingScreen(
     val isFirstPage = pagerState.currentPage == 0
     val isLastPage = pagerState.currentPage == pages.size - 1
     val isNextEnabled = remember { mutableStateOf(false) }
+
+    val scroll = rememberScrollState()
 
     Column(
         modifier = Modifier
@@ -145,6 +149,7 @@ fun OnboardingScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 24.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -155,7 +160,7 @@ fun OnboardingScreen(
             ) {
                 TextButton(
                     onClick = {
-                        VibrationHelper.vibrate(50)
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         scope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage - 1)
                         }
@@ -171,11 +176,12 @@ fun OnboardingScreen(
 
             // Spacer if no back button
             if (isFirstPage) {
-                Spacer(modifier = Modifier.width(64.dp))
+                Spacer(modifier = Modifier.weight(1f))
             }
+
             Button(
                 onClick = {
-                    VibrationHelper.vibrate(50)
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     if (isLastPage) {
                         onFinishOnboarding()
                     } else {
@@ -198,9 +204,9 @@ fun OnboardingScreen(
                     containerColor = Color.White,
                     contentColor = Color.Black
                 ),
-                enabled = if(pages[pagerState.currentPage] is OnboardingContent.CustomPage){
+                enabled = if (pages[pagerState.currentPage] is OnboardingContent.CustomPage) {
                     (pages[pagerState.currentPage] as OnboardingContent.CustomPage).isNextEnabled.value
-                }else{
+                } else {
                     isNextEnabled.value
                 }
 
@@ -280,23 +286,10 @@ fun OnBoardScreen(navController: NavHostController) {
             },
 
             OnboardingContent.StandardPage(
-                "QuestPhone",
-                "Welcome to QuestPhone! Ever felt like your phone controls you instead of the other way around? QuestPhone helps you build mindful screen habits by turning screen time into a rewarding challenge."
-            ),
-            OnboardingContent.CustomPage{
-                SetupProfileScreen()
-            },
-            OnboardingContent.StandardPage(
-                "How it Works?",
-                "Unlock screen time by completing real-life challenges! Whether it’s doing meditation, taking a walk, or studying, you decide how to earn your screen time. Stay productive while still enjoying your favorite apps!"
-            ),
-            OnboardingContent.StandardPage(
-                "Stay Motivated",
-                "QuestPhone makes it fun! Earn XP, level up, and collect items as you build healthier screen habits."
-            ),
-            OnboardingContent.StandardPage(
-                "Quests",
-                "Real-life tasks are called Quests in QuestPhone. Completing a quest—like exercising, reading, or meditating—earns you Coins. These coins can be used to temporarily unlock the apps that distract you the most! 5 coins gives you 10 minutes to use a distracting app"
+                "How it works",
+                "Take control of your screen time like never before. Instead of mindless scrolling, you’ll earn your access by completing real-life Quests—like going for a walk, meditating, studying, or anything that helps you grow. Each quest rewards you with Coins and XP: spend 5 Coins to unlock your favorite distracting app for 10 minutes, and level up as you build better habits!\n" +
+                        "\n" +
+                        "It’s not just about restrictions—it’s a game. Stay motivated by collecting items, leveling up, and watching your progress unfold. QuestPhone makes self-discipline feel like an epic adventure."
             ),
             OnboardingContent.CustomPage(
                 content = {

@@ -1,6 +1,5 @@
 package neth.iecal.questphone.ui.screens.account
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +17,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -49,12 +47,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.exception.AuthRestException
 import io.github.jan.supabase.auth.providers.builtin.Email
-import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.R
@@ -89,32 +85,11 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>) {
     val isPasswordValid = password.length >= 8
     val doPasswordsMatch = password == confirmPassword
 
-    // Supabase session status
-    val sessionStatus by Supabase.supabase.auth.sessionStatus.collectAsStateWithLifecycle(
-        initialValue = SessionStatus.Initializing
-    )
-
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 32.dp)
     ) {
-        // Back button
-        IconButton(
-            onClick = {
-                loginStep.value = LoginStep.LOGIN
-            },
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back to login"
-            )
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -127,8 +102,10 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>) {
 
             // Logo or app name
             Text(
-                text = "Blank Phone",
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+                text = "Quest Phone",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold
+                ),
                 color = MaterialTheme.colorScheme.primary
             )
 
@@ -412,7 +389,8 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>) {
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Continue without an account",color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable{
+                Text("Continue without an account",
+                    textAlign = TextAlign.Center,color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable{
                     isContinueWithoutLoginDialog.value = true
                 })
             }

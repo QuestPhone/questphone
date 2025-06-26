@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -43,6 +45,7 @@ fun TermsScreen(isTosAccepted: MutableState<Boolean>) {
     val context = LocalContext.current
     val isNextEnabled = remember { mutableStateOf(false) }
 
+    val verticalScroll = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -76,6 +79,8 @@ fun TermsScreen(isTosAccepted: MutableState<Boolean>) {
                 textAlign = TextAlign.Center,
                 lineHeight = 22.sp,
                 modifier = Modifier.padding(horizontal = 8.dp)
+                    .height(300.dp)
+                    .verticalScroll(verticalScroll)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
