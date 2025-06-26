@@ -30,33 +30,12 @@ class BootReceiver : BroadcastReceiver() {
                 // or for simpler cases, SharedPreferences.
                 // The `getPersistedReminders` function below is a placeholder that demonstrates
                 // loading from SharedPreferences.
-                val persistedReminders: List<ReminderData> = getPersistedReminders(it)
+                val notificationScheduler = NotificationScheduler(it)
+                val persistedReminders: List<ReminderData> = notificationScheduler.getPersistedReminders(it)
                 scheduler.rescheduleAllReminders(persistedReminders)
                 Log.d("BootReceiver", "Finished rescheduling ${persistedReminders.size} reminders.")
             }
         }
     }
 
-    /**
-     * Dummy function to simulate retrieving persisted reminder data.
-     * In a real application, replace this with your actual data persistence logic
-     * (e.g., querying a Room database).
-     * This example loads a JSON array of reminders from SharedPreferences.
-     *
-     * @param context The application context.
-     * @return A list of [ReminderData] objects loaded from persistence.
-     */
-    private fun getPersistedReminders(context: Context): List<ReminderData> {
-        val sharedPrefs = context.getSharedPreferences("reminders_prefs", Context.MODE_PRIVATE)
-        // Retrieve the JSON string of scheduled reminders. Default to an empty array if not found.
-        val jsonString = sharedPrefs.getString("scheduled_reminders_json", "[]") ?: "[]"
-        val reminders = mutableListOf<ReminderData>()
-        try {
-            // Use kotlinx.serialization to decode the JSON string into a List<ReminderData>
-            reminders.addAll(json.decodeFromString(jsonString))
-        } catch (e: Exception) { // Catch generic Exception for kotlinx.serialization errors
-            Log.e("BootReceiver", "Error parsing persisted reminders JSON from SharedPreferences: ${e.message}", e)
-        }
-        return reminders
-    }
 }

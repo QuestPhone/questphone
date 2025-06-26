@@ -9,6 +9,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.util.Log
+import androidx.core.content.edit
 import neth.iecal.questphone.ReminderData
 import neth.iecal.questphone.utils.json
 import java.util.Date
@@ -201,5 +202,25 @@ class NotificationScheduler(private val context: Context) {
                 Log.d("NotificationScheduler", "Skipping past reminder ID: ${reminder.id} for reschedule.")
             }
         }
+    }
+
+    fun persistReminders(jsonString: String) {
+        val sharedPrefs = context.getSharedPreferences("reminders_prefs", Context.MODE_PRIVATE)
+        sharedPrefs.edit { putString("scheduled_reminders_json", jsonString) }
+        Log.d("MainActivity", "Reminders persisted to SharedPreferences.")
+    }
+
+    fun getPersistedReminders(context: Context): List<ReminderData> {
+        val sharedPrefs = context.getSharedPreferences("reminders_prefs", Context.MODE_PRIVATE)
+        // Retrieve the JSON string of scheduled reminders. Default to an empty array if not found.
+        val jsonString = sharedPrefs.getString("scheduled_reminders_json", "[]") ?: "[]"
+        val reminders = mutableListOf<ReminderData>()
+        try {
+            // Use kotlinx.serialization to decode the JSON string into a List<ReminderData>
+            reminders.addAll(json.decodeFromString(jsonString))
+        } catch (e: Exception) { // Catch generic Exception for kotlinx.serialization errors
+            Log.e("BootReceiver", "Error parsing persisted reminders JSON from SharedPreferences: ${e.message}", e)
+        }
+        return reminders
     }
 }

@@ -59,6 +59,7 @@ import neth.iecal.questphone.MainActivity
 import neth.iecal.questphone.services.AppBlockerService
 import neth.iecal.questphone.utils.checkNotificationPermission
 import neth.iecal.questphone.utils.checkUsagePermission
+import neth.iecal.questphone.utils.reminder.NotificationScheduler
 
 open class OnboardingContent {
     // Standard title and description page
@@ -348,6 +349,25 @@ fun OnBoardScreen(navController: NavHostController) {
             ){
                 NotificationPermissionScreen()
             },
+        OnboardingContent.CustomPage(
+            content = {
+                ScheduleExactAlarmScreen()
+            }, onNextPressed = {
+                val notificationScheduler = NotificationScheduler(context)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (!notificationScheduler.alarmManager.canScheduleExactAlarms()) {
+                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                        context.startActivity(intent)
+                        false
+                    }else{
+                        true
+                    }
+                }else{
+                    true
+                }
+
+            }
+        ),
             OnboardingContent.CustomPage {
                 SelectApps()
             }

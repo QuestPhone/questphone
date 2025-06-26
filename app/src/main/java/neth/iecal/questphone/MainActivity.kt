@@ -1,10 +1,7 @@
 package neth.iecal.questphone
 
-import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -56,12 +53,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val data = getSharedPreferences("onboard", MODE_PRIVATE)
 
-        fun persistReminders(jsonString: String) {
-            val sharedPrefs = applicationContext.getSharedPreferences("reminders_prefs", Context.MODE_PRIVATE)
-            sharedPrefs.edit().putString("scheduled_reminders_json", jsonString).apply()
-            Log.d("MainActivity", "Reminders persisted to SharedPreferences.")
-        }
-
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}
             val isPetDialogVisible = remember { mutableStateOf(true) }
@@ -77,19 +68,9 @@ class MainActivity : ComponentActivity() {
                     finish()
                 }
 
-
                 val notificationScheduler = NotificationScheduler(applicationContext)
                 notificationScheduler.createNotificationChannel() // Initialize the notification channel
 
-                // Request SCHEDULE_EXACT_ALARM permission for Android S+ if not already granted.
-                // This is a direct permission request that opens settings. You might want to
-                // use a more user-friendly flow with a dialog explaining why permission is needed.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    if (!notificationScheduler.alarmManager.canScheduleExactAlarms()) {
-                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                        startActivity(intent)
-                    }
-                }
                 val reminders = listOf(
                     ReminderData(
                         id = 101,
@@ -119,7 +100,7 @@ class MainActivity : ComponentActivity() {
                 // IMPORTANT: Persist these reminders so they can be re-scheduled after device reboot.
                 // For a real habit tracker, you would typically save these to a Room database.
                 // For this example, we're using SharedPreferences.
-                persistReminders(remindersJson)
+                notificationScheduler.persistReminders(remindersJson)
             }
             LauncherTheme {
                 Surface {
