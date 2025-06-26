@@ -40,7 +40,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -203,10 +205,13 @@ fun AddRemoveListWithDialog(
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var dialogInput by remember { mutableStateOf("") }
+    val haptic = LocalHapticFeedback.current
 
     Column(modifier = modifier.padding(16.dp)) {
         Button(
-            onClick = { showDialog = true }, Modifier.fillMaxWidth()) {
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                showDialog = true }, Modifier.fillMaxWidth()) {
             Text("Add Item")
         }
 
@@ -225,7 +230,9 @@ fun AddRemoveListWithDialog(
                 ) {
                     Text(item, modifier = Modifier.weight(1f))
                     IconButton(
-                        onClick = { items.removeAt(i) }
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            items.removeAt(i) }
                     ) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete")
                     }

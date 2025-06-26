@@ -29,7 +29,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -53,6 +55,7 @@ fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController) {
     val context = LocalContext.current
     val apps = remember { mutableStateOf(emptyList<AppInfo>()) }
 
+    val haptic = LocalHapticFeedback.current
     val showDialog = remember { mutableStateOf(false) }
     var selectedApps = remember { mutableStateListOf<String>() }
     val questInfoState = remember { QuestInfoState(initialIntegrationId = IntegrationId.DEEP_FOCUS) }
@@ -142,7 +145,10 @@ fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController) {
                     SetBaseQuest(questInfoState)
 
                     OutlinedButton(
-                        onClick = { showDialog.value = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            showDialog.value = true },
                     ) {
 
                         Text(

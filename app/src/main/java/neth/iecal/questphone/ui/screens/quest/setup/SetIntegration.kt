@@ -114,7 +114,11 @@ fun SetIntegration(navController: NavHostController) {
                                     .combinedClickable(
                                         onClick = {
                                             if(!item.isLoginRequired){
-                                                navController.navigate("${item.name}/ntg")
+                                                navController.navigate("${item.name}/ntg") {
+                                                    popUpTo(navController.currentDestination?.route ?: "") {
+                                                        inclusive = true
+                                                    }
+                                                }
                                             }else{
                                                 showLoginRequiredDialog.value = true
                                             }

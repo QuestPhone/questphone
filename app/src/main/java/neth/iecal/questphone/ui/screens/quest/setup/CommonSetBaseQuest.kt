@@ -60,22 +60,6 @@ fun SetBaseQuest(questInfoState: QuestInfoState, isTimeRangeSupported: Boolean =
     if(questInfoState.selectedDays.contains(getCurrentDay()) && User.userInfo.getCreatedOnString() != getCurrentDate()){
         Text("To prevent abuse, you can't perform this quest today. You'll be able to do it starting from the next time it occurs.")
     }
-
-//    OutlinedTextField(
-//        value = questInfoState.reward.toString(),
-//        singleLine = true,
-//        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-//        onValueChange = {
-//            val count = it.toIntOrNull() ?: 0
-//            if(count<5){
-//                questInfoState.reward = count
-//            }
-//        },
-//        label = { Text("Rewarded Coins") },
-//        modifier = Modifier.fillMaxWidth(),
-//        isError = isTitleDuplicate
-//    )
-//
     SelectDaysOfWeek(questInfoState)
 
     OutlinedTextField(

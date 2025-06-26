@@ -35,15 +35,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.data.quest.health.HealthQuest
 import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.QuestInfoState
+import neth.iecal.questphone.data.quest.health.HealthQuest
 import neth.iecal.questphone.data.quest.health.HealthTaskType
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
@@ -53,7 +55,7 @@ import neth.iecal.questphone.utils.json
 @Composable
 fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController) {
     val scrollState = rememberScrollState()
-
+    val haptic = LocalHapticFeedback.current
     val questInfoState = remember { QuestInfoState(initialIntegrationId = IntegrationId.HEALTH_CONNECT) }
     val healthQuest = remember { mutableStateOf(HealthQuest()) }
     val isReviewDialogVisible = remember { mutableStateOf(false) }
@@ -126,7 +128,9 @@ fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController
                             // Task Type Dropdown
                             HealthTaskTypeSelector(
                                 selectedType = healthQuest.value.type,
-                                onTypeSelected = { healthQuest.value = healthQuest.value.copy(type = it) }
+                                onTypeSelected = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    healthQuest.value = healthQuest.value.copy(type = it) }
                             )
 
                             // Goal Config Inputs
@@ -233,7 +237,7 @@ fun HealthTaskTypeSelector(
             HealthTaskType.entries.forEach { type ->
                 DropdownMenuItem(
                     text = {
-                        Text(type.name.lowercase().replaceFirstChar { it.uppercase() })
+                        Text(type.label)
                     },
                     onClick = {
                         onTypeSelected(type)
