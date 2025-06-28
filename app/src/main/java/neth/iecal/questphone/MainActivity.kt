@@ -41,7 +41,6 @@ import neth.iecal.questphone.ui.screens.quest.setup.SetIntegration
 import neth.iecal.questphone.ui.screens.quest.stats.specific.BaseQuestStatsView
 import neth.iecal.questphone.ui.theme.LauncherTheme
 import neth.iecal.questphone.utils.isOnline
-import neth.iecal.questphone.utils.json
 import neth.iecal.questphone.utils.reminder.NotificationScheduler
 import neth.iecal.questphone.utils.triggerQuestSync
 
@@ -69,38 +68,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val notificationScheduler = NotificationScheduler(applicationContext)
-                notificationScheduler.createNotificationChannel() // Initialize the notification channel
-
-                val reminders = listOf(
-                    ReminderData(
-                        id = 101,
-                        timeMillis = System.currentTimeMillis() + 5000,
-                        title = "Drink Water",
-                        description = "It's time to hydrate! Sip some water now."
-                    ),
-                    ReminderData(
-                        id = 102,
-                        timeMillis = System.currentTimeMillis() + 15000,
-                        title = "Take a Break",
-                        description = "Stretch your legs and relax for 5 minutes. Get up and move!"
-                    ),
-                    ReminderData(
-                        id = 103,
-                        timeMillis = System.currentTimeMillis() + 60000,
-                        title = "Daily Standup",
-                        description = "Join the team standup meeting on time."
-                    )
-                )
-
-                // Convert the list of ReminderData to a JSON string using kotlinx.serialization
-                val remindersJson = json.encodeToString(reminders)
-                Log.d("MainActivity", "Generated JSON: $remindersJson")
-
-                notificationScheduler.scheduleRemindersFromJson(remindersJson)
-                // IMPORTANT: Persist these reminders so they can be re-scheduled after device reboot.
-                // For a real habit tracker, you would typically save these to a Room database.
-                // For this example, we're using SharedPreferences.
-                notificationScheduler.persistReminders(remindersJson)
+                notificationScheduler.createNotificationChannel()
             }
             LauncherTheme {
                 Surface {

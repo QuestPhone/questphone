@@ -4,8 +4,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import neth.iecal.questphone.ReminderData
+import neth.iecal.questphone.data.ReminderData
+import neth.iecal.questphone.data.ReminderDatabaseProvider
 
 /**
  * A BroadcastReceiver that listens for device boot completion and package replacement events.
@@ -25,15 +29,16 @@ class BootReceiver : BroadcastReceiver() {
                 val scheduler = NotificationScheduler(it)
                 scheduler.createNotificationChannel() // Ensure notification channel is recreated/exists
 
-                // IMPORTANT: You need to retrieve your persisted reminder data here.
-                // In a real application, this data would typically be stored in a database (like Room DB),
-                // or for simpler cases, SharedPreferences.
-                // The `getPersistedReminders` function below is a placeholder that demonstrates
-                // loading from SharedPreferences.
-                val notificationScheduler = NotificationScheduler(it)
-                val persistedReminders: List<ReminderData> = notificationScheduler.getPersistedReminders(it)
-                scheduler.rescheduleAllReminders(persistedReminders)
-                Log.d("BootReceiver", "Finished rescheduling ${persistedReminders.size} reminders.")
+                val reminderDao = ReminderDatabaseProvider.getInstance(context).reminderDao()
+
+                CoroutineScope(Dispatchers.Default).launch {
+                    val persistedReminders: List<ReminderData> = reminderDao.getAllUpcoming()
+                    persistedReminders.forEach {
+                        scheduler.scheduleReminder(it)
+                    }
+                    Log.d("BootReceiver", "Finished rescheduling ${persistedReminders.size} reminders.")
+
+                }
             }
         }
     }

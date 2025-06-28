@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import kotlinx.serialization.json.Json
+import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -51,6 +52,18 @@ class QuestHelper(val context: Context) {
             val today = LocalDate.now()
             val autoDestruct = LocalDate.parse(baseData.auto_destruct, formatter)
             return today >= autoDestruct
+        }
+        fun getFilteredQuestsForToday(unfiltered: List<CommonQuestInfo>): List<CommonQuestInfo>{
+            val list = unfiltered.filter {
+                !it.is_destroyed && it.selected_days.contains(getCurrentDay()) &&
+                        (getCurrentDate() == formatInstantToDate(User.userInfo.created_on) || it.created_on != getCurrentDate())
+            }.toMutableList()
+            list.forEachIndexed { i,item ->
+                if (item.last_completed_on == getCurrentDate()) {
+                    list.removeAt(i)
+                }
+            }
+            return list
         }
     }
 }

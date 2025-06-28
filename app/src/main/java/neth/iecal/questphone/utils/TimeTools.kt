@@ -230,3 +230,28 @@ fun calculateMonthsPassedAndRoundedStart(input: Instant): LocalDate?{
 
     return roundedStart
 }
+
+fun getTimeRemainingDescription(endHour: Int): String {
+    val calendar = Calendar.getInstance()
+    val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+    val currentMinute = calendar.get(Calendar.MINUTE)
+
+    // End time in total minutes (e.g., 18:00 = 1080 mins)
+    val endTimeInMinutes = endHour * 60
+    val currentTimeInMinutes = currentHour * 60 + currentMinute
+
+    val minutesRemaining = endTimeInMinutes - currentTimeInMinutes
+
+    return when {
+        minutesRemaining < 1 -> "Time is over"
+        else -> {
+            val hours = minutesRemaining / 60
+            val minutes = minutesRemaining % 60
+
+            buildString {
+                if (hours > 0) append("$hours hour${if (hours > 1) "s" else ""} ")
+                if (minutes > 0) append("$minutes minute${if (minutes > 1) "s" else ""}")
+            }.trim()
+        }
+    }
+}

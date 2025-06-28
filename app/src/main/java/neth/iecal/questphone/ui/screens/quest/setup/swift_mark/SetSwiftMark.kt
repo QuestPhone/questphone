@@ -38,6 +38,7 @@ import neth.iecal.questphone.data.quest.QuestInfoState
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
 import neth.iecal.questphone.utils.QuestHelper
+import neth.iecal.questphone.utils.reminder.GenerateReminders
 
 
 @SuppressLint("UnrememberedMutableState")
@@ -81,6 +82,7 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController) {
                 }
                 isReviewDialogVisible.value = false
                 navController.popBackStack()
+                GenerateReminders(context,baseQuest)
             },
             onDismiss = {
                 isReviewDialogVisible.value = false

@@ -113,15 +113,20 @@ fun SetIntegration(navController: NavHostController) {
                                     .height(100.dp)
                                     .combinedClickable(
                                         onClick = {
-                                            if(!item.isLoginRequired){
-                                                navController.navigate("${item.name}/ntg") {
-                                                    popUpTo(navController.currentDestination?.route ?: "") {
-                                                        inclusive = true
-                                                    }
+                                            navController.navigate("${item.name}/ntg") {
+                                                popUpTo(navController.currentDestination?.route ?: "") {
+                                                    inclusive = true
                                                 }
-                                            }else{
-                                                showLoginRequiredDialog.value = true
                                             }
+//                                            if(!item.isLoginRequired){
+//                                                navController.navigate("${item.name}/ntg") {
+//                                                    popUpTo(navController.currentDestination?.route ?: "") {
+//                                                        inclusive = true
+//                                                    }
+//                                                }
+//                                            }else{
+//                                                showLoginRequiredDialog.value = true
+//                                            }
                                         },
                                         onLongClick = {
                                             VibrationHelper.vibrate(100)

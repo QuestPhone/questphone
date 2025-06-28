@@ -4,18 +4,15 @@ package neth.iecal.questphone.utils.ai
 import android.util.Log
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.Response
 import org.json.JSONObject
-import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class TaskValidationClient {
+class ReminderClient {
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS) // Adjust timeout as needed
@@ -24,21 +21,21 @@ class TaskValidationClient {
         .build()
 
     companion object {
-        private const val TAG = "TaskValidationClient"
-//        private const val BASE_URL = "http://34.10.142.128:80"
-        private const val BASE_URL = "http://localhost:8000"
+        private const val TAG = "ReminderClient"
+                private const val BASE_URL = "http://34.10.142.128:80"
+//        private const val BASE_URL = "http://localhost:8000"
     }
 
-    data class ValidationResult(
-        val isValid: Boolean,
-        val reason: String
+    data class ReminderResult(
+        val title: String,
+        val description: String
     )
 
-    fun validateTask(
-        imageFile: File,
+    fun generateReminder(
+        remainingTime: String,
         questId: String,
         token: String,
-        callback: (Result<ValidationResult>) -> Unit
+        callback: (Result<ReminderResult>) -> Unit
     ) {
         // Create multipart form data
         val requestBody = MultipartBody.Builder()
@@ -46,9 +43,8 @@ class TaskValidationClient {
             .addFormDataPart("quest_id", questId)
 
             .addFormDataPart(
-                "image",
-                imageFile.name,
-                imageFile.asRequestBody("image/jpeg".toMediaType())
+                "remaining_time",
+                remainingTime
             )
             .build()
 
@@ -84,11 +80,11 @@ class TaskValidationClient {
                     Log.d("server Response",responseBody)
                     try {
                         val json = JSONObject(responseBody)
-                        val result = ValidationResult(
-                            isValid = json.getBoolean("is_valid"),
-                            reason = json.getString("reason")
+                        val result = ReminderResult(
+                            json.getString("title"),
+                            json.getString("description")
                         )
-                        Log.i(TAG, "Validation result: $result")
+                        Log.i(TAG, "reminder generation result: $result")
                         callback(Result.success(result))
                     } catch (e: Exception) {
                         Log.e(TAG, "JSON parsing error: ${e.message}", e)
