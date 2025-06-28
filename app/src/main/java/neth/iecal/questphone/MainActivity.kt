@@ -55,6 +55,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}
             val isPetDialogVisible = remember { mutableStateOf(true) }
+
             LaunchedEffect(Unit) {
                 isUserOnboarded.value = data.getBoolean("onboard",false)
                 Log.d("onboard", isUserOnboarded.value.toString())

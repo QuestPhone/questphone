@@ -73,6 +73,7 @@ fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController
     }
 
     if (isReviewDialogVisible.value) {
+        healthQuest.value.nextGoal = healthQuest.value.healthGoalConfig.initial
         val baseQuest = questInfoState.toBaseQuest(healthQuest.value)
         ReviewDialog(
             items = listOf(

@@ -126,7 +126,7 @@ fun UserInfoScreen() {
                         val profileFile = File(context.filesDir, "profile")
                         profileFile.absolutePath
                     }else{
-                        "https://hplszhlnchhfwngbojnc.supabase.co/storage/v1/object/public/profile/${User.userInfo.id}/profile"
+                        "https://hplszhlnchhfwngbojnc.supabase.co/storage/v1/object/public/profile/${User.userInfo.userId}/profile"
                     }
                 } else R.drawable.baseline_person_24
 

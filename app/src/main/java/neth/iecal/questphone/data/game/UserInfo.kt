@@ -2,17 +2,18 @@ package neth.iecal.questphone.data.game
 
 import android.content.Context
 import androidx.core.content.edit
+import io.github.jan.supabase.auth.auth
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import neth.iecal.questphone.data.game.User.lastRewards
 import neth.iecal.questphone.data.game.User.lastXpEarned
+import neth.iecal.questphone.utils.Supabase
 import neth.iecal.questphone.utils.formatInstantToDate
 import neth.iecal.questphone.utils.isTimeOver
 import neth.iecal.questphone.utils.json
 import neth.iecal.questphone.utils.triggerProfileSync
-import java.util.UUID
 
 
 /**
@@ -22,7 +23,6 @@ import java.util.UUID
  */
 @Serializable
 data class UserInfo(
-    var id : String = UUID.randomUUID().toString(),
     var username: String = "",
     var full_name: String = "",
     var has_profile: Boolean = false,
@@ -40,6 +40,12 @@ data class UserInfo(
     @Transient
     var isAnonymous : Boolean = false,
 ){
+    @Transient
+    val userId: String = if (isAnonymous){
+            ""
+        } else {
+            Supabase.supabase.auth.currentUserOrNull()?.id ?: ""
+        }
     fun getFirstName(): String {
         return full_name.trim().split(" ").firstOrNull() ?: ""
     }
@@ -157,7 +163,7 @@ fun getUserInfo(context: Context): UserInfo {
     return if (userInfoJson != null) {
         json.decodeFromString(userInfoJson)
     } else {
-        UserInfo()
+        UserInfo("")
     }
 }
 fun User.useCoins(coins: Int){

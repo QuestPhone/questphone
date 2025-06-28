@@ -1,5 +1,7 @@
 package neth.iecal.questphone.ui.screens.launcher.components
 
+import android.graphics.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -12,9 +14,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.graphics.createBitmap
 import androidx.navigation.NavController
 
 @Composable
@@ -22,8 +27,10 @@ fun LowCoinsDialog(
     coins: Int,
     onDismiss: () -> Unit,
     appName : String,
+    pkgName: String,
     navController: NavController
 ) {
+    val context = LocalContext.current
     var isPerformAQuestDialogVisible = remember { mutableStateOf(false) }
 
     if (isPerformAQuestDialogVisible.value) {
@@ -31,11 +38,25 @@ fun LowCoinsDialog(
             isPerformAQuestDialogVisible.value = false
         }
     } else {
+        val appIconDrawable = context.packageManager.getApplicationIcon(pkgName)
+        val bitmap = remember(appIconDrawable) {
+            val bitmap =
+                createBitmap(appIconDrawable.intrinsicWidth, appIconDrawable.intrinsicHeight)
+            val canvas = Canvas(bitmap)
+            appIconDrawable.setBounds(0, 0, canvas.width, canvas.height)
+            appIconDrawable.draw(canvas)
+            bitmap.asImageBitmap()
+        }
         Dialog(onDismissRequest = onDismiss) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = "Instagram Icon",
+                    Modifier.size(100.dp).padding(16.dp)
+                )
                 Text(
                     text = "Balance: $coins coins",
                     color = Color.White,

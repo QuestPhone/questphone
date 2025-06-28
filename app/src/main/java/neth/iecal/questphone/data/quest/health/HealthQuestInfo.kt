@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class HealthQuest(
     val type: HealthTaskType = HealthTaskType.STEPS,
-    val healthGoalConfig: HealthGoalConfig = HealthGoalConfig(),
+    val healthGoalConfig: HealthGoalConfig = HealthGoalConfig(1000,1000,0),
     var nextGoal: Int = healthGoalConfig.initial
 ){
     fun incrementGoal() {

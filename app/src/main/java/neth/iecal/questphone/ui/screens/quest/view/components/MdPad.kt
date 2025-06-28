@@ -3,7 +3,7 @@ package neth.iecal.questphone.ui.screens.quest.view.components
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -64,25 +64,26 @@ fun MdPad(commonQuestInfo: CommonQuestInfo){
         }
     }
 
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            IconButton(onClick = {
-                if (isEditing) {
-                    saveToSharedPreferences(currentText)
-                }
-                isEditing = !isEditing
-            }) {
-                Icon(
-                    imageVector = if (isEditing) Icons.Default.Check else Icons.Default.Edit,
-                    contentDescription = if (isEditing) "Save" else "Edit"
-                )
-            }
-        }
+    Box() {
 
         if (isEditing) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(
+                    onClick = {
+                        if (isEditing) {
+                            saveToSharedPreferences(currentText)
+                        }
+                        isEditing = !isEditing
+                    }) {
+                    Icon(
+                        imageVector = if (isEditing) Icons.Default.Check else Icons.Default.Edit,
+                        contentDescription = if (isEditing) "Save" else "Edit"
+                    )
+                }
+            }
             TextField(
                 value = currentText,
                 onValueChange = { currentText = it },

@@ -18,7 +18,6 @@ import neth.iecal.questphone.ui.screens.account.LoginStep
 import neth.iecal.questphone.ui.screens.account.SignUpScreen
 import neth.iecal.questphone.utils.Supabase
 import neth.iecal.questphone.utils.isOnline
-import neth.iecal.questphone.utils.triggerProfileSync
 import neth.iecal.questphone.utils.triggerQuestSync
 import neth.iecal.questphone.utils.triggerStatsSync
 
@@ -65,7 +64,7 @@ fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostCon
                 if (context.isOnline()) {
                     triggerQuestSync(context.applicationContext, true)
                     triggerStatsSync(context, true)
-                    triggerProfileSync(context)
+//                    triggerProfileSync(context)
                 }
             }
         }

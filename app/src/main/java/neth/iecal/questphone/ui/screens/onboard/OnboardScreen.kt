@@ -57,6 +57,7 @@ import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.MainActivity
 import neth.iecal.questphone.services.AppBlockerService
+import neth.iecal.questphone.ui.screens.account.SetupProfileScreen
 import neth.iecal.questphone.utils.checkNotificationPermission
 import neth.iecal.questphone.utils.checkUsagePermission
 import neth.iecal.questphone.utils.reminder.NotificationScheduler
@@ -368,6 +369,10 @@ fun OnBoardScreen(navController: NavHostController) {
 
             }
         ),
+
+        OnboardingContent.CustomPage {
+            SetupProfileScreen()
+        },
             OnboardingContent.CustomPage {
                 SelectApps()
             }

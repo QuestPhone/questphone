@@ -59,24 +59,6 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
     val progressState = remember { mutableFloatStateOf(if (isQuestComplete.value) 1f else 0f) }
     val userInfo = getUserInfo(LocalContext.current)
 
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = permissionManager.requestPermissionContract,
-        onResult = { granted ->
-            hasRequiredPermissions.value = granted.containsAll(permissionManager.permissions)
-            if (hasRequiredPermissions.value) {
-                scope.launch {
-                    fetchHealthData(healthManager, healthQuest.type) { data ->
-                        currentHealthData.doubleValue = data
-                        // Update progress based on nextGoal
-                        progressState.floatValue =
-                            (data / healthQuest.nextGoal).toFloat().coerceIn(0f, 1f)
-                    }
-                }
-            }
-        }
-    )
-
     fun onQuestCompleted(){
         healthQuest.incrementGoal()
         commonQuestInfo.quest_json = json.encodeToString(healthQuest)
@@ -90,14 +72,37 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                 StatsInfo(
                     id = UUID.randomUUID().toString(),
                     quest_id = commonQuestInfo.id,
-                    user_id = User.userInfo.id,
-
-                )
+                    user_id = User.userInfo.userId,
+                    )
             )
         }
         checkForRewards(commonQuestInfo)
         isQuestComplete.value = true
     }
+
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = permissionManager.requestPermissionContract,
+        onResult = { granted ->
+            hasRequiredPermissions.value = granted.containsAll(permissionManager.permissions)
+            if (hasRequiredPermissions.value) {
+                scope.launch {
+                    fetchHealthData(healthManager, healthQuest.type) { data ->
+                        currentHealthData.doubleValue = data
+                        // Update progress based on nextGoal
+                        progressState.floatValue =
+                            (data / healthQuest.nextGoal).toFloat().coerceIn(0f, 1f)
+                        if(data>=healthQuest.nextGoal){
+                            if(!isQuestComplete.value){
+                                onQuestCompleted()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
+
 
     LaunchedEffect(Unit) {
         val isHealthConnectAvailable = healthManager.isAvailable()
@@ -110,21 +115,18 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
         if (!hasRequiredPermissions.value) {
 //            permissionLauncher.launch(permissionManager.permissions)
         } else {
-            if (!isQuestComplete.value) {
-                fetchHealthData(healthManager, healthQuest.type) { data ->
-                    currentHealthData.doubleValue = data
-                    progressState.floatValue =
-                        (data / healthQuest.nextGoal).toFloat().coerceIn(0f, 1f)
+            fetchHealthData(healthManager, healthQuest.type) { data ->
+                currentHealthData.doubleValue = data
+                progressState.floatValue =
+                    (data / healthQuest.nextGoal).toFloat().coerceIn(0f, 1f)
+                if(data>=healthQuest.nextGoal){
+                    if(!isQuestComplete.value){
+                        onQuestCompleted()
+                    }
                 }
-
             }
         }
 
-        if (progressState.floatValue == 1f) {
-            if(!isQuestComplete.value){
-                onQuestCompleted()
-            }
-        }
     }
 
 
@@ -172,10 +174,21 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
 
                 if (isQuestComplete.value) {
                     Text(
+                        text = "Today Progress: ${
+                            String.format(
+                                "%.3f",
+                                currentHealthData.doubleValue
+                            )
+                        }",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
                         text = "Next Goal: ${healthQuest.nextGoal} ${healthQuest.type.unit}",
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
+
                 } else {
                     Text(
                         text = "Current Progress: ${

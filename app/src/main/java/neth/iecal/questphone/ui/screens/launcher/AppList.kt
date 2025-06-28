@@ -156,7 +156,8 @@ fun AppList(navController: NavController) {
                     } catch (_: Exception) {
                         selectedPackage.value
                     },
-                    navController = navController
+                    navController = navController,
+                    pkgName = selectedPackage.value
                 )
             }
         }

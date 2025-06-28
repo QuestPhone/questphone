@@ -77,7 +77,7 @@ fun AiSnapQuestView(
                 StatsInfo(
                     id = UUID.randomUUID().toString(),
                     quest_id = commonQuestInfo.id,
-                    user_id = User.userInfo.id,
+                    user_id = User.userInfo.userId,
                 )
             )
         }

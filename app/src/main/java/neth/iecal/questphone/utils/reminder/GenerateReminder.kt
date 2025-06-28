@@ -17,7 +17,7 @@ import java.util.Locale
 fun GenerateReminders(context: Context, quest: CommonQuestInfo) {
     val dao = ReminderDatabaseProvider.getInstance(context).reminderDao()
     val reminderClient = ReminderClient()
-    val userId = User.userInfo.id
+    val userId = User.userInfo.userId
 
     val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
     val now = Calendar.getInstance()
