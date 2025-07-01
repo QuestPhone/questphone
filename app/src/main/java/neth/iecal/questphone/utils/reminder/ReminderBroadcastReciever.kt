@@ -10,9 +10,11 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable.isCompleted
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.MainActivity
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
+import neth.iecal.questphone.utils.getCurrentDate
 
 /**
  * A BroadcastReceiver that receives intents from AlarmManager when a scheduled reminder fires.
@@ -28,20 +30,24 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             val title = intent?.getStringExtra(NotificationScheduler.EXTRA_REMINDER_TITLE) ?: "Reminder"
             val description = intent?.getStringExtra(NotificationScheduler.EXTRA_REMINDER_DESCRIPTION) ?: "You have a new reminder."
 
-            if (reminderId.isNotEmpty()) {
-                val dao = QuestDatabaseProvider.getInstance(context).questDao()
-                CoroutineScope(Dispatchers.Default).launch {
-                    val quest = dao.getQuestById(reminderId)
-                    if(quest!=null){
-                        generateReminders(context,quest)
-                    }
+            val dao = QuestDatabaseProvider.getInstance(context).questDao()
+            CoroutineScope(Dispatchers.Default).launch {
+                val quest = dao.getQuestById(reminderId)
+                if(quest!=null){
+                    val isNotCompleted = quest.last_completed_on != getCurrentDate()
+                    generateReminders(context,quest)
+                    if (reminderId.isNotEmpty()) {
+                        if(isCompleted) {
+                            // Display the notification using the extracted details
+                            showNotification(it, reminderId.hashCode(), title, description)
+                            Log.d("ReminderBroadcastReceiver", "Received alarm for reminder ID: $reminderId, Title: '$title'")
+                        }
+                        } else {
+                            Log.e("ReminderBroadcastReceiver", "Received intent with an invalid reminder ID.")
+                        }
                 }
-                // Display the notification using the extracted details
-                showNotification(it, reminderId.hashCode(), title, description)
-                Log.d("ReminderBroadcastReceiver", "Received alarm for reminder ID: $reminderId, Title: '$title'")
-            } else {
-                Log.e("ReminderBroadcastReceiver", "Received intent with an invalid reminder ID.")
             }
+
         }
     }
 

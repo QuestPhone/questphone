@@ -11,6 +11,7 @@ import neth.iecal.questphone.data.ReminderDatabaseProvider
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.utils.Supabase
 import neth.iecal.questphone.utils.ai.ReminderClient
+import neth.iecal.questphone.utils.getCurrentDate
 import neth.iecal.questphone.utils.getTimeRemainingDescription
 import neth.iecal.questphone.utils.unixToReadable
 import java.io.BufferedReader
@@ -41,6 +42,9 @@ fun generateReminders(context: Context, quest: CommonQuestInfo) {
             count = existing.count
         }
 
+        if(quest.last_completed_on == getCurrentDate()){
+            count = 3
+        }
         val tooLateToday = currentHour >= endHour
 
         // --- If already hit limit or it's too late, schedule for next day ---
@@ -128,7 +132,7 @@ fun generateReminders(context: Context, quest: CommonQuestInfo) {
 
         reminderClient.generateReminder(getTimeRemainingDescription(endHour), quest.id, userId) { result ->
             val data = result.getOrDefault(
-                ReminderClient.ReminderResult(quest.title, "Time to do this quest")
+                ReminderClient.ReminderResult(quest.title, getRandomReminderLine(context).toString())
             )
 
             val updated = ReminderData(

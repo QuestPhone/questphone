@@ -1,6 +1,7 @@
 package neth.iecal.questphone.ui.screens.quest.setup
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -119,6 +120,7 @@ fun SetIntegration(navController: NavHostController) {
 //                                                    inclusive = true
 //                                                }
 //                                            }
+                                            Log.d("anonymous",User.userInfo.isAnonymous.toString())
                                             if(!item.isLoginRequired && !User.userInfo.isAnonymous){
                                                 navController.navigate("${item.name}/ntg") {
                                                     popUpTo(navController.currentDestination?.route ?: "") {
