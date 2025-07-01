@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         val data = getSharedPreferences("onboard", MODE_PRIVATE)
+        val notificationScheduler = NotificationScheduler(applicationContext)
 
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}
@@ -67,7 +68,7 @@ class MainActivity : ComponentActivity() {
                     startActivity(intent)
                     finish()
                 }
-                val notificationScheduler = NotificationScheduler(applicationContext)
+
                 notificationScheduler.createNotificationChannel()
                 notificationScheduler.reloadAllReminders()
             }
@@ -93,6 +94,7 @@ class MainActivity : ComponentActivity() {
                     )
                     LaunchedEffect(Unit) {
                         unSyncedQuestItems.collect {
+                            notificationScheduler.reloadAllReminders()
                             if (context.isOnline() && !User.userInfo.isAnonymous) {
                                 triggerQuestSync(applicationContext)
                             }

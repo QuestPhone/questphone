@@ -119,7 +119,7 @@ fun SetIntegration(navController: NavHostController) {
 //                                                    inclusive = true
 //                                                }
 //                                            }
-                                            if(!item.isLoginRequired || !User.userInfo.isAnonymous){
+                                            if(!item.isLoginRequired && !User.userInfo.isAnonymous){
                                                 navController.navigate("${item.name}/ntg") {
                                                     popUpTo(navController.currentDestination?.route ?: "") {
                                                         inclusive = true
