@@ -9,8 +9,13 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import neth.iecal.questphone.data.ReminderData
 import neth.iecal.questphone.data.ReminderDatabaseProvider
+import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import java.util.Date
 
 /**
@@ -195,5 +200,44 @@ class NotificationScheduler(private val context: Context) {
     fun getPersistedReminders(context: Context): List<ReminderData> {
         val dao = ReminderDatabaseProvider.getInstance(context).reminderDao()
         return dao.getAll()
+    }
+    
+    /**
+     * Resets reminders that may have been deleted + generate reminders for the quests that have not been generated
+     */
+    fun reloadAllReminders(){
+        Log.d("Rescheduling reminders", " Attempting to reschedule reminders...")
+        createNotificationChannel() // Ensure notification channel is recreated/exists
+
+        val reminderDao = ReminderDatabaseProvider.getInstance(context).reminderDao()
+        val questDao = QuestDatabaseProvider.getInstance(context).questDao()
+
+        CoroutineScope(Dispatchers.Default).launch {
+            val persistedReminders: List<ReminderData> = reminderDao.getAllUpcoming()
+
+            val allQuests = questDao.getAllQuests().first()
+
+            val allQuestIds = allQuests.map { it.id }.toSet()
+
+            allQuestIds.forEach {
+                if(it !in persistedReminders.map { it.quest_id }){
+                    val quest = questDao.getQuestById(it)
+                    if(quest != null){
+                        generateReminders(context,quest)
+                    }
+                }
+            }
+            persistedReminders.forEach {
+                if(it.timeMillis < System.currentTimeMillis()){
+                    val quest = questDao.getQuestById(it.quest_id)
+                    if(quest != null){
+                        generateReminders(context,quest)
+                    }
+                }
+                scheduleReminder(it)
+            }
+            Log.d("Rescheduling reminders", "Finished rescheduling ${persistedReminders.size} reminders.")
+
+        }
     }
 }

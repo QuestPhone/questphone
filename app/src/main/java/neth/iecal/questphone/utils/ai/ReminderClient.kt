@@ -22,8 +22,8 @@ class ReminderClient {
 
     companion object {
         private const val TAG = "ReminderClient"
-                private const val BASE_URL = "http://34.10.142.128:80"
-//        private const val BASE_URL = "http://localhost:8000"
+//                private const val BASE_URL = "http://34.10.142.128:80"
+        private const val BASE_URL = "http://localhost:8000"
     }
 
     data class ReminderResult(
@@ -50,7 +50,7 @@ class ReminderClient {
 
         // Build the request
         val request = Request.Builder()
-            .url("$BASE_URL/validate-task")
+            .url("$BASE_URL/generate-reminder")
             .header("Authorization", "Bearer $token")
             .post(requestBody)
             .build()

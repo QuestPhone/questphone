@@ -4,12 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import neth.iecal.questphone.data.ReminderData
-import neth.iecal.questphone.data.ReminderDatabaseProvider
 
 /**
  * A BroadcastReceiver that listens for device boot completion and package replacement events.
@@ -27,20 +22,8 @@ class BootReceiver : BroadcastReceiver() {
             context?.let {
                 Log.d("BootReceiver", "Device booted or package replaced. Attempting to reschedule reminders...")
                 val scheduler = NotificationScheduler(it)
-                scheduler.createNotificationChannel() // Ensure notification channel is recreated/exists
-
-                val reminderDao = ReminderDatabaseProvider.getInstance(context).reminderDao()
-
-                CoroutineScope(Dispatchers.Default).launch {
-                    val persistedReminders: List<ReminderData> = reminderDao.getAllUpcoming()
-                    persistedReminders.forEach {
-                        scheduler.scheduleReminder(it)
-                    }
-                    Log.d("BootReceiver", "Finished rescheduling ${persistedReminders.size} reminders.")
-
-                }
+                scheduler.reloadAllReminders()
             }
         }
     }
-
 }

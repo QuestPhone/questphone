@@ -40,12 +40,6 @@ data class UserInfo(
     @Transient
     var isAnonymous : Boolean = false,
 ){
-    @Transient
-    val userId: String = if (isAnonymous){
-            ""
-        } else {
-            Supabase.supabase.auth.currentUserOrNull()?.id ?: ""
-        }
     fun getFirstName(): String {
         return full_name.trim().split(" ").firstOrNull() ?: ""
     }
@@ -71,6 +65,19 @@ object User {
     fun init(context: Context) {
         appContext = context.applicationContext
         userInfo = getUserInfo(appContext)
+    }
+
+    fun getUserId(): String {
+        return if (userInfo.isAnonymous){
+            ""
+        } else {
+            val sp = appContext.getSharedPreferences("authtoke", Context.MODE_PRIVATE)
+            var id = sp.getString("key",null)
+            if(id!= null) return id
+            id = Supabase.supabase.auth.currentUserOrNull()!!.id
+            sp.edit { putString("key",id) }
+            Supabase.supabase.auth.currentUserOrNull()!!.id
+        }
     }
 }
 

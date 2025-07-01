@@ -67,9 +67,9 @@ class MainActivity : ComponentActivity() {
                     startActivity(intent)
                     finish()
                 }
-
                 val notificationScheduler = NotificationScheduler(applicationContext)
                 notificationScheduler.createNotificationChannel()
+                notificationScheduler.reloadAllReminders()
             }
             LauncherTheme {
                 Surface {

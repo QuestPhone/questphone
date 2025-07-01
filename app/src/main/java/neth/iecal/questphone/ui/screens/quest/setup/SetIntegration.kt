@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.IntegrationId
+import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.ui.screens.tutorial.QuestTutorial
 import neth.iecal.questphone.utils.VibrationHelper
 
@@ -113,20 +114,20 @@ fun SetIntegration(navController: NavHostController) {
                                     .height(100.dp)
                                     .combinedClickable(
                                         onClick = {
-                                            navController.navigate("${item.name}/ntg") {
-                                                popUpTo(navController.currentDestination?.route ?: "") {
-                                                    inclusive = true
-                                                }
-                                            }
-//                                            if(!item.isLoginRequired){
-//                                                navController.navigate("${item.name}/ntg") {
-//                                                    popUpTo(navController.currentDestination?.route ?: "") {
-//                                                        inclusive = true
-//                                                    }
+//                                            navController.navigate("${item.name}/ntg") {
+//                                                popUpTo(navController.currentDestination?.route ?: "") {
+//                                                    inclusive = true
 //                                                }
-//                                            }else{
-//                                                showLoginRequiredDialog.value = true
 //                                            }
+                                            if(!item.isLoginRequired || !User.userInfo.isAnonymous){
+                                                navController.navigate("${item.name}/ntg") {
+                                                    popUpTo(navController.currentDestination?.route ?: "") {
+                                                        inclusive = true
+                                                    }
+                                                }
+                                            }else{
+                                                showLoginRequiredDialog.value = true
+                                            }
                                         },
                                         onLongClick = {
                                             VibrationHelper.vibrate(100)

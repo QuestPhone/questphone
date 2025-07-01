@@ -72,7 +72,7 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                 StatsInfo(
                     id = UUID.randomUUID().toString(),
                     quest_id = commonQuestInfo.id,
-                    user_id = User.userInfo.userId,
+                    user_id = User.getUserId(),
                     )
             )
         }

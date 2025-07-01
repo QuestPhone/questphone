@@ -14,8 +14,11 @@ object Supabase {
         createSupabaseClient(url, apiKey) {
             defaultSerializer = KotlinXSerializer(json)
             install(Auth) {
+
                 host = "signup"
                 scheme = "blankphone"
+                autoSaveToStorage = true
+                autoLoadFromStorage = true
 //                defaultExternalAuthAction = ExternalAuthAction.CustomTabs()
             }
             install(Storage)

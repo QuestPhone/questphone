@@ -33,7 +33,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
                 CoroutineScope(Dispatchers.Default).launch {
                     val quest = dao.getQuestById(reminderId)
                     if(quest!=null){
-                        GenerateReminders(context,quest)
+                        generateReminders(context,quest)
                     }
                 }
                 // Display the notification using the extracted details
@@ -80,7 +80,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             .setPriority(NotificationCompat.PRIORITY_HIGH) // Set the priority (visual prominence)
             .setCategory(NotificationCompat.CATEGORY_REMINDER) // Categorize as a reminder
             .setContentIntent(pendingIntent) // Set the action when notification is clicked
-            .setAutoCancel(true) // Automatically dismisses the notification when tapped by the user
+            .setAutoCancel(false) // Automatically dismisses the notification when tapped by the user
             .apply {
                 // Optional: Add action buttons to the notification (e.g., "Mark as Done", "Snooze")
                 // Example for a "Mark as Done" action:

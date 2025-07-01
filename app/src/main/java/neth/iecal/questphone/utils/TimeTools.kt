@@ -12,7 +12,9 @@ import kotlinx.datetime.toLocalDateTime
 import neth.iecal.questphone.data.DayOfWeek
 import java.text.SimpleDateFormat
 import java.time.Duration
+import java.time.Instant.ofEpochSecond
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
@@ -254,4 +256,11 @@ fun getTimeRemainingDescription(endHour: Int): String {
             }.trim()
         }
     }
+}
+
+fun unixToReadable(unixTime: Long, inMillis: Boolean = false, pattern: String = "yyyy-MM-dd HH:mm:ss"): String {
+    val instant = if (inMillis) java.time.Instant.ofEpochMilli(unixTime) else ofEpochSecond(unixTime)
+    val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+    val formatter = DateTimeFormatter.ofPattern(pattern)
+    return dateTime.format(formatter)
 }
