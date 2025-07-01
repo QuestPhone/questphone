@@ -89,7 +89,7 @@ fun TermsScreen(isTosAccepted: MutableState<Boolean>) {
                 onClick = {
                     context.startActivity(
                         Intent(Intent.ACTION_VIEW).apply {
-                            data = "https://questphone.github.io/website/terms".toUri()
+                            data = "https://questphone.app/terms".toUri()
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         }
                     )

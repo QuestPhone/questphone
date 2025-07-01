@@ -45,7 +45,11 @@ fun ScheduleExactAlarmScreen(isOnBoardingScreen : Boolean= true) {
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            hasPermission.value = Settings.canDrawOverlays(context)
+            hasPermission.value = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                notificationScheduler.alarmManager.canScheduleExactAlarms()
+            }else{
+                true
+            }
         }
     }
     Column(

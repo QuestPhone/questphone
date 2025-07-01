@@ -11,7 +11,7 @@
     },
     "animations": {
       "bounceHeight": 0.6,
-      "bounceSpeed": 0.9,
+      "bounceSpeed": 0.7,
       "extraAnimations": []
     }
   },

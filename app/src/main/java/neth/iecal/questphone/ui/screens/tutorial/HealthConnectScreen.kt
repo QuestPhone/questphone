@@ -157,7 +157,7 @@ fun HealthConnectScreen(onGetStarted: () -> Unit, onSkip: () -> Unit) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Your Privacy Promise",
+                            text = "Privacy Disclosure",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -166,7 +166,13 @@ fun HealthConnectScreen(onGetStarted: () -> Unit, onSkip: () -> Unit) {
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = "• Your data stays on your device\n• You control what data is shared\n• You can revoke access at any time\n• We never sell your personal information",
+                            text = """
+                            • All your health data stays on your device
+                            • We only store the dates when you complete goals — not your actual health data
+                            • You control what data is accessed and for which challenges
+                            • You can revoke permissions or access at any time
+                            • We never upload, share, or sell your personal information
+                            """.trimIndent(),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             textAlign = TextAlign.Center,
@@ -206,7 +212,7 @@ fun HealthConnectScreen(onGetStarted: () -> Unit, onSkip: () -> Unit) {
                 }
 
                 Text(
-                    text = "By continuing, you agree to our Terms of Service and Privacy Policy regarding health data usage.",
+                    text = "By continuing, you give consent to use health data for challenge verification & statistics as explained above." ,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
