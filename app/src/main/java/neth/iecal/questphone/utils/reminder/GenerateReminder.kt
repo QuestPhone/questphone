@@ -43,12 +43,62 @@ fun generateReminders(context: Context, quest: CommonQuestInfo) {
         }
 
         if(quest.last_completed_on == getCurrentDate()){
-            count = 3
+            count = 3 // This seems to mark it as "done" for today, preventing more reminders today.
         }
-        val tooLateToday = currentHour >= endHour
 
-        // --- If already hit limit or it's too late, schedule for next day ---
-        if (count >= 2 || tooLateToday) {
+        // Flag to determine if we should schedule for tomorrow
+        var shouldScheduleTomorrow = false
+
+        val tooLateTodayByTimeRange = currentHour >= endHour
+
+        // --- Check conditions that directly lead to scheduling for tomorrow ---
+        if (count >= 2 || tooLateTodayByTimeRange) {
+            shouldScheduleTomorrow = true
+        }
+
+        // --- Otherwise, try to schedule for today ---
+        var nextHourToday: Int = -1 // Initialize with a value that indicates it's not set yet
+        var randomMinuteToday: Int = 0
+
+        if (!shouldScheduleTomorrow) { // Only calculate for today if we aren't already scheduling for tomorrow
+            when (count) {
+                0 -> {
+                    // First reminder for today: try to schedule in the morning if possible, otherwise slightly after current hour
+                    val morningCutoffHour = 10 // e.g., until 10 AM is considered morning
+                    if (currentHour < morningCutoffHour) {
+                        nextHourToday = Random.nextInt(maxOf(currentHour + 1, startHour, 7), minOf(morningCutoffHour, endHour)) // Random hour between current+1 (or 7am) and morning cutoff
+                        randomMinuteToday = Random.nextInt(0, 60)
+                    } else {
+                        // If already past morning, schedule for currentHour + 1 or startHour
+                        nextHourToday = maxOf(currentHour + 1, startHour)
+                        randomMinuteToday = Random.nextInt(0, 60)
+                    }
+                }
+                1 -> {
+                    // Second reminder for today: schedule a bit later, but before endHour
+                    nextHourToday = minOf(endHour - 1, currentHour + 2)
+                    randomMinuteToday = Random.nextInt(0, 60)
+                }
+                // No 'else' needed here, as count >= 2 would set shouldScheduleTomorrow = true
+            }
+
+            // --- Check if the calculated 'today' time falls into sleep hours ---
+            // If it does, we need to schedule for tomorrow instead
+            if (nextHourToday != -1 && (nextHourToday in 22..23 || nextHourToday < 7)) {
+                Log.d("Reminder", "Calculated today's reminder ($nextHourToday) falls in sleep hours. Scheduling for tomorrow instead.")
+                shouldScheduleTomorrow = true
+            }
+
+            // If after calculating for today, and not deciding to go to tomorrow, ensure it's not actually too late
+            // This is a safety check, as the `tooLateTodayByTimeRange` handles most cases.
+            if (!shouldScheduleTomorrow && nextHourToday != -1 && nextHourToday >= endHour) {
+                Log.d("Reminder", "Calculated today's reminder ($nextHourToday) is after quest endHour. Scheduling for tomorrow instead.")
+                shouldScheduleTomorrow = true
+            }
+        }
+
+
+        if (shouldScheduleTomorrow) {
             val tomorrow = Calendar.getInstance().apply { add(Calendar.DATE, 1) }
             scheduledDate = sdf.format(tomorrow.time)
 
@@ -85,74 +135,38 @@ fun generateReminders(context: Context, quest: CommonQuestInfo) {
 
                 NotificationScheduler(context).scheduleReminder(tData)
             }
-            return@launch
-        }
+        } else {
+            // --- Otherwise, schedule for today (if shouldScheduleTomorrow is false) ---
+            val scheduledTime = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, nextHourToday)
+                set(Calendar.MINUTE, randomMinuteToday)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
 
-        // --- Otherwise, schedule for today ---
-        val nextHourToday: Int
-        val randomMinuteToday: Int
+            reminderClient.generateReminder(getTimeRemainingDescription(endHour), quest.id, userId) { result ->
+                val data = result.getOrDefault(
+                    ReminderClient.ReminderResult(quest.title, getRandomReminderLine(context).toString())
+                )
 
-        when (count) {
-            0 -> {
-                // First reminder for today: try to schedule in the morning if possible, otherwise slightly after current hour
-                val morningCutoffHour = 10 // e.g., until 10 AM is considered morning
-                if (currentHour < morningCutoffHour) {
-                    nextHourToday = Random.nextInt(maxOf(currentHour + 1, startHour, 7), minOf(morningCutoffHour, endHour)) // Random hour between current+1 (or 7am) and morning cutoff
-                    randomMinuteToday = Random.nextInt(0, 60)
-                } else {
-                    // If already past morning, schedule for currentHour + 1 or startHour
-                    nextHourToday = maxOf(currentHour + 1, startHour)
-                    randomMinuteToday = Random.nextInt(0, 60)
+                val updated = ReminderData(
+                    quest_id = quest.id,
+                    timeMillis = scheduledTime,
+                    title = data.title,
+                    description = data.description,
+                    date = scheduledDate,
+                    count = count + 1
+                )
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    dao.upsertReminder(updated)
+                    NotificationScheduler(context).scheduleReminder(updated)
                 }
+                Log.d("Reminder Set for $userId at ", unixToReadable(updated.timeMillis))
             }
-            1 -> {
-                // Second reminder for today: schedule a bit later, but before endHour
-                // Option 1: A few hours after the first reminder's typical time (if available in DB)
-                // For simplicity here, let's just schedule currentHour + 2 or minOf(endHour - 1)
-                nextHourToday = minOf(endHour - 1, currentHour + 2)
-                randomMinuteToday = Random.nextInt(0, 60)
-            }
-            else -> return@launch // Should not happen with count >= 2 handled above
-        }
-
-        // Skip scheduling during explicit sleep hours (e.g., after 22:00 and before 7:00)
-        // This check should be applied to the *final calculated* nextHourToday
-        if (nextHourToday in 22..23 || nextHourToday < 7) {
-            Log.d("Reminder", "Skipping reminder as it falls in sleep hours: $nextHourToday")
-            return@launch
-        }
-
-
-        val scheduledTime = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, nextHourToday)
-            set(Calendar.MINUTE, randomMinuteToday)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
-
-        reminderClient.generateReminder(getTimeRemainingDescription(endHour), quest.id, userId) { result ->
-            val data = result.getOrDefault(
-                ReminderClient.ReminderResult(quest.title, getRandomReminderLine(context).toString())
-            )
-
-            val updated = ReminderData(
-                quest_id = quest.id,
-                timeMillis = scheduledTime,
-                title = data.title,
-                description = data.description,
-                date = scheduledDate,
-                count = count + 1
-            )
-
-            CoroutineScope(Dispatchers.IO).launch {
-                dao.upsertReminder(updated)
-                NotificationScheduler(context).scheduleReminder(updated)
-            }
-            Log.d("Reminder Set for $userId at ", unixToReadable(updated.timeMillis))
         }
     }
 }
-
 
 
 fun getRandomReminderLine(context: Context): String? {

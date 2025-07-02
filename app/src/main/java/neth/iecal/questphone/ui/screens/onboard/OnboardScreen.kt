@@ -280,6 +280,7 @@ fun OnBoardScreen(navController: NavHostController) {
         isTosAccepted.value = tosp.getBoolean("isAccepted",false)
     }
     val isNextEnabledLogin = remember {mutableStateOf(false)}
+    val isNextEnabledSetupProfile = remember {mutableStateOf(false)}
     val onboardingPages = mutableListOf(
 
             OnboardingContent.CustomPage(
@@ -370,8 +371,8 @@ fun OnBoardScreen(navController: NavHostController) {
             }
         ),
 
-        OnboardingContent.CustomPage {
-            SetupProfileScreen()
+        OnboardingContent.CustomPage(isNextEnabled =  isNextEnabledSetupProfile) {
+            SetupProfileScreen(isNextEnabledSetupProfile)
         },
             OnboardingContent.CustomPage {
                 SelectApps()

@@ -29,6 +29,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,7 +66,7 @@ import java.io.InputStream
 import java.util.Base64
 
 @Composable
-fun SetupProfileScreen() {
+fun SetupProfileScreen(isNextEnabledSetupProfile: MutableState<Boolean> = mutableStateOf(false)) {
     var name by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
 
@@ -93,7 +94,10 @@ fun SetupProfileScreen() {
 
 
     LaunchedEffect(Unit) {
-        if(User.userInfo.isAnonymous) return@LaunchedEffect
+        if(User.userInfo.isAnonymous) {
+            isNextEnabledSetupProfile.value = false
+            return@LaunchedEffect
+        }
         val userId = Supabase.supabase.auth.currentUserOrNull()!!.id
 
         val profile = Supabase.supabase.from("profiles")
@@ -119,6 +123,7 @@ fun SetupProfileScreen() {
         name = User.userInfo.full_name
         username = User.userInfo.username
         isLoading = false
+        isNextEnabledSetupProfile.value = true
     }
 
     Box(
@@ -230,6 +235,7 @@ fun SetupProfileScreen() {
                             return@Button
                         }
                         coroutineScope.launch {
+                            isNextEnabledSetupProfile.value = true
                             val userId = Supabase.supabase.auth.currentUserOrNull()!!.id
                             if (isUsernameTaken(username, userId)) {
                                 errorMessage = "This username has already been taken"
@@ -274,6 +280,8 @@ fun SetupProfileScreen() {
                                 User.userInfo
                             )
                             isLoading = false
+                            isNextEnabledSetupProfile.value = true
+
                             isProfileSetupDone = true
                         }
                     },
