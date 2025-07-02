@@ -17,7 +17,7 @@ import neth.iecal.questphone.utils.fetchUrlContent
 fun QuestTutorial(url: String){
     val isLoading = remember { mutableStateOf(true) }
     var response  = remember { mutableStateOf("") }
-    LaunchedEffect(response.value) {
+    LaunchedEffect(Unit) {
         response.value = fetchUrlContent(url) ?: "Failed to Load [Site]($url)"
         isLoading.value = false
     }

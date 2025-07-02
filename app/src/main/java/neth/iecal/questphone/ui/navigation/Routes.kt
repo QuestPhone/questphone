@@ -21,6 +21,7 @@ sealed class Screen(val route: String) {
     data object SelectApps : Screen("select_apps/")
 
     data object TermsScreen : Screen("terms_screen")
+    data object SelectTemplates : Screen("templates_screen/")
 
 }
 

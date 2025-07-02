@@ -39,6 +39,7 @@ import neth.iecal.questphone.ui.screens.quest.RewardDialogMaker
 import neth.iecal.questphone.ui.screens.quest.ViewQuest
 import neth.iecal.questphone.ui.screens.quest.setup.SetIntegration
 import neth.iecal.questphone.ui.screens.quest.stats.specific.BaseQuestStatsView
+import neth.iecal.questphone.ui.screens.quest.templates.SelectFromTemplates
 import neth.iecal.questphone.ui.theme.LauncherTheme
 import neth.iecal.questphone.utils.isOnline
 import neth.iecal.questphone.utils.reminder.NotificationScheduler
@@ -175,6 +176,9 @@ class MainActivity : ComponentActivity() {
                             val id = backStackEntry.arguments?.getString("id")
 
                             BaseQuestStatsView(id!!, navController)
+                        }
+                        composable(Screen.SelectTemplates.route) {
+                            SelectFromTemplates()
                         }
                     }
                 }
