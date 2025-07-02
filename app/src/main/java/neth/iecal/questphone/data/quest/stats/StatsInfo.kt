@@ -70,6 +70,9 @@ interface StatsInfoDao {
     @Update
     suspend fun updateStats(statsInfo: StatsInfo)
 
+    @Query("DELETE FROM StatsInfo")
+    suspend fun deleteAll()
+
     @Query("SELECT * FROM StatsInfo WHERE quest_id = :id")
     fun getStatsByQuestId(id: String): Flow<List<StatsInfo>>
 

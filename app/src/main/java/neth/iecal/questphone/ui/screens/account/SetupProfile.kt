@@ -70,7 +70,7 @@ fun SetupProfileScreen(isNextEnabledSetupProfile: MutableState<Boolean> = mutabl
     var name by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
 
-    var isLoading by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
     var isProfileSetupDone by remember { mutableStateOf(false) }
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -95,7 +95,8 @@ fun SetupProfileScreen(isNextEnabledSetupProfile: MutableState<Boolean> = mutabl
 
     LaunchedEffect(Unit) {
         if(User.userInfo.isAnonymous) {
-            isNextEnabledSetupProfile.value = false
+            isNextEnabledSetupProfile.value = true
+            isLoading = false
             return@LaunchedEffect
         }
         val userId = Supabase.supabase.auth.currentUserOrNull()!!.id

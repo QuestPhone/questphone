@@ -1,11 +1,15 @@
-package neth.iecal.questphone.ui.screens.game
+package neth.iecal.questphone.ui.screens.account
 
+import android.app.Activity
+import android.content.Context.MODE_PRIVATE
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,10 +22,16 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -30,9 +40,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,10 +57,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.edit
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
+import neth.iecal.questphone.OnboardActivity
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.game.Category
 import neth.iecal.questphone.data.game.InventoryItem
@@ -56,8 +75,10 @@ import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.isBoosterActive
 import neth.iecal.questphone.data.game.useInventoryItem
 import neth.iecal.questphone.data.game.xpToLevelUp
+import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
 import neth.iecal.questphone.ui.screens.quest.stats.components.HeatMapChart
+import neth.iecal.questphone.utils.Supabase
 import neth.iecal.questphone.utils.formatNumber
 import neth.iecal.questphone.utils.formatRemainingTime
 import java.io.File
@@ -98,7 +119,7 @@ fun UserInfoScreen() {
     }
 
     Scaffold { innerPadding ->
-
+        Menu()
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -107,13 +128,19 @@ fun UserInfoScreen() {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Profile Header
-            Text(
-                text = "Profile",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
+            Row(
                 modifier = Modifier.padding(bottom = 32.dp)
-            )
+            ) {
+
+                // Profile Header
+                Text(
+                    text = "Profile",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.weight(1f))
+                Menu()
+            }
 
             // Avatar
             Box(
@@ -282,6 +309,100 @@ fun UserInfoScreen() {
                     }
                 }
 
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun Menu() {
+    var expanded by remember { mutableStateOf(false) }
+    var isLogoutInfoVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    IconButton(onClick = { expanded = true }) {
+        Icon(
+            imageVector = Icons.Default.MoreVert, // This is the 3-dot icon
+            contentDescription = "More Options"
+        )
+    }
+
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false }
+    ) {
+        DropdownMenuItem(
+            text = { Text("Log Out") },
+            onClick = {
+                isLogoutInfoVisible = true
+                expanded = false
+                // handle click
+            }
+        )
+    }
+
+    if(isLogoutInfoVisible) {
+        BasicAlertDialog(
+            {
+                isLogoutInfoVisible = false
+            }
+
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .width(IntrinsicSize.Min),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Are you sure you want to log out?",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                if (User.userInfo.isAnonymous) {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text =
+                            "You will lose all your quests, progress, stats and everything if you log out.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = {
+                        isLogoutInfoVisible = false
+                    }) {
+                        Text("Cancel")
+                    }
+                    TextButton(onClick = {
+                        isLogoutInfoVisible = false
+                        val data = context.getSharedPreferences("onboard", MODE_PRIVATE)
+                        data.edit { putBoolean("onboard", false) }
+                        val questdao = QuestDatabaseProvider.getInstance(context).questDao()
+                        val statsdao = StatsDatabaseProvider.getInstance(context).statsDao()
+                        CoroutineScope(Dispatchers.IO).launch {
+                            Supabase.supabase.auth.signOut()
+                            questdao.deleteAll()
+                            statsdao.deleteAll()
+                            withContext(Dispatchers.Main) {
+                                val intent = Intent(context, OnboardActivity::class.java)
+                                context.startActivity(intent)
+                            }
+                        }
+                        (context as Activity).finish()
+
+                    }) {
+                        Text("Log Out", color = Color.Red)
+                    }
+                }
             }
         }
     }

@@ -135,6 +135,9 @@ interface QuestDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(quests: List<CommonQuestInfo>)
 
+    @Query("DELETE FROM CommonQuestInfo")
+    suspend fun deleteAll()
+
     @Query("SELECT * FROM CommonQuestInfo WHERE title = :title")
     suspend fun getQuest(title: String): CommonQuestInfo?
 

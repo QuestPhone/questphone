@@ -27,8 +27,8 @@ import neth.iecal.questphone.services.AppBlockerService
 import neth.iecal.questphone.ui.navigation.Navigator
 import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.ui.navigation.SetupQuestScreen
+import neth.iecal.questphone.ui.screens.account.UserInfoScreen
 import neth.iecal.questphone.ui.screens.game.StoreScreen
-import neth.iecal.questphone.ui.screens.game.UserInfoScreen
 import neth.iecal.questphone.ui.screens.launcher.AppList
 import neth.iecal.questphone.ui.screens.launcher.HomeScreen
 import neth.iecal.questphone.ui.screens.onboard.SelectApps
@@ -63,10 +63,6 @@ class MainActivity : ComponentActivity() {
 
                 if(isUserOnboarded.value){
                     startForegroundService(Intent(this@MainActivity, AppBlockerService::class.java))
-                }else{
-                    val intent = Intent(this@MainActivity, OnboardActivity::class.java)
-                    startActivity(intent)
-                    finish()
                 }
 
                 notificationScheduler.createNotificationChannel()

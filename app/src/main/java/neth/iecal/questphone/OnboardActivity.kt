@@ -1,5 +1,6 @@
 package neth.iecal.questphone
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -30,6 +31,16 @@ class OnboardActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
+            val data = getSharedPreferences("onboard", MODE_PRIVATE)
+            val isUserOnboarded = remember {mutableStateOf(true)}
+            isUserOnboarded.value = data.getBoolean("onboard",false)
+            Log.d("onboard", isUserOnboarded.value.toString())
+
+            if(isUserOnboarded.value) {
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
 
             val context = LocalContext.current
 
