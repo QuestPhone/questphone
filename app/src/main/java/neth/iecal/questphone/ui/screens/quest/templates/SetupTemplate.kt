@@ -1,0 +1,575 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
+package neth.iecal.questphone.ui.screens.quest.templates
+
+import android.annotation.SuppressLint
+import android.util.Log
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import neth.iecal.questphone.R
+import neth.iecal.questphone.data.DayOfWeek
+import neth.iecal.questphone.data.game.User
+import neth.iecal.questphone.ui.screens.quest.setup.components.DateSelector
+import neth.iecal.questphone.utils.fetchUrlContent
+import neth.iecal.questphone.utils.json
+
+@Serializable
+data class TemplateVariable(
+    val name: String,
+    val type: String,
+    val label: String
+)
+
+@Serializable
+data class TemplateData(
+    val content: String,
+    val variables: List<TemplateVariable>,
+    val requirements: String
+)
+
+@SuppressLint("MutableCollectionMutableState")
+@Composable
+fun SetupTemplate(id: String) {
+    var response by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
+    var templateData by remember { mutableStateOf<TemplateData?>(null) }
+    var variableValues by remember { mutableStateOf(mutableMapOf<String, String>()) }
+    var showDialog by remember { mutableStateOf(false) }
+    var showSaveConfirmation by remember { mutableStateOf(false) }
+    var currentVariable by remember { mutableStateOf<TemplateVariable?>(null) }
+
+    // Check if all required variables are filled
+    val allVariablesFilled by remember {
+        derivedStateOf {
+            templateData?.variables?.all { variable ->
+                val value = variableValues[variable.name]
+                !value.isNullOrBlank() && value != "Not set"
+            } ?: false
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        response =
+            fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/templates/touch-grass.json")
+                ?: ""
+        isLoading = false
+    }
+
+    LaunchedEffect(response) {
+        if (response.isNotEmpty()) {
+            try {
+                val json = Json { ignoreUnknownKeys = true }
+                val data = json.decodeFromString<TemplateData>(response)
+                templateData = data
+                variableValues = data.variables.associate { it.name to "" }.toMutableMap()
+            } catch (e: Exception) {
+                Log.e("TemplateScreen", "Error parsing JSON: ${e.message}")
+            }
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Setup Template",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        },
+        floatingActionButton = {
+            if (!isLoading && templateData != null) {
+                FloatingActionButton(
+                    onClick = { showSaveConfirmation = true },
+                    containerColor = if (allVariablesFilled)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.outline,
+                    contentColor = if (allVariablesFilled)
+                        MaterialTheme.colorScheme.onPrimary
+                    else
+                        MaterialTheme.colorScheme.onSurface
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_check_24),
+                        contentDescription = "Save"
+                    )
+                }
+            }
+        }
+    ) { padding ->
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = 3.dp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Loading template...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        } else {
+            templateData?.let { data ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    // Info banner
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = "Click on the highlighted items to change values",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    // Template content
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 80.dp) // Space for FAB
+                    ) {
+                        ClickableTemplateText(
+                            content = data.content.replace("$\$username", User.userInfo.username),
+                            variables = data.variables,
+                            variableValues = variableValues,
+                            onVariableClick = { variable ->
+                                currentVariable = variable
+                                showDialog = true
+                            }
+                        )
+                    }
+                }
+            } ?: Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "Template not available",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Unable to load template data",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
+
+    // Variable edit dialog
+    if (showDialog && currentVariable != null) {
+        VariableEditDialog(
+            variable = currentVariable!!,
+            initialValue = variableValues[currentVariable!!.name] ?: "",
+            onDismiss = { showDialog = false },
+            onSave = { name, value ->
+                variableValues = variableValues.toMutableMap().also { it[name] = value }
+                showDialog = false
+            }
+        )
+    }
+
+    // Save confirmation dialog
+    if (showSaveConfirmation) {
+        SaveConfirmationDialog(
+            allVariablesFilled = allVariablesFilled,
+            unfilledCount = templateData?.variables?.count { variable ->
+                val value = variableValues[variable.name]
+                value.isNullOrBlank() || value == "Not set"
+            } ?: 0,
+            onDismiss = { showSaveConfirmation = false },
+            onConfirm = {
+                // Handle save logic here
+                showSaveConfirmation = false
+                // TODO: Implement actual save functionality
+            }
+        )
+    }
+}
+
+@Composable
+fun ClickableTemplateText(
+    content: String,
+    variables: List<TemplateVariable>,
+    variableValues: Map<String, String>,
+    onVariableClick: (TemplateVariable) -> Unit
+) {
+    val variableRegex = Regex("\\\$\\{([^}]+)\\}")
+
+    val annotatedString = buildAnnotatedString {
+        var lastIndex = 0
+        for (match in variableRegex.findAll(content)) {
+            if (match.range.first > lastIndex) {
+                append(content.substring(lastIndex, match.range.first))
+            }
+            val varName = match.groupValues[1]
+            val variable = variables.find { it.name == varName }
+            val value = variableValues[varName]
+            val displayText = if (!value.isNullOrBlank() && value != "Not set") {
+                value
+            } else {
+                "${variable?.label ?: varName}"
+            }
+
+            if (variable != null) {
+                pushStringAnnotation(tag = "VARIABLE", annotation = varName)
+                withStyle(
+                    style = SpanStyle(
+                        color = if (!value.isNullOrBlank() && value != "Not set")
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.SemiBold,
+                        textDecoration = TextDecoration.Underline,
+                        background = if (!value.isNullOrBlank() && value != "Not set")
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        else
+                            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                    )
+                ) {
+                    append(displayText)
+                }
+                pop()
+            } else {
+                append(match.value)
+            }
+            lastIndex = match.range.last + 1
+        }
+        if (lastIndex < content.length) {
+            append(content.substring(lastIndex))
+        }
+    }
+
+    ClickableText(
+        text = annotatedString,
+        style = MaterialTheme.typography.bodyLarge.copy(
+            color = MaterialTheme.colorScheme.onSurface,
+            lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.3
+        ),
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { offset ->
+            annotatedString.getStringAnnotations(tag = "VARIABLE", start = offset, end = offset)
+                .firstOrNull()?.let { annotation ->
+                    val variable = variables.find { it.name == annotation.item }
+                    if (variable != null) {
+                        onVariableClick(variable)
+                    }
+                }
+        }
+    )
+}
+
+@Composable
+fun VariableEditDialog(
+    variable: TemplateVariable,
+    initialValue: String,
+    onDismiss: () -> Unit,
+    onSave: (String, String) -> Unit
+) {
+    var textValue by remember { mutableStateOf(initialValue) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text(
+                    text = "Edit ${variable.label}",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+
+                when (variable.type) {
+                    "text" -> {
+                        OutlinedTextField(
+                            value = textValue,
+                            onValueChange = { textValue = it },
+                            label = { Text(variable.label) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = false,
+                            maxLines = 5,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                    }
+                    "date" -> {
+                        DateSelector("Date") {
+                            textValue = it
+                        }
+                    }
+                    "daysOfWeek" -> {
+
+                        Text(
+                            text = "Select days:",
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                        DaysOfWeekSelectorDialog(
+                            initialSelected = if(textValue.isEmpty()) emptySet() else json.decodeFromString<Set<DayOfWeek>>(textValue) ,
+                            onSelectionChanged = { selected ->
+                                textValue = json.encodeToString(selected)
+                            }
+                        )
+                    }
+                    else -> {
+                        OutlinedTextField(
+                            value = textValue,
+                            onValueChange = { textValue = it },
+                            label = { Text(variable.label) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Button(
+                        onClick = { onSave(variable.name, textValue.ifBlank { "Not set" }) },
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Save")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DaysOfWeekSelectorDialog(
+    initialSelected: Set<DayOfWeek>,
+    onSelectionChanged: (Set<DayOfWeek>) -> Unit
+) {
+    var selectedDays by remember { mutableStateOf(initialSelected) }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp)),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .heightIn(max = 200.dp)
+                .padding(8.dp)
+        ) {
+            items(DayOfWeek.entries) { day ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            selectedDays = if (selectedDays.contains(day)) selectedDays - day else selectedDays + day
+                            onSelectionChanged(selectedDays)
+                        }
+                        .padding(vertical = 8.dp, horizontal = 4.dp)
+                ) {
+                    Checkbox(
+                        checked = selectedDays.contains(day),
+                        onCheckedChange = null
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = day.name,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SaveConfirmationDialog(
+    allVariablesFilled: Boolean,
+    unfilledCount: Int,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                painter = painterResource(R.drawable.baseline_check_24),
+                contentDescription = null,
+                tint = if (allVariablesFilled)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.error
+            )
+        },
+        title = {
+            Text(
+                text = if (allVariablesFilled) "Save Template?" else "Incomplete Template",
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Text(
+                text = if (allVariablesFilled) {
+                    "All variables have been configured. Save this template configuration?"
+                } else {
+                    "You have $unfilledCount unfilled variable${if (unfilledCount != 1) "s" else ""}. " +
+                            "Are you sure you want to save with incomplete data?"
+                },
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = if (allVariablesFilled) {
+                    ButtonDefaults.buttonColors()
+                } else {
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                }
+            ) {
+                Text(if (allVariablesFilled) "Save" else "Save Anyway")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(16.dp)
+    )
+}

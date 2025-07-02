@@ -2,6 +2,7 @@ package neth.iecal.questphone.ui.screens.quest.setup.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -52,7 +53,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AutoDestruct(questInfoState: QuestInfoState) {
+fun DateSelector(title:String = "Auto Destroy",onSelected: (String)->Unit) {
     val haptic = LocalHapticFeedback.current
     var showDialog by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
@@ -77,7 +78,7 @@ fun AutoDestruct(questInfoState: QuestInfoState) {
         targetValue = if (expanded) 180f else 0f,
         animationSpec = tween(
             durationMillis = 300,
-            easing = androidx.compose.animation.core.FastOutSlowInEasing
+            easing = FastOutSlowInEasing
         ),
         label = "arrow_rotation"
     )
@@ -125,7 +126,7 @@ fun AutoDestruct(questInfoState: QuestInfoState) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Auto Destroy: " + if (selectedOption.value == options[0]) "Never" else selectedDate,
+                        text = "$title: " + if (selectedOption.value == options[0]) "Never" else selectedDate,
                         modifier = Modifier.padding(end = 24.dp)
                     )
                     Icon(
@@ -214,7 +215,7 @@ fun AutoDestruct(questInfoState: QuestInfoState) {
                                 if (option == "Select Date") {
                                     showDialog = true
                                 } else {
-                                    questInfoState.initialAutoDestruct = "9999-06-21"
+                                    onSelected("9999-06-21")
                                 }
                             },
                             color = Color.Transparent
@@ -269,8 +270,8 @@ fun AutoDestruct(questInfoState: QuestInfoState) {
                 TextButton(
                     onClick = {
                         showDialog = false
-                        questInfoState.initialAutoDestruct =
-                            selectedDate?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).toString()
+                        onSelected(
+                            selectedDate?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).toString())
                     },
                     modifier = Modifier.scale(buttonScale)
                 ) {
@@ -313,5 +314,12 @@ fun AutoDestruct(questInfoState: QuestInfoState) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun AutoDestruct(questInfoState: QuestInfoState){
+    DateSelector {
+        questInfoState.initialAutoDestruct = it
     }
 }

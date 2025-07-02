@@ -56,8 +56,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
+import androidx.navigation.NavController
 import kotlinx.serialization.Serializable
 import neth.iecal.questphone.data.IntegrationId
+import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.utils.fetchUrlContent
 import neth.iecal.questphone.utils.json
 
@@ -68,18 +70,18 @@ data class Activity(
     val requirements: String,
     val color: String,
     val integration: IntegrationId,
-    val category: String
+    val category: String,
+    val id: String
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectFromTemplates(
-    onCustomQuestClick: () -> Unit = {},
-    onActivitySelect: (Activity) -> Unit = {}
+    navController: NavController
 ) {
     var response by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
-    var activities by remember { mutableStateOf(emptyMap<String, Activity>()) }
+    var activities by remember { mutableStateOf(emptyList<Activity>()) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
 
@@ -88,14 +90,14 @@ fun SelectFromTemplates(
     // Get unique categories
     val categories by remember(activities) {
         derivedStateOf {
-            activities.values.map { it.category }.distinct().sorted()
+            activities.map { it.category }.distinct().sorted()
         }
     }
 
     // Filter activities based on search and category
     val filteredActivities by remember(activities, searchQuery, selectedCategory) {
         derivedStateOf {
-            activities.values.filter { activity ->
+            activities.filter { activity ->
                 val matchesSearch = searchQuery.isBlank() ||
                         activity.name.contains(searchQuery, ignoreCase = true) ||
                         activity.description.contains(searchQuery, ignoreCase = true) ||
@@ -170,9 +172,10 @@ fun SelectFromTemplates(
                         ) {
                             // Custom Quest Card
                             CustomQuestCard(
-                                onClick = onCustomQuestClick
+                                onClick = {
+                                    navController.navigate(Screen.AddNewQuest.route)
+                                }
                             )
-
                             Spacer(modifier = Modifier.height(16.dp))
 
                             // Search Bar
@@ -270,7 +273,9 @@ fun SelectFromTemplates(
                         ActivityCard(
                             activity = activity,
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            onClick = { onActivitySelect(activity) }
+                            onClick = {
+                                navController.navigate(Screen.SetupTemplate.route + activity.id)
+                            }
                         )
                     }
 
@@ -473,11 +478,11 @@ private fun ActivityCard(
     }
 }
 
-private fun parseActivitiesJson(jsonString: String): Map<String, Activity> {
+private fun parseActivitiesJson(jsonString: String): List<Activity>{
     return try {
-        json.decodeFromString<Map<String, Activity>>(jsonString)
+        json.decodeFromString<List<Activity>>(jsonString)
     } catch (e: Exception) {
         Log.e("SelectFromTemplates", "Failed to parse activities JSON", e)
-        emptyMap()
+        emptyList<Activity>()
     }
 }

@@ -1,5 +1,9 @@
 package neth.iecal.questphone.ui.screens.quest.stats.specific
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -59,7 +63,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
-import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -78,10 +81,10 @@ import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsInfo
-import neth.iecal.questphone.utils.Supabase
 import neth.iecal.questphone.utils.daysSince
 import neth.iecal.questphone.utils.formatHour
 import neth.iecal.questphone.utils.getStartOfWeek
+import neth.iecal.questphone.utils.json
 import neth.iecal.questphone.utils.toJavaDayOfWeek
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -522,6 +525,7 @@ fun CalendarSection(
 
 @Composable
 fun QuestDetailsCard(baseData: CommonQuestInfo, isQuestEditorInfoDialogVisible: MutableState<Boolean>, isQuestDeleterInfoDialogVisible: MutableState<Boolean>) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
@@ -607,6 +611,35 @@ fun QuestDetailsCard(baseData: CommonQuestInfo, isQuestEditorInfoDialogVisible: 
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
+                }
+
+            }
+
+
+            Spacer(Modifier.size(4.dp))
+
+            OutlinedButton(onClick = {
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText(baseData.title, json.encodeToString(baseData))
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(context, "Copied to Clipboard", Toast.LENGTH_SHORT).show()
+            }, modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.baseline_extension_24),
+                        contentDescription = "export metadata",
+                        modifier = Modifier
+                            .size(25.dp)
+                    )
+                    Text(
+                        text = "Copy Quest Json",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
 

@@ -121,7 +121,7 @@ fun SetIntegration(navController: NavHostController) {
 //                                                }
 //                                            }
                                             Log.d("anonymous",User.userInfo.isAnonymous.toString())
-                                            if(!item.isLoginRequired && !User.userInfo.isAnonymous){
+                                            if(!item.isLoginRequired || !User.userInfo.isAnonymous){
                                                 navController.navigate("${item.name}/ntg") {
                                                     popUpTo(navController.currentDestination?.route ?: "") {
                                                         inclusive = true
