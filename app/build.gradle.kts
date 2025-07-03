@@ -31,6 +31,7 @@ android {
 
         buildConfigField("String", "SUPABASE_URL", "\"${localProperties["SUPABASE_URL"]}\"")
         buildConfigField("String", "SUPABASE_API_KEY", "\"${localProperties["SUPABASE_API_KEY"]}\"")
+        buildConfigField("String", "API_URL", "\"${localProperties["API_URL"]}\"")
     }
 
     flavorDimensions += "distribution"

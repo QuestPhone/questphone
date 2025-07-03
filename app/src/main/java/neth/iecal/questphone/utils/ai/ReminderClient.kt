@@ -2,6 +2,7 @@ package neth.iecal.questphone.utils.ai
 
 
 import android.util.Log
+import neth.iecal.questphone.BuildConfig
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.MultipartBody
@@ -22,8 +23,7 @@ class ReminderClient {
 
     companion object {
         private const val TAG = "ReminderClient"
-                private const val BASE_URL = "http://34.10.142.128:80"
-//        private const val BASE_URL = "http://localhost:8000"
+        private const val BASE_URL = BuildConfig.API_URL
     }
 
     data class ReminderResult(
