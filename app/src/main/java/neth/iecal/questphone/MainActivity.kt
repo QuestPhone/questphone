@@ -183,7 +183,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("${Screen.SetupTemplate.route}{id}") { backStackEntry ->
                             val id = backStackEntry.arguments?.getString("id")
-                            SetupTemplate(id!!)
+                            SetupTemplate(id!!,navController)
                         }
                     }
                 }

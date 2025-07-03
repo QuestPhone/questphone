@@ -103,7 +103,8 @@ fun SelectFromTemplates(
                         activity.description.contains(searchQuery, ignoreCase = true) ||
                         activity.category.contains(searchQuery, ignoreCase = true)
 
-                val matchesCategory = selectedCategory == null || activity.category == selectedCategory
+                val matchesCategory =
+                    selectedCategory == null || activity.category == selectedCategory
 
                 matchesSearch && matchesCategory
             }
@@ -116,7 +117,9 @@ fun SelectFromTemplates(
     }
 
     LaunchedEffect(Unit) {
-        response = fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/all.json") ?: ""
+        response =
+            fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/all.json")
+                ?: ""
         isLoading = false
     }
 
@@ -142,176 +145,183 @@ fun SelectFromTemplates(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.primary
+                        // Custom Quest Card
+                        CustomQuestCard(
+                            onClick = {
+                                navController.navigate(Screen.AddNewQuest.route) {
+                                    popUpTo(navController.currentDestination?.route ?: "") {
+                                        inclusive = true
+                                    }
+                                }
+                            }
                         )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Search Bar
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = {
+                                Text(
+                                    text = "Search templates...",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Search",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            trailingIcon = {
+                                if (searchQuery.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = {
+                                            searchQuery = ""
+                                            keyboardController?.hide()
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Clear search",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Search
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onSearch = { keyboardController?.hide() }
+                            ),
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+
+                        // Category Filters
+                        if (categories.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                contentPadding = PaddingValues(horizontal = 0.dp)
+                            ) {
+                                item {
+                                    FilterChip(
+                                        onClick = { selectedCategory = null },
+                                        label = { Text("All") },
+                                        selected = selectedCategory == null,
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    )
+                                }
+
+                                items(categories) { category ->
+                                    FilterChip(
+                                        onClick = {
+                                            selectedCategory =
+                                                if (selectedCategory == category) null else category
+                                        },
+                                        label = { Text(category) },
+                                        selected = selectedCategory == category,
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Results count
                         Text(
-                            text = "Loading templates...",
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = "${filteredActivities.size} templates found",
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    item {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        ) {
-                            // Custom Quest Card
-                            CustomQuestCard(
-                                onClick = {
-                                    navController.navigate(Screen.AddNewQuest.route)
-                                }
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
 
-                            // Search Bar
-                            OutlinedTextField(
-                                value = searchQuery,
-                                onValueChange = { searchQuery = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = {
-                                    Text(
-                                        text = "Search templates...",
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = "Search",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                },
-                                trailingIcon = {
-                                    if (searchQuery.isNotEmpty()) {
-                                        IconButton(
-                                            onClick = {
-                                                searchQuery = ""
-                                                keyboardController?.hide()
-                                            }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Clear,
-                                                contentDescription = "Clear search",
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-                                },
-                                keyboardOptions = KeyboardOptions(
-                                    imeAction = ImeAction.Search
-                                ),
-                                keyboardActions = KeyboardActions(
-                                    onSearch = { keyboardController?.hide() }
-                                ),
-                                singleLine = true,
-                                shape = RoundedCornerShape(12.dp)
-                            )
-
-                            // Category Filters
-                            if (categories.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(12.dp))
-                                LazyRow(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    contentPadding = PaddingValues(horizontal = 0.dp)
-                                ) {
-                                    item {
-                                        FilterChip(
-                                            onClick = { selectedCategory = null },
-                                            label = { Text("All") },
-                                            selected = selectedCategory == null,
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        )
-                                    }
-
-                                    items(categories) { category ->
-                                        FilterChip(
-                                            onClick = {
-                                                selectedCategory = if (selectedCategory == category) null else category
-                                            },
-                                            label = { Text(category) },
-                                            selected = selectedCategory == category,
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        )
-                                    }
+                items(filteredActivities) { activity ->
+                    ActivityCard(
+                        activity = activity,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        onClick = {
+                            navController.navigate(Screen.SetupTemplate.route + activity.id) {
+                                popUpTo(navController.currentDestination?.route ?: "") {
+                                    inclusive = true
                                 }
                             }
+                        }
+                    )
+                }
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                if (filteredActivities.isEmpty() && !isLoading) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "No templates found",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "Try adjusting your search or filters",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
 
-                            // Results count
+                // Bottom padding
+                item {
+                    if (isLoading) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.primary
+                            )
                             Text(
-                                text = "${filteredActivities.size} templates found",
-                                style = MaterialTheme.typography.bodySmall,
+                                text = "Loading templates...",
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                    }
-
-                    items(filteredActivities) { activity ->
-                        ActivityCard(
-                            activity = activity,
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            onClick = {
-                                navController.navigate(Screen.SetupTemplate.route + activity.id)
-                            }
-                        )
-                    }
-
-                    if (filteredActivities.isEmpty() && !isLoading) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(32.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Text(
-                                        text = "No templates found",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
-                                        text = "Try adjusting your search or filters",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // Bottom padding
-                    item {
+                    }else {
                         Spacer(modifier = Modifier.height(16.dp))
+
                     }
                 }
             }
+
+
         }
     }
 }

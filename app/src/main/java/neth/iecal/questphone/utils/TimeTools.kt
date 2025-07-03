@@ -264,3 +264,18 @@ fun unixToReadable(unixTime: Long, inMillis: Boolean = false, pattern: String = 
     val formatter = DateTimeFormatter.ofPattern(pattern)
     return dateTime.format(formatter)
 }
+fun readableTimeRange(range: List<Int>): String {
+    val (start, end) = range
+    fun formatHour(h: Int) = when (h % 24) {
+        0 -> "12 am"
+        12 -> "12 pm"
+        in 1..11 -> "$h am"
+        else -> "${h - 12} pm"
+    }
+
+    return when {
+        start == 0 && end == 24 -> "entire day"
+        start == end -> "at ${formatHour(start)}"
+        else -> "${formatHour(start)} to ${formatHour(end)}"
+    }
+}

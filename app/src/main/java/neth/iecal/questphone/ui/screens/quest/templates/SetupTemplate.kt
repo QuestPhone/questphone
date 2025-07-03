@@ -50,10 +50,12 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -63,21 +65,44 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.DayOfWeek
 import neth.iecal.questphone.data.game.User
+import neth.iecal.questphone.data.quest.CommonQuestInfo
+import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.screens.quest.setup.components.DateSelector
+import neth.iecal.questphone.ui.screens.quest.setup.components.TimeRangeDialog
 import neth.iecal.questphone.utils.fetchUrlContent
+import neth.iecal.questphone.utils.getCurrentDate
 import neth.iecal.questphone.utils.json
+import neth.iecal.questphone.utils.readableTimeRange
+import java.util.UUID
 
+@Serializable
+enum class VariableType{
+    daysOfWeek,date,timeRange,text
+}
 @Serializable
 data class TemplateVariable(
     val name: String,
-    val type: String,
+    val type: VariableType,
     val label: String
-)
+){
+    fun getDefaultValue():String?{
+        return when(type) {
+            VariableType.daysOfWeek -> json.encodeToString(DayOfWeek.entries.toSet())
+            VariableType.date -> "9999-06-21"
+            VariableType.timeRange -> "[0,24]"
+            VariableType.text -> null
+        }
+    }
+}
 
 @Serializable
 data class TemplateData(
@@ -88,11 +113,16 @@ data class TemplateData(
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
-fun SetupTemplate(id: String) {
+fun SetupTemplate(id: String,controller: NavController) {
     var response by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
     var templateData by remember { mutableStateOf<TemplateData?>(null) }
-    var variableValues by remember { mutableStateOf(mutableMapOf<String, String>()) }
+    var variableValues by remember { mutableStateOf(mutableMapOf<String, String>(
+        Pair("userName",User.userInfo.username),
+        Pair("id", UUID.randomUUID().toString()),
+        Pair("created-on", getCurrentDate()),
+        Pair("last-updated", System.currentTimeMillis().toString())
+    )) }
     var showDialog by remember { mutableStateOf(false) }
     var showSaveConfirmation by remember { mutableStateOf(false) }
     var currentVariable by remember { mutableStateOf<TemplateVariable?>(null) }
@@ -106,11 +136,17 @@ fun SetupTemplate(id: String) {
             } ?: false
         }
     }
+    var rawjson by remember { mutableStateOf("") }
 
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         response =
             fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/templates/touch-grass.json")
                 ?: ""
+
+        rawjson = fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/templates/touch-grass.raw")
+            ?: ""
         isLoading = false
     }
 
@@ -120,12 +156,20 @@ fun SetupTemplate(id: String) {
                 val json = Json { ignoreUnknownKeys = true }
                 val data = json.decodeFromString<TemplateData>(response)
                 templateData = data
-                variableValues = data.variables.associate { it.name to "" }.toMutableMap()
+                val tempv = mutableMapOf<String, String>(
+                    Pair("userName",User.userInfo.username),
+                    Pair("id", UUID.randomUUID().toString()),
+                    Pair("created-on", getCurrentDate()),
+                    Pair("last-updated", System.currentTimeMillis().toString())
+                )
+                tempv.putAll( data.variables.associate { it.name to (it.getDefaultValue()?:"")}.toMutableMap())
+                variableValues = tempv
             } catch (e: Exception) {
                 Log.e("TemplateScreen", "Error parsing JSON: ${e.message}")
             }
         }
     }
+
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -213,7 +257,7 @@ fun SetupTemplate(id: String) {
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "Click on the highlighted items to change values",
+                                text = if (getCurrentDate() == User.userInfo.getCreatedOnString())"Click on the highlighted items to change values" else "To prevent abuse, this quest can only be performed starting tomorrow in case you create it.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontWeight = FontWeight.Medium
@@ -229,7 +273,7 @@ fun SetupTemplate(id: String) {
                             .padding(bottom = 80.dp) // Space for FAB
                     ) {
                         ClickableTemplateText(
-                            content = data.content.replace("$\$username", User.userInfo.username),
+                            content = data.content.replace("#{userName}", User.userInfo.username),
                             variables = data.variables,
                             variableValues = variableValues,
                             onVariableClick = { variable ->
@@ -289,7 +333,21 @@ fun SetupTemplate(id: String) {
             onConfirm = {
                 // Handle save logic here
                 showSaveConfirmation = false
-                // TODO: Implement actual save functionality
+                Log.d("vars",variableValues.toString())
+                variableValues.forEach {
+                    rawjson = rawjson.replace("#{${it.key}}",it.value)
+                }
+                Log.d("RawJson",rawjson.toString())
+                val quest = json.decodeFromString<CommonQuestInfo>(rawjson)
+
+                scope.launch {
+                    val questDao = QuestDatabaseProvider.getInstance(context).questDao()
+                    questDao.upsertQuest(quest)
+                    withContext(Dispatchers.Main) {
+                        controller.popBackStack()
+                        showSaveConfirmation = false
+                    }
+                }
             }
         )
     }
@@ -302,7 +360,7 @@ fun ClickableTemplateText(
     variableValues: Map<String, String>,
     onVariableClick: (TemplateVariable) -> Unit
 ) {
-    val variableRegex = Regex("\\\$\\{([^}]+)\\}")
+    val variableRegex = Regex("#\\{([^}]+)\\}")
 
     val annotatedString = buildAnnotatedString {
         var lastIndex = 0
@@ -313,10 +371,10 @@ fun ClickableTemplateText(
             val varName = match.groupValues[1]
             val variable = variables.find { it.name == varName }
             val value = variableValues[varName]
-            val displayText = if (!value.isNullOrBlank() && value != "Not set") {
+            var displayText = if (!value.isNullOrBlank() && value != "Not set") {
                 value
             } else {
-                "${variable?.label ?: varName}"
+                variable?.getDefaultValue() ?: ""
             }
 
             if (variable != null) {
@@ -335,7 +393,24 @@ fun ClickableTemplateText(
                             MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
                     )
                 ) {
+                    when(variable.type){
+                        VariableType.daysOfWeek -> {
+                            val v = json.decodeFromString<Set<DayOfWeek>>(displayText)
+                            displayText = if(v.size == 7) "Everyday" else v.joinToString(", ") { it.name }
+                        }
+                        VariableType.date -> {
+                            if(displayText=="9999-06-21") {
+                                displayText = "forever"
+                            }
+                        }
+                        VariableType.timeRange -> {
+                            val v = json.decodeFromString<List<Int>>(displayText)
+                            displayText = readableTimeRange(v)
+                        }
+                        VariableType.text -> {}
+                    }
                     append(displayText)
+
                 }
                 pop()
             } else {
@@ -397,24 +472,8 @@ fun VariableEditDialog(
                 )
 
                 when (variable.type) {
-                    "text" -> {
-                        OutlinedTextField(
-                            value = textValue,
-                            onValueChange = { textValue = it },
-                            label = { Text(variable.label) },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = false,
-                            maxLines = 5,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                    }
-                    "date" -> {
-                        DateSelector("Date") {
-                            textValue = it
-                        }
-                    }
-                    "daysOfWeek" -> {
 
+                    VariableType.daysOfWeek -> {
                         Text(
                             text = "Select days:",
                             style = MaterialTheme.typography.labelLarge,
@@ -427,12 +486,39 @@ fun VariableEditDialog(
                             }
                         )
                     }
-                    else -> {
+                    VariableType.date -> {
+                        DateSelector("Date") {
+                            textValue = it
+                            onSave(variable.name, textValue.ifBlank { "9999-12-31" })
+                        }
+                    }
+                    VariableType.timeRange -> {
+                        var v = (if(textValue.isEmpty()){
+                            listOf(0,24)
+                        } else {
+                            json.decodeFromString(textValue)
+                        })
+                        TimeRangeDialog(
+                            v[0], v[1],
+                            onDismiss = onDismiss
+
+                        ) { i,e ->
+                            v = listOf(i,e)
+                            textValue = json.encodeToString(v)
+                            onSave(variable.name, textValue.ifBlank { variable.getDefaultValue().toString() })
+
+                            Log.d("time",v.toString())
+                            onDismiss()
+                        }
+                    }
+                    VariableType.text -> {
                         OutlinedTextField(
                             value = textValue,
                             onValueChange = { textValue = it },
                             label = { Text(variable.label) },
                             modifier = Modifier.fillMaxWidth(),
+                            singleLine = false,
+                            maxLines = 5,
                             shape = RoundedCornerShape(12.dp)
                         )
                     }
@@ -493,7 +579,8 @@ fun DaysOfWeekSelectorDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            selectedDays = if (selectedDays.contains(day)) selectedDays - day else selectedDays + day
+                            selectedDays =
+                                if (selectedDays.contains(day)) selectedDays - day else selectedDays + day
                             onSelectionChanged(selectedDays)
                         }
                         .padding(vertical = 8.dp, horizontal = 4.dp)
@@ -520,6 +607,7 @@ fun SaveConfirmationDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = {
@@ -534,17 +622,16 @@ fun SaveConfirmationDialog(
         },
         title = {
             Text(
-                text = if (allVariablesFilled) "Save Template?" else "Incomplete Template",
+                text = if (allVariablesFilled) "Save Quest?" else "Incomplete Quest",
                 fontWeight = FontWeight.Bold
             )
         },
         text = {
             Text(
                 text = if (allVariablesFilled) {
-                    "All variables have been configured. Save this template configuration?"
+                    "All variables have been configured. Save this Quest configuration?"
                 } else {
-                    "You have $unfilledCount unfilled variable${if (unfilledCount != 1) "s" else ""}. " +
-                            "Are you sure you want to save with incomplete data?"
+                    "You have $unfilledCount unfilled variable${if (unfilledCount != 1) "s" else ""}. "
                 },
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -552,6 +639,7 @@ fun SaveConfirmationDialog(
         confirmButton = {
             Button(
                 onClick = onConfirm,
+                enabled = allVariablesFilled,
                 colors = if (allVariablesFilled) {
                     ButtonDefaults.buttonColors()
                 } else {
@@ -561,7 +649,7 @@ fun SaveConfirmationDialog(
                     )
                 }
             ) {
-                Text(if (allVariablesFilled) "Save" else "Save Anyway")
+                Text("Save")
             }
         },
         dismissButton = {

@@ -75,7 +75,7 @@ fun ListAllQuests(navHostController: NavHostController) {
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
             Button(
-                onClick = { navHostController.navigate(Screen.SelectTemplates.route) },
+                onClick = { navHostController.navigate(Screen.SelectTemplates.route)},
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.padding(bottom = 32.dp)
             ) {
