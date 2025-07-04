@@ -92,14 +92,16 @@ enum class VariableType{
 data class TemplateVariable(
     val name: String,
     val type: VariableType,
-    val label: String
+    val label: String,
+    val default: String? = null
 ){
-    fun getDefaultValue():String?{
+    fun getDefaultValue():String{
+        if(default!= null) return default
         return when(type) {
             VariableType.daysOfWeek -> json.encodeToString(DayOfWeek.entries.toSet())
             VariableType.date -> "9999-06-21"
             VariableType.timeRange -> "[0,24]"
-            VariableType.text -> null
+            VariableType.text -> label
         }
     }
 }
@@ -142,10 +144,10 @@ fun SetupTemplate(id: String,controller: NavController) {
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         response =
-            fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/templates/touch-grass.json")
+            fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/templates/${id}.json")
                 ?: ""
 
-        rawjson = fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/templates/touch-grass.raw")
+        rawjson = fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/templates/${id}.raw")
             ?: ""
         isLoading = false
     }
