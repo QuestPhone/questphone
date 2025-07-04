@@ -22,11 +22,10 @@ val customTypography = Typography(
     titleLarge = defaultTypography.titleLarge.copy(fontFamily = JetBrainsMonoFont),
     titleMedium = defaultTypography.titleMedium.copy(fontFamily = JetBrainsMonoFont),
     titleSmall = defaultTypography.titleSmall.copy(fontFamily = JetBrainsMonoFont),
-    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = JetBrainsMonoFont),
-    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = JetBrainsMonoFont),
-    bodySmall = defaultTypography.bodySmall.copy(fontFamily = JetBrainsMonoFont),
+    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = FontFamily.Serif),
+    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = FontFamily.Serif),
+    bodySmall = defaultTypography.bodySmall.copy(fontFamily = FontFamily.Serif),
     labelLarge = defaultTypography.labelLarge.copy(fontFamily = JetBrainsMonoFont),
     labelMedium = defaultTypography.labelMedium.copy(fontFamily = JetBrainsMonoFont),
     labelSmall = defaultTypography.labelSmall.copy(fontFamily = JetBrainsMonoFont),
 )
-

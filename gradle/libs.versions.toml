@@ -1,5 +1,5 @@
 [versions]
-agp = "8.9.2"
+agp = "8.11.0"
 cameraView = "1.4.2"
 coilCompose = "2.6.0"
 composeMarkdown = "0.5.7"

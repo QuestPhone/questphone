@@ -450,7 +450,9 @@ fun PetDialog(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(bottom = 24.dp) // Padding to avoid overlap with navigation bar
+                        .padding(16.dp)
+                        .navigationBarsPadding(),
                     shape = RoundedCornerShape(20.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                     colors = CardDefaults.cardColors(
@@ -498,7 +500,7 @@ fun PetDialog(
                                     fontSize = 16.sp,
                                     lineHeight = 22.sp,
                                     color = MaterialTheme.colorScheme.onSurface,
-                                    style = MaterialTheme.typography.bodyLarge
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                             }
                         }

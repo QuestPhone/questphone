@@ -303,7 +303,7 @@ fun ProgressStatsSection(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp),
+                    .height(200.dp),
                 contentAlignment = Alignment.Center
             ) {
                 val animatedSuccessRate by animateFloatAsState(
@@ -313,7 +313,7 @@ fun ProgressStatsSection(
 
                 CircularProgressIndicator(
                     progress = { animatedSuccessRate },
-                    modifier = Modifier.size(150.dp),
+                    modifier = Modifier.size(200.dp),
                     strokeWidth = 12.dp,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant,
                     color = when {
@@ -363,13 +363,13 @@ fun ProgressStatsSection(
             )
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
                 items.chunked(2).forEach { rowItems ->
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         rowItems.forEach { (title, value, icon) ->
@@ -392,14 +392,14 @@ fun StatCard(title: String, value: String, icon: Int, modifier: Modifier = Modif
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -419,7 +419,7 @@ fun StatCard(title: String, value: String, icon: Int, modifier: Modifier = Modif
             )
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
@@ -446,7 +446,7 @@ fun CalendarSection(
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -462,7 +462,10 @@ fun CalendarSection(
                 )
 
                 TextButton(onClick = onShowFullCalendar) {
-                    Text("View Full Calendar")
+                    Text(
+                        "View Full Calendar",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
 
@@ -483,14 +486,14 @@ fun CalendarSection(
                         // Day of week (1st letter)
                         Text(
                             text = dayInitial,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         // Date circle
                         Box(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(36.dp)
                                 .clip(CircleShape)
                                 .background(
                                     when {
@@ -661,7 +664,7 @@ private fun QuestInfoRow(
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium
         )
@@ -724,12 +727,12 @@ fun CalendarDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    for (day in DayOfWeek.values()) {
+                    for (day in DayOfWeek.entries) {
                         Text(
                             text = day.getDisplayName(TextStyle.SHORT, Locale.getDefault()).take(1),
                             modifier = Modifier.weight(1f),
                             textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -841,7 +844,7 @@ fun LegendItem(color: Color? = null, borderColor: Color? = null, text: String) {
         )
         Text(
             text = text,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
