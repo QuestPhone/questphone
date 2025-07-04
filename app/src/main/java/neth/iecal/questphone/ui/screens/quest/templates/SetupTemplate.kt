@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -60,6 +61,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
@@ -86,7 +88,7 @@ import java.util.UUID
 
 @Serializable
 enum class VariableType{
-    daysOfWeek,date,timeRange,text
+    daysOfWeek,date,timeRange,text,number
 }
 @Serializable
 data class TemplateVariable(
@@ -102,6 +104,7 @@ data class TemplateVariable(
             VariableType.date -> "9999-06-21"
             VariableType.timeRange -> "[0,24]"
             VariableType.text -> label
+            VariableType.number -> "0"
         }
     }
 }
@@ -410,6 +413,7 @@ fun ClickableTemplateText(
                             displayText = readableTimeRange(v)
                         }
                         VariableType.text -> {}
+                        VariableType.number -> {}
                     }
                     append(displayText)
 
@@ -524,6 +528,17 @@ fun VariableEditDialog(
                             shape = RoundedCornerShape(12.dp)
                         )
                     }
+
+                    VariableType.number ->  OutlinedTextField(
+                        value = textValue,
+                        onValueChange = { textValue = it },
+                        label = { Text(variable.label) },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = false,
+                        maxLines = 5,
+                        shape = RoundedCornerShape(12.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
