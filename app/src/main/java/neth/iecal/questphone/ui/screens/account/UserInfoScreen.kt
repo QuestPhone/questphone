@@ -72,7 +72,9 @@ import neth.iecal.questphone.R
 import neth.iecal.questphone.data.game.Category
 import neth.iecal.questphone.data.game.InventoryItem
 import neth.iecal.questphone.data.game.User
+import neth.iecal.questphone.data.game.UserInfo
 import neth.iecal.questphone.data.game.isBoosterActive
+import neth.iecal.questphone.data.game.saveUserInfo
 import neth.iecal.questphone.data.game.useInventoryItem
 import neth.iecal.questphone.data.game.xpToLevelUp
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
@@ -388,6 +390,8 @@ private fun Menu() {
                         data.edit { putBoolean("onboard", false) }
                         val questdao = QuestDatabaseProvider.getInstance(context).questDao()
                         val statsdao = StatsDatabaseProvider.getInstance(context).statsDao()
+                        User.userInfo = UserInfo()
+                        User.saveUserInfo()
                         CoroutineScope(Dispatchers.IO).launch {
                             Supabase.supabase.auth.signOut()
                             questdao.deleteAll()

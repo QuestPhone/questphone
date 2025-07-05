@@ -30,7 +30,7 @@ enum class VariableName(val types: VariableType,val default: String,val label : 
         wrapper.DeepFocus.focusTimeConfig.incrementTime = values.getOrDefault("incrementGoalBy","")
         wrapper
     }),
-    finalGoal(VariableType.number,"0","Final Goal in Minutes",{wrapper, values ->
+    finalGoal(VariableType.number,"0","Final Goal in Hours",{wrapper, values ->
         wrapper.DeepFocus.focusTimeConfig.finalTime = values.getOrDefault("incrementGoalBy","")
         wrapper
     }),

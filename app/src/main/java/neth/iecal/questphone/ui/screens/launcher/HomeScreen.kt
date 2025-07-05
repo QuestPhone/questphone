@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.coroutineScope
 import neth.iecal.questphone.R
-import neth.iecal.questphone.utils.VibrationHelper
 import neth.iecal.questphone.data.game.StreakCheckReturn
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.checkIfStreakFailed
@@ -63,8 +62,8 @@ import neth.iecal.questphone.ui.screens.launcher.components.LiveClock
 import neth.iecal.questphone.ui.screens.quest.DialogState
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
 import neth.iecal.questphone.utils.QuestHelper
+import neth.iecal.questphone.utils.VibrationHelper
 import neth.iecal.questphone.utils.formatHour
-import neth.iecal.questphone.utils.formatInstantToDate
 import neth.iecal.questphone.utils.getCurrentDate
 import neth.iecal.questphone.utils.getCurrentDay
 import neth.iecal.questphone.utils.isSetToDefaultLauncher
@@ -108,7 +107,7 @@ fun HomeScreen(navController: NavController) {
             initial.value = false // Ignore the first emission (initial = emptyList())
         } else {
             val todayDay = getCurrentDay()
-            val isUserCreatedToday = getCurrentDate() == formatInstantToDate(User.userInfo.created_on)
+            val isUserCreatedToday = getCurrentDate() == User.userInfo.getCreatedOnString()
 
             Log.d("IsUserCreatedToday",isUserCreatedToday.toString())
             val list = questListUnfiltered.filter {
