@@ -88,7 +88,7 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController) {
     if (isReviewDialogVisible.value) {
         val aiSnapQuest = AiSnap(
             taskDescription = taskDescription.value,
-            features = features.toList()
+            features = features.toMutableList()
         )
         val baseQuest = questInfoState.toBaseQuest(aiSnapQuest)
 

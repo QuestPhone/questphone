@@ -112,8 +112,10 @@ fun SelectFromTemplates(
     }
 
     LaunchedEffect(response) {
+        if(response.isNotEmpty()){
+            activities = parseActivitiesJson(response)
+        }
         Log.d("response", response)
-        activities = parseActivitiesJson(response)
     }
 
     LaunchedEffect(Unit) {
@@ -262,11 +264,7 @@ fun SelectFromTemplates(
                         activity = activity,
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {
-                            navController.navigate(Screen.SetupTemplate.route + activity.id) {
-                                popUpTo(navController.currentDestination?.route ?: "") {
-                                    inclusive = true
-                                }
-                            }
+                            navController.navigate(Screen.SetupTemplate.route + activity.id)
                         }
                     )
                 }

@@ -13,31 +13,57 @@ enum class VariableType{
 }
 
 @Serializable
-enum class VariableName(val types: VariableType,val default: String,val label : String, val setter: (AllQuestsWrapper, MutableMap<String,String>) -> AllQuestsWrapper = {x,_ -> x }){
+enum class VariableName(val types: VariableType,val default: String,val label : String, val setter: (AllQuestsWrapper, MutableMap<String,String>,String) -> AllQuestsWrapper = {x,_ ,_-> x }){
     selected_days(VariableType.daysOfWeek,json.encodeToString(DayOfWeek.entries.toSet()),"Which Days?"),
     auto_destruct(VariableType.date,"9999-06-21","End Date"),
     time_range(VariableType.timeRange,"[0,24]", "Time Range"),
 
-    features(VariableType.text, "[]", "Features"),
+    //AiSnap Vars
+    feature1(VariableType.text, "", "Feature",{ wrapper, values,name ->
+        wrapper.AiSnap.features[0] = wrapper.AiSnap.features[0].replace(name,values[name]!!)
+        wrapper
+    }),
+    feature2(VariableType.text, "", "Feature",{ wrapper, values,name ->
+        wrapper.AiSnap.features[1] = wrapper.AiSnap.features[0].replace(name,values[name]!!)
+        wrapper
+    }),
     taskDescription(VariableType.text,"","Task Description"),
 
-    initialGoal(VariableType.number,"0","Initial Goal in Minutes",{ wrapper,values ->
-        wrapper.DeepFocus.focusTimeConfig.initialTime = values.getOrDefault("initialGoal","")
+    //Deep Focus vars
+    initialFocusGoal(VariableType.number,"0","Initial Goal in Minutes",{ wrapper,values,name ->
+        wrapper.DeepFocus.focusTimeConfig.initialTime = values[name]!!
         wrapper.DeepFocus.nextFocusDurationInMillis = wrapper.DeepFocus.focusTimeConfig.initialTimeInMs * 60_000
         wrapper
     }),
-    incrementGoalBy(VariableType.number,"0","Increment By in Minutes", {wrapper, values ->
-        wrapper.DeepFocus.focusTimeConfig.incrementTime = values.getOrDefault("incrementGoalBy","")
+    incrementFocusGoalBy(VariableType.number,"0","Increment By in Minutes", {wrapper, values,name ->
+        wrapper.DeepFocus.focusTimeConfig.incrementTime = values[name]!!
         wrapper
     }),
-    finalGoal(VariableType.number,"0","Final Goal in Hours",{wrapper, values ->
-        wrapper.DeepFocus.focusTimeConfig.finalTime = values.getOrDefault("incrementGoalBy","")
+    finalFocusGoal(VariableType.number,"0","Final Goal in Hours",{wrapper, values,name ->
+        wrapper.DeepFocus.focusTimeConfig.finalTime = values[name]!!
         wrapper
     }),
-    unrestrictedApps(VariableType.appSelector,"[]","Unrestricted Apps",{wrapper, values ->
-        wrapper.DeepFocus.unrestrictedApps = json.decodeFromString<Set<String>>(values.getOrDefault("unrestrictedApps","[]"))
+    unrestrictedApps(VariableType.appSelector,"[]","Unrestricted Apps",{wrapper, values,name ->
+        wrapper.DeepFocus.unrestrictedApps = json.decodeFromString<Set<String>>(values[name]!!)
         wrapper
     }),
+
+    //  Health connect vars
+    initialHealthGoal(VariableType.number,"0","Initial Goal",{ wrapper,values,name ->
+        wrapper.HealthConnect.healthGoalConfig.initial = values[name]!!.toInt()
+        wrapper.HealthConnect.nextGoal = wrapper.HealthConnect.healthGoalConfig.initial
+        wrapper
+    }),
+    incrementHealthGoalBy(VariableType.number,"0","Increment By", {wrapper, values,name ->
+        wrapper.HealthConnect.healthGoalConfig.increment = values[name]!!.toInt()
+        wrapper
+    }),
+    finalHealthGoal(VariableType.number,"0","Final Goal",{wrapper, values,name ->
+        wrapper.HealthConnect.healthGoalConfig.final = values[name]!!.toInt()
+        wrapper
+    }),
+
+
 
 }
 @Serializable

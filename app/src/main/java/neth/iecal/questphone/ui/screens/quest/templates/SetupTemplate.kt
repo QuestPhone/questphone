@@ -310,7 +310,7 @@ fun SetupTemplate(id: String,controller: NavController) {
                     var templateExtra = it.questExtra
                     Log.d("Declared Variables",it.questExtraVariableDeclaration.toString())
                     it.questExtraVariableDeclaration.forEach {
-                        templateExtra = it.setter(templateExtra,variableValues)
+                        templateExtra = it.setter(templateExtra,variableValues,it.name)
                     }
                     it.basicQuest.quest_json = it.questExtra.getQuestJson(it.basicQuest.integration_id)
                     Log.d("Final Data",it.basicQuest.toString())

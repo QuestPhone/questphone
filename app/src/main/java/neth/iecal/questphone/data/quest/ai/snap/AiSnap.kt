@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AiSnap(
     val taskDescription: String = "",
-    var features: List<String> = listOf()
+    var features: MutableList<String> = mutableListOf()
 )

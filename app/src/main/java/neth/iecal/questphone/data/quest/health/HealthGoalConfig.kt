@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class HealthGoalConfig(
-    val initial: Int,
-    val final: Int,
-    val increment: Int
+    var initial: Int,
+    var final: Int,
+    var increment: Int
 )
