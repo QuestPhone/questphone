@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -59,6 +61,7 @@ import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
 import kotlinx.serialization.Serializable
 import neth.iecal.questphone.data.IntegrationId
+import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.utils.fetchUrlContent
 import neth.iecal.questphone.utils.json
@@ -147,6 +150,26 @@ fun SelectFromTemplates(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            val showLoginRequiredDialog = remember { mutableStateOf(false) }
+            if (showLoginRequiredDialog.value) {
+                AlertDialog(
+                    onDismissRequest = { showLoginRequiredDialog.value = false },
+                    title = {
+                        Text(text = "Login Required For this quest")
+                    },
+                    text = {
+                        Text("This quest can only be performed by signed up users to prevent abuse. Please Logout and try again!\n\n HomeScreen > Open profile > 3 dots > Logout")
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showLoginRequiredDialog.value = false
+                        }) {
+                            Text("Okay")
+                        }
+                    }
+                )
+            }
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -264,7 +287,11 @@ fun SelectFromTemplates(
                         activity = activity,
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {
-                            navController.navigate(Screen.SetupTemplate.route + activity.id)
+                            if(activity.integration == IntegrationId.AI_SNAP && User.userInfo.isAnonymous){
+                                showLoginRequiredDialog.value = true
+                            }else {
+                                navController.navigate(Screen.SetupTemplate.route + activity.id)
+                            }
                         }
                     )
                 }

@@ -10,8 +10,8 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable.isCompleted
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import neth.iecal.questphone.MainActivity
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.utils.getCurrentDate
@@ -33,18 +33,20 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             val dao = QuestDatabaseProvider.getInstance(context).questDao()
             CoroutineScope(Dispatchers.Default).launch {
                 val quest = dao.getQuestById(reminderId)
-                if(quest!=null){
-                    val isNotCompleted = quest.last_completed_on != getCurrentDate()
-                    generateReminders(context,quest)
-                    if (reminderId.isNotEmpty()) {
-                        if(isCompleted) {
-                            // Display the notification using the extracted details
-                            showNotification(it, reminderId.hashCode(), title, description)
-                            Log.d("ReminderBroadcastReceiver", "Received alarm for reminder ID: $reminderId, Title: '$title'")
-                        }
+                withContext(Dispatchers.Main) {
+                    if(quest!=null){
+                        val isNotCompleted = quest.last_completed_on != getCurrentDate()
+                        generateReminders(context,quest)
+                        if (reminderId.isNotEmpty()) {
+                            if(isNotCompleted) {
+                                // Display the notification using the extracted details
+                                showNotification(it, reminderId.hashCode(), title, description)
+                                Log.d("ReminderBroadcastReceiver", "Received alarm for reminder ID: $reminderId, Title: '$title'")
+                            }
                         } else {
                             Log.e("ReminderBroadcastReceiver", "Received intent with an invalid reminder ID.")
                         }
+                    }
                 }
             }
 
@@ -86,22 +88,9 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             .setPriority(NotificationCompat.PRIORITY_HIGH) // Set the priority (visual prominence)
             .setCategory(NotificationCompat.CATEGORY_REMINDER) // Categorize as a reminder
             .setContentIntent(pendingIntent) // Set the action when notification is clicked
+            .setGroup(null) // avoid accidental grouping
+            .setGroupSummary(false)
             .setAutoCancel(false) // Automatically dismisses the notification when tapped by the user
-            .apply {
-                // Optional: Add action buttons to the notification (e.g., "Mark as Done", "Snooze")
-                // Example for a "Mark as Done" action:
-                // val doneIntent = Intent(context, ReminderActionReceiver::class.java).apply {
-                //     action = "ACTION_MARK_DONE"
-                //     putExtra(NotificationScheduler.EXTRA_REMINDER_ID, reminderId)
-                // }
-                // val donePendingIntent = PendingIntent.getBroadcast(
-                //     context,
-                //     reminderId + 1000, // Use a different request code for actions
-                //     doneIntent,
-                //     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                // )
-                // addAction(R.drawable.ic_done, "Mark Done", donePendingIntent)
-            }
             .build()
 
         // Display the notification.
