@@ -95,18 +95,21 @@ data class AllQuestsWrapper(
     val HealthConnect: HealthQuest = HealthQuest(),
 ) {
     fun getQuestJson(type: IntegrationId):String{
-        when(type){
+        return when(type){
             IntegrationId.DEEP_FOCUS -> {
-                json.encodeToString<DeepFocus>(DeepFocus)
+                json.encodeToString<DeepFocus>(this.DeepFocus)
             }
+
             IntegrationId.HEALTH_CONNECT -> {
-                json.encodeToString<HealthQuest>(HealthConnect)
+                json.encodeToString<HealthQuest>(this.HealthConnect)
             }
+
             IntegrationId.SWIFT_MARK -> {
                 "{}"
             }
+
             IntegrationId.AI_SNAP -> {
-                json.encodeToString<AiSnap>(AiSnap)
+                json.encodeToString<AiSnap>(this.AiSnap)
             }
         }
         return "{}"

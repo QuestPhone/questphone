@@ -312,7 +312,8 @@ fun SetupTemplate(id: String,controller: NavController) {
                     it.questExtraVariableDeclaration.forEach {
                         templateExtra = it.setter(templateExtra,variableValues,it.name)
                     }
-                    it.basicQuest.quest_json = it.questExtra.getQuestJson(it.basicQuest.integration_id)
+                    Log.d("FInal data",templateExtra.toString())
+                    it.basicQuest.quest_json = templateExtra.getQuestJson(it.basicQuest.integration_id)
                     Log.d("Final Data",it.basicQuest.toString())
                     scope.launch {
                         val questDao = QuestDatabaseProvider.getInstance(context).questDao()
