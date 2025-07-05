@@ -72,11 +72,14 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.DayOfWeek
+import neth.iecal.questphone.data.TemplateData
+import neth.iecal.questphone.data.TemplateVariable
+import neth.iecal.questphone.data.VariableName
+import neth.iecal.questphone.data.VariableType
+import neth.iecal.questphone.data.convertToTemplate
 import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.screens.quest.setup.components.DateSelector
 import neth.iecal.questphone.ui.screens.quest.setup.components.TimeRangeDialog
@@ -86,59 +89,14 @@ import neth.iecal.questphone.utils.formatAppList
 import neth.iecal.questphone.utils.getCurrentDate
 import neth.iecal.questphone.utils.json
 import neth.iecal.questphone.utils.readableTimeRange
-import java.util.UUID
-import kotlin.reflect.KClass
 
-@Serializable
-enum class VariableType{
-    daysOfWeek,date,timeRange,text,number,appSelector
-}
-@Serializable
-data class TemplateVariable(
-    val name: String,
-    val type: VariableType,
-    val label: String,
-    val default: String? = null
-){
-    fun getDefaultValue():String{
-        if(default!= null) return default
-        return when(type) {
-            VariableType.daysOfWeek -> json.encodeToString(DayOfWeek.entries.toSet())
-            VariableType.date -> "9999-06-21"
-            VariableType.timeRange -> "[0,24]"
-            VariableType.text -> label
-            VariableType.number -> "0"
-            VariableType.appSelector -> "[]"
-        }
-    }
-}
-
-@Serializable
-data class TemplateData(
-    val content: String,
-    val variables: List<TemplateVariable> = ,
-    val requirements: String,
-    val basicQuest: CommonQuestInfo
-)
-//fun getVariableType(kClass: KClass<*>, value: Any): VariableType = when {
-//    value is Set<*> && value.all { it is DayOfWeek } -> VariableType.daysOfWeek
-//    value is String && Regex("\\d{4}-\\d{2}-\\d{2}").matches(value) -> VariableType.date
-//    value is List<*> && value.all { it is String } -> VariableType.appSelector
-//    value is Number -> VariableType.number
-//    else -> VariableType.text
-//}
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun SetupTemplate(id: String,controller: NavController) {
     var response by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
     var templateData by remember { mutableStateOf<TemplateData?>(null) }
-    var variableValues by remember { mutableStateOf(mutableMapOf<String, String>(
-        Pair("userName",User.userInfo.username),
-        Pair("id", UUID.randomUUID().toString()),
-        Pair("created-on", getCurrentDate()),
-        Pair("last-updated", System.currentTimeMillis().toString())
-    )) }
+    var variableValues by remember { mutableStateOf(mutableMapOf<String, String>()) }
     var showDialog by remember { mutableStateOf(false) }
     var showSaveConfirmation by remember { mutableStateOf(false) }
     var currentVariable by remember { mutableStateOf<TemplateVariable?>(null) }
@@ -146,13 +104,12 @@ fun SetupTemplate(id: String,controller: NavController) {
     // Check if all required variables are filled
     val allVariablesFilled by remember {
         derivedStateOf {
-            templateData?.variables?.all { variable ->
+            templateData?.questExtraVariableDeclaration?.all { variable ->
                 val value = variableValues[variable.name]
                 !value.isNullOrBlank() && value != "Not set"
-            } ?: false
+            } == true
         }
     }
-    var rawjson by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -160,9 +117,6 @@ fun SetupTemplate(id: String,controller: NavController) {
         response =
             fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/templates/${id}.json")
                 ?: ""
-
-        rawjson = fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/templates/${id}.raw")
-            ?: ""
         isLoading = false
     }
 
@@ -171,14 +125,13 @@ fun SetupTemplate(id: String,controller: NavController) {
             try {
                 val data = json.decodeFromString<TemplateData>(response)
                 templateData = data
-                val tempv = mutableMapOf<String, String>(
-                    Pair("userName",User.userInfo.username),
-                    Pair("id", UUID.randomUUID().toString()),
-                    Pair("created-on", getCurrentDate()),
-                    Pair("last-updated", System.currentTimeMillis().toString())
-                )
-                tempv.putAll( data.variables.associate { it.name to (it.getDefaultValue()?:"")}.toMutableMap())
-                variableValues = tempv
+                VariableName.entries.forEach {
+                    templateData!!.variableTypes.add(convertToTemplate(it))
+                    if(templateData!!.content.contains("#{${it.name}}")){
+                        templateData!!.questExtraVariableDeclaration.add(it)
+                    }
+                    variableValues[it.name] = it.default
+                }
             } catch (e: Exception) {
                 Log.e("TemplateScreen", "Error parsing JSON: ${e.message}")
             }
@@ -289,7 +242,7 @@ fun SetupTemplate(id: String,controller: NavController) {
                     ) {
                         ClickableTemplateText(
                             content = data.content.replace("#{userName}", User.userInfo.username),
-                            variables = data.variables,
+                            variables = data.variableTypes,
                             variableValues = variableValues,
                             onVariableClick = { variable ->
                                 currentVariable = variable
@@ -340,7 +293,7 @@ fun SetupTemplate(id: String,controller: NavController) {
     if (showSaveConfirmation) {
         SaveConfirmationDialog(
             allVariablesFilled = allVariablesFilled,
-            unfilledCount = templateData?.variables?.count { variable ->
+            unfilledCount = templateData?.variableTypes?.count { variable ->
                 val value = variableValues[variable.name]
                 value.isNullOrBlank() || value == "Not set"
             } ?: 0,
@@ -349,20 +302,28 @@ fun SetupTemplate(id: String,controller: NavController) {
                 // Handle save logic here
                 showSaveConfirmation = false
                 Log.d("vars",variableValues.toString())
-                variableValues.forEach {
-                    rawjson = rawjson.replace("#{${it.key}}",it.value)
-                }
-                Log.d("RawJson",rawjson.toString())
-                val quest = json.decodeFromString<CommonQuestInfo>(rawjson)
 
-                scope.launch {
-                    val questDao = QuestDatabaseProvider.getInstance(context).questDao()
-                    questDao.upsertQuest(quest)
-                    withContext(Dispatchers.Main) {
-                        controller.popBackStack()
-                        showSaveConfirmation = false
+                templateData?.let {
+                    it.basicQuest.auto_destruct = variableValues.getOrDefault("auto_destruct","9999-12-31")
+                    it.basicQuest.selected_days = json.decodeFromString(variableValues["selected_days"].toString())
+
+                    var templateExtra = it.questExtra
+                    Log.d("Declared Variables",it.questExtraVariableDeclaration.toString())
+                    it.questExtraVariableDeclaration.forEach {
+                        templateExtra = it.setter(templateExtra,variableValues)
+                    }
+                    it.basicQuest.quest_json = it.questExtra.getQuestJson(it.basicQuest.integration_id)
+                    Log.d("Final Data",it.basicQuest.toString())
+                    scope.launch {
+                        val questDao = QuestDatabaseProvider.getInstance(context).questDao()
+                        questDao.upsertQuest(it.basicQuest)
+                        withContext(Dispatchers.Main) {
+                            controller.popBackStack()
+                            showSaveConfirmation = false
+                        }
                     }
                 }
+
             }
         )
     }
@@ -428,6 +389,7 @@ fun ClickableTemplateText(
                             displayText = formatAppList(json.decodeFromString(displayText),LocalContext.current)
                         }
                     }
+                    displayText = variable.label + ": " + displayText
                     append(displayText)
 
                 }

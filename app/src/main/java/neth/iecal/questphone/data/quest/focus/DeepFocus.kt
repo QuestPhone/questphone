@@ -19,12 +19,12 @@ data class DeepFocus(
     var nextFocusDurationInMillis : Long = 0L
 ){
     fun incrementTime() {
-    if (nextFocusDurationInMillis < focusTimeConfig.finalTimeInMs) {
-        nextFocusDurationInMillis = minOf(
-            nextFocusDurationInMillis + focusTimeConfig.incrementTimeInMs,
-            focusTimeConfig.finalTimeInMs
-        )
+        if (nextFocusDurationInMillis < focusTimeConfig.finalTimeInMs) {
+            nextFocusDurationInMillis = minOf(
+                nextFocusDurationInMillis + focusTimeConfig.incrementTimeInMs,
+                focusTimeConfig.finalTimeInMs
+            )
+        }
     }
-}
 }
 
