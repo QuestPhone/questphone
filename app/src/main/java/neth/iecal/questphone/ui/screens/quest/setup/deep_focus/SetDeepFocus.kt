@@ -36,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.data.AppInfo
 import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.QuestInfoState
@@ -47,13 +46,11 @@ import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
 import neth.iecal.questphone.ui.screens.quest.setup.components.SetFocusTimeUI
 import neth.iecal.questphone.utils.QuestHelper
 import neth.iecal.questphone.utils.json
-import neth.iecal.questphone.utils.reloadApps
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController) {
     val context = LocalContext.current
-    val apps = remember { mutableStateOf(emptyList<AppInfo>()) }
 
     val haptic = LocalHapticFeedback.current
     val showDialog = remember { mutableStateOf(false) }
@@ -78,13 +75,9 @@ fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController) {
             selectedApps.addAll(deepFocus.unrestrictedApps)
         }
     }
-    LaunchedEffect(apps) {
-        apps.value = reloadApps(context.packageManager, context).getOrNull() ?: emptyList()
-    }
 
     if (showDialog.value) {
         SelectAppsDialog(
-            apps = apps,
             selectedApps = selectedApps,
             onDismiss = {
                 showDialog.value = false

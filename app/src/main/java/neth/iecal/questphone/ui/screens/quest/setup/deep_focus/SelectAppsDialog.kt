@@ -16,22 +16,29 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import neth.iecal.questphone.data.AppInfo
+import neth.iecal.questphone.utils.reloadApps
 
 @Composable
 fun SelectAppsDialog(
-    apps: MutableState<List<AppInfo>>, // (appName, packageName)
     selectedApps: MutableList<String>,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit = {}
 ) {
+    val apps = remember { mutableStateOf(emptyList<AppInfo>()) }
+    val context = LocalContext.current
+    LaunchedEffect(apps) {
+        apps.value = reloadApps(context.packageManager, context).getOrNull() ?: emptyList()
+    }
     var searchQuery by remember { mutableStateOf("") }
 
     // Filtered app list
@@ -87,7 +94,7 @@ fun SelectAppsDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onConfirm) {
                 Text("OK")
             }
         },

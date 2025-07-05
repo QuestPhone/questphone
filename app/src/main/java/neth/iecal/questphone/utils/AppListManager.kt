@@ -85,3 +85,16 @@ fun getKeyboards(context: Context): List<String> {
     val enabledMethods = imm.enabledInputMethodList
     return enabledMethods.map { it.packageName }
 }
+
+fun formatAppList(packageNames: List<String>, context: Context): String {
+    val pm = context.packageManager
+    val appNames = packageNames.mapNotNull { packageName ->
+        try {
+            val appInfo = pm.getApplicationInfo(packageName, 0)
+            pm.getApplicationLabel(appInfo).toString()
+        } catch (e: PackageManager.NameNotFoundException) {
+            null // skip if not found
+        }
+    }
+    return appNames.joinToString(", ")
+}

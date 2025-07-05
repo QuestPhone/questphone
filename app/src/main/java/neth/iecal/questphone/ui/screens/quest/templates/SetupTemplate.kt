@@ -49,6 +49,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,7 +73,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.DayOfWeek
 import neth.iecal.questphone.data.game.User
@@ -80,15 +80,18 @@ import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.screens.quest.setup.components.DateSelector
 import neth.iecal.questphone.ui.screens.quest.setup.components.TimeRangeDialog
+import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.utils.fetchUrlContent
+import neth.iecal.questphone.utils.formatAppList
 import neth.iecal.questphone.utils.getCurrentDate
 import neth.iecal.questphone.utils.json
 import neth.iecal.questphone.utils.readableTimeRange
 import java.util.UUID
+import kotlin.reflect.KClass
 
 @Serializable
 enum class VariableType{
-    daysOfWeek,date,timeRange,text,number
+    daysOfWeek,date,timeRange,text,number,appSelector
 }
 @Serializable
 data class TemplateVariable(
@@ -105,6 +108,7 @@ data class TemplateVariable(
             VariableType.timeRange -> "[0,24]"
             VariableType.text -> label
             VariableType.number -> "0"
+            VariableType.appSelector -> "[]"
         }
     }
 }
@@ -112,10 +116,17 @@ data class TemplateVariable(
 @Serializable
 data class TemplateData(
     val content: String,
-    val variables: List<TemplateVariable>,
-    val requirements: String
+    val variables: List<TemplateVariable> = ,
+    val requirements: String,
+    val basicQuest: CommonQuestInfo
 )
-
+//fun getVariableType(kClass: KClass<*>, value: Any): VariableType = when {
+//    value is Set<*> && value.all { it is DayOfWeek } -> VariableType.daysOfWeek
+//    value is String && Regex("\\d{4}-\\d{2}-\\d{2}").matches(value) -> VariableType.date
+//    value is List<*> && value.all { it is String } -> VariableType.appSelector
+//    value is Number -> VariableType.number
+//    else -> VariableType.text
+//}
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun SetupTemplate(id: String,controller: NavController) {
@@ -158,7 +169,6 @@ fun SetupTemplate(id: String,controller: NavController) {
     LaunchedEffect(response) {
         if (response.isNotEmpty()) {
             try {
-                val json = Json { ignoreUnknownKeys = true }
                 val data = json.decodeFromString<TemplateData>(response)
                 templateData = data
                 val tempv = mutableMapOf<String, String>(
@@ -414,6 +424,9 @@ fun ClickableTemplateText(
                         }
                         VariableType.text -> {}
                         VariableType.number -> {}
+                        VariableType.appSelector -> {
+                            displayText = formatAppList(json.decodeFromString(displayText),LocalContext.current)
+                        }
                     }
                     append(displayText)
 
@@ -539,6 +552,15 @@ fun VariableEditDialog(
                         maxLines = 5,
                         shape = RoundedCornerShape(12.dp)
                     )
+
+                    VariableType.appSelector -> {
+                        var selectedApps = remember { mutableStateListOf<String>() }
+                        SelectAppsDialog(selectedApps,onDismiss, onConfirm = {
+                            textValue = json.encodeToString(selectedApps.toSet())
+                            onSave(variable.name, textValue.ifBlank { variable.getDefaultValue().toString() })
+                            onDismiss()
+                        })
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
