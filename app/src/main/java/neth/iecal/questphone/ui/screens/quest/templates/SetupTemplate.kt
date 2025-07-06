@@ -507,7 +507,11 @@ fun VariableEditDialog(
 
                     VariableType.number ->  OutlinedTextField(
                         value = textValue,
-                        onValueChange = { textValue = it },
+                        onValueChange = {
+                            try{
+                                it.toInt()
+                                textValue = it
+                            }catch (_: Exception){} },
                         label = { Text(variable.label) },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
