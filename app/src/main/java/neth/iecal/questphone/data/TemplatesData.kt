@@ -32,7 +32,7 @@ enum class VariableName(val types: VariableType,val default: String,val label : 
     //Deep Focus vars
     initialFocusGoal(VariableType.number,"0","Initial Goal in Minutes",{ wrapper,values,name ->
         wrapper.DeepFocus.focusTimeConfig.initialTime = values[name]!!
-        wrapper.DeepFocus.nextFocusDurationInMillis = wrapper.DeepFocus.focusTimeConfig.initialTimeInMs * 60_000
+        wrapper.DeepFocus.nextFocusDurationInMillis = wrapper.DeepFocus.focusTimeConfig.initialTimeInMs
         wrapper
     }),
     incrementFocusGoalBy(VariableType.number,"0","Increment By in Minutes", {wrapper, values,name ->
