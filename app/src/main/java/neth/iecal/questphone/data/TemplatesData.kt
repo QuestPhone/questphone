@@ -32,7 +32,7 @@ enum class VariableName(val types: VariableType,val default: String,val label : 
     //Deep Focus vars
     initialFocusGoal(VariableType.number,"0","Initial Goal in Minutes",{ wrapper,values,name ->
         wrapper.DeepFocus.focusTimeConfig.initialTime = values[name]!!
-        wrapper.DeepFocus.nextFocusDurationInMillis = wrapper.DeepFocus.focusTimeConfig.initialTimeInMs * 60_000
+        wrapper.DeepFocus.nextFocusDurationInMillis = wrapper.DeepFocus.focusTimeConfig.initialTimeInMs
         wrapper
     }),
     incrementFocusGoalBy(VariableType.number,"0","Increment By in Minutes", {wrapper, values,name ->
@@ -40,8 +40,13 @@ enum class VariableName(val types: VariableType,val default: String,val label : 
         wrapper
     }),
     finalFocusGoal(VariableType.number,"0","Final Goal in Hours",{wrapper, values,name ->
-        wrapper.DeepFocus.focusTimeConfig.finalTime = values[name]!!
-        wrapper
+        if(wrapper.DeepFocus.focusTimeConfig.initialTime.toInt()>values[name]!!.toInt()){
+            wrapper.DeepFocus.focusTimeConfig.finalTime = wrapper.DeepFocus.focusTimeConfig.initialTime
+            wrapper
+        }else {
+            wrapper.DeepFocus.focusTimeConfig.finalTime = values[name]!!
+            wrapper
+        }
     }),
     unrestrictedApps(VariableType.appSelector,"[]","Unrestricted Apps",{wrapper, values,name ->
         wrapper.DeepFocus.unrestrictedApps = json.decodeFromString<Set<String>>(values[name]!!)
@@ -59,8 +64,13 @@ enum class VariableName(val types: VariableType,val default: String,val label : 
         wrapper
     }),
     finalHealthGoal(VariableType.number,"0","Final Goal",{wrapper, values,name ->
-        wrapper.HealthConnect.healthGoalConfig.final = values[name]!!.toInt()
-        wrapper
+        if(wrapper.HealthConnect.healthGoalConfig.initial>values[name]!!.toInt()){
+            wrapper.HealthConnect.healthGoalConfig.final = wrapper.HealthConnect.healthGoalConfig.initial
+            wrapper
+        }else {
+            wrapper.HealthConnect.healthGoalConfig.final = values[name]!!.toInt()
+            wrapper
+        }
     }),
 
 

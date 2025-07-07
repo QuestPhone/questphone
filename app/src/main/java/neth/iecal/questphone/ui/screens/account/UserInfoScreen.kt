@@ -121,7 +121,6 @@ fun UserInfoScreen() {
     }
 
     Scaffold { innerPadding ->
-        Menu()
         Column(
             modifier = Modifier
                 .fillMaxSize()

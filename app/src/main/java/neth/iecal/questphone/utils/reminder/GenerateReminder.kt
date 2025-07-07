@@ -64,15 +64,26 @@ fun generateReminders(context: Context, quest: CommonQuestInfo) {
             when (count) {
                 0 -> {
                     // First reminder for today: try to schedule in the morning if possible, otherwise slightly after current hour
-                    val morningCutoffHour = 10 // e.g., until 10 AM is considered morning
+                    val morningCutoffHour = 10 // until 10 AM is considered morning
+
                     if (currentHour < morningCutoffHour) {
-                        nextHourToday = Random.nextInt(maxOf(currentHour + 1, startHour, 7), minOf(morningCutoffHour, endHour)) // Random hour between current+1 (or 7am) and morning cutoff
+                        val fromHour = maxOf(currentHour + 1, startHour, 7)
+                        val toHour = minOf(morningCutoffHour, endHour)
+
+                        if (fromHour < toHour) {
+                            nextHourToday = Random.nextInt(fromHour, toHour)
+                        } else {
+                            // fallback logic: use `fromHour` directly or reschedule later
+                            Log.w("Reminder", "Invalid hour range: $fromHour to $toHour. Using fallback.")
+                            nextHourToday = fromHour
+                        }
+
                         randomMinuteToday = Random.nextInt(0, 60)
                     } else {
-                        // If already past morning, schedule for currentHour + 1 or startHour
                         nextHourToday = maxOf(currentHour + 1, startHour)
                         randomMinuteToday = Random.nextInt(0, 60)
                     }
+
                 }
                 1 -> {
                     // Second reminder for today: schedule a bit later, but before endHour
