@@ -1,12 +1,17 @@
 package neth.iecal.questphone.ui.screens.launcher
 
 import android.content.Context.MODE_PRIVATE
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +35,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +59,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.game.StreakCheckReturn
 import neth.iecal.questphone.data.game.User
@@ -66,8 +76,10 @@ import neth.iecal.questphone.utils.VibrationHelper
 import neth.iecal.questphone.utils.formatHour
 import neth.iecal.questphone.utils.getCurrentDate
 import neth.iecal.questphone.utils.getCurrentDay
+import neth.iecal.questphone.utils.isLockScreenServiceEnabled
 import neth.iecal.questphone.utils.isSetToDefaultLauncher
 import neth.iecal.questphone.utils.openDefaultLauncherSettings
+import neth.iecal.questphone.utils.performLockScreenAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +96,8 @@ fun HomeScreen(navController: NavController) {
     val completedQuests = remember { SnapshotStateList<String>() }
     val progress = (completedQuests.size.toFloat() / questList.size.toFloat()).coerceIn(0f,1f)
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     BackHandler {  }
 
@@ -142,7 +156,10 @@ fun HomeScreen(navController: NavController) {
 
         }
     }
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { innerPadding ->
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -171,6 +188,31 @@ fun HomeScreen(navController: NavController) {
                     }
                 }
             }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onDoubleTap = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isLockScreenServiceEnabled(context)) {
+                            performLockScreenAction()
+                        } else {
+                            Log.e("ERRR","ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR")
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "Enable Accessibility Service to use double-tap to sleep.",
+                                    actionLabel = "Open"
+                                ).also { result ->
+                                    if (result == SnackbarResult.ActionPerformed) {
+                                        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                        context.startActivity(intent)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+
     ) {
         Row(
             modifier = Modifier

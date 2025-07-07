@@ -5,4 +5,5 @@
     <string name="accessibility_permission_app_blocker">block app </string>
     <string name="title_activity_locked">LockedActivity</string>
     <string name="title_activity_onboard">OnboardActivity</string>
+    <string name="lock_screen_service_description">Double tap to lock screen via accessibility service</string>
 </resources>
