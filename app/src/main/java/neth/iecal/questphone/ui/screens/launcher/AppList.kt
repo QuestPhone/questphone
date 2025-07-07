@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -254,6 +256,7 @@ private fun AppListWithScrollbar(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
+            .navigationBarsPadding()
     ) {
         // Main app list
         Column(
@@ -307,7 +310,8 @@ private fun AppListWithScrollbar(
                 modifier = Modifier
                     .width(24.dp)
                     .fillMaxHeight()
-                    .padding(vertical = 16.dp),
+                    .padding(vertical = 16.dp)
+                    .navigationBarsPadding(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 groupedApps.forEach { group ->
@@ -321,7 +325,7 @@ private fun AppListWithScrollbar(
                             .clickable {
                                 coroutineScope.launch {
                                     val targetIndex = groupPositions[group.letter] ?: 0
-                                    listState.animateScrollToItem(targetIndex)
+                                    listState.scrollToItem(targetIndex)
                                 }
                             }
                     )
