@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,7 +46,6 @@ fun BackgroundUsagePermission(isFromOnboardingScreen: Boolean = true) {
     ) {
         Text(
             text = "Allow Unrestricted Background Usage",
-            color = Color.White,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -60,7 +57,6 @@ fun BackgroundUsagePermission(isFromOnboardingScreen: Boolean = true) {
                 "To make sure QuestPhone works reliably in the background, please allow it to ignore battery optimizations. This prevents Android from force-stopping the app or delaying its actions."
             else
                 "Unrestricted background usage is enabled. You’re all set!",
-            color = Color.White,
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -72,11 +68,7 @@ fun BackgroundUsagePermission(isFromOnboardingScreen: Boolean = true) {
             Button(
                 onClick = {
                     openBatteryOptimizationSettings(context)
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                ),
+                }
             ) {
                 Text(text = "Open Settings")
             }

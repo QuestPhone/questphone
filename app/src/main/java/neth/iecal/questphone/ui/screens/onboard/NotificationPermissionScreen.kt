@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -62,7 +61,6 @@ fun NotificationPermissionScreen( isFromOnboard: Boolean = true) {
     ) {
         Text(
             text = "Notification Permission",
-            color = Color.White,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -74,7 +72,6 @@ fun NotificationPermissionScreen( isFromOnboard: Boolean = true) {
                 "To notify you about your progress or challenges, QuestPhone needs permission to send notifications."
             else
                 "Notification permission granted!",
-            color = Color.White,
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -86,11 +83,7 @@ fun NotificationPermissionScreen( isFromOnboard: Boolean = true) {
             Button(
                 onClick = {
                     launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                ),
+                }
             ) {
                 Text(text = "Grant Notification Access")
             }
