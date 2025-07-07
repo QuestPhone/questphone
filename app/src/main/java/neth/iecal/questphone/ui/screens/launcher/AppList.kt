@@ -6,6 +6,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -39,7 +39,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -122,9 +128,7 @@ fun AppList(navController: NavController) {
     }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-
-
-
+        val haptic = LocalHapticFeedback.current
         AppListWithScrollbar(
             groupedApps = groupedAppsState.value,
             isLoading = isLoading.value,
@@ -175,6 +179,10 @@ fun AppList(navController: NavController) {
                     ,
                     singleLine = true
                 )
+            },
+            onBackFromDrawer = {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                navController.popBackStack()
             }
         )
 
@@ -237,10 +245,25 @@ private fun AppListWithScrollbar(
     error: String?,
     innerPadding: PaddingValues,
     onAppClick: (String) -> Unit,
-    searchBar: @Composable () -> Unit
+    searchBar: @Composable () -> Unit,
+    onBackFromDrawer: () -> Unit
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+
+    val overscrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                // Detect downward pull at top
+                if (available.y > 0 && listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0) {
+                    onBackFromDrawer()
+                    return Offset.Zero
+                }
+                return super.onPreScroll(available, source)
+            }
+        }
+    }
+
     // Map to store the starting index of each letter group
     val groupPositions = remember(groupedApps) {
         mutableMapOf<Char, Int>().apply {
@@ -252,87 +275,96 @@ private fun AppListWithScrollbar(
         }
     }
 
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxSize()
+            .nestedScroll(overscrollConnection)
             .padding(innerPadding)
-            .navigationBarsPadding()
     ) {
-        // Main app list
-        Column(
+        Row(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxSize()
+                .padding(innerPadding)
+                .navigationBarsPadding()
         ) {
-            when {
-                isLoading -> {
-                    Text(
-                        text = "Loading apps...",
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-                error != null -> {
-                    Text(
-                        text = "Error: $error",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-                else -> {
-                    LazyColumn(state = listState) {
-                        item { searchBar() }
+            // Main app list
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                when {
+                    isLoading -> {
+                        Text(
+                            text = "Loading apps...",
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                    error != null -> {
+                        Text(
+                            text = "Error: $error",
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                    else -> {
+                        LazyColumn(state = listState) {
+                            item { searchBar() }
 
-                        groupedApps.forEach { group ->
-                            stickyHeader {
-                                Text(
-                                    text = group.letter.toString(),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .background(MaterialTheme.colorScheme.surface)
-                                )
-                            }
-                            items(group.apps) { app ->
-                                AppItem(
-                                    name = app.name,
-                                    packageName = app.packageName,
-                                    onAppPressed = onAppClick
-                                )
+                            groupedApps.forEach { group ->
+                                stickyHeader {
+                                    Text(
+                                        text = group.letter.toString(),
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        modifier = Modifier
+                                            .padding(16.dp)
+                                            .background(MaterialTheme.colorScheme.surface)
+                                    )
+                                }
+                                items(group.apps) { app ->
+                                    AppItem(
+                                        name = app.name,
+                                        packageName = app.packageName,
+                                        onAppPressed = onAppClick
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        // Minimal scrollbar
-        if (!isLoading && error == null && groupedApps.isNotEmpty()) {
-            Column(
-                modifier = Modifier
-                    .width(24.dp)
-                    .fillMaxHeight()
-                    .padding(vertical = 16.dp)
-                    .navigationBarsPadding(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                groupedApps.forEach { group ->
-                    Text(
-                        text = group.letter.toString(),
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                coroutineScope.launch {
-                                    val targetIndex = groupPositions[group.letter] ?: 0
-                                    listState.scrollToItem(targetIndex)
+            // Minimal scrollbar
+            if (!isLoading && error == null && groupedApps.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .width(24.dp)
+                        .fillMaxHeight()
+                        .padding(vertical = 16.dp)
+                        .navigationBarsPadding(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    groupedApps.forEach { group ->
+                        Text(
+                            text = group.letter.toString(),
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    coroutineScope.launch {
+                                        val targetIndex = groupPositions[group.letter] ?: 0
+                                        listState.scrollToItem(targetIndex)
+                                    }
                                 }
-                            }
-                    )
+                        )
+                    }
                 }
             }
         }
     }
+
+
 }
 
 private fun groupAppsByLetter(apps: List<AppInfo>): List<AppGroup> {
