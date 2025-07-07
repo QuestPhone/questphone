@@ -201,7 +201,6 @@ fun SelectApps(selectAppsModes: SelectAppsModes = SelectAppsModes.ALLOW_ADD_AND_
 
         Text(
             text = "Select Distractions",
-            color = Color.White,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -210,7 +209,6 @@ fun SelectApps(selectAppsModes: SelectAppsModes = SelectAppsModes.ALLOW_ADD_AND_
 
         Text(
             text = "These might be social media or games..",
-            color = Color.White,
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -296,7 +294,6 @@ fun SelectApps(selectAppsModes: SelectAppsModes = SelectAppsModes.ALLOW_ADD_AND_
                     Text(
                         text = appName,
                         modifier = Modifier.padding(start = 8.dp),
-                        color = if (isEnabled) Color.White else Color.Gray
                     )
                 }
             }
@@ -313,8 +310,7 @@ fun AccessibilityPanel(selectedApps: SnapshotStateList<String>) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier

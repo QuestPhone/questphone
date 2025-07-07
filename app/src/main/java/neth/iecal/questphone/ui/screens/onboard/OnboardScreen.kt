@@ -30,7 +30,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,7 +42,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -100,7 +99,6 @@ fun OnboardingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
     ) {
         // Horizontal Pager for swipeable pages
         HorizontalPager(
@@ -135,7 +133,7 @@ fun OnboardingScreen(
         ) {
             repeat(pages.size) { iteration ->
                 val color = if (pagerState.currentPage == iteration)
-                    Color.White else Color.Gray
+                    MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
 
                 Box(
                     modifier = Modifier
@@ -170,7 +168,6 @@ fun OnboardingScreen(
                 ) {
                     Text(
                         text = "Back",
-                        color = Color.White,
                         fontSize = 16.sp
                     )
                 }
@@ -202,10 +199,6 @@ fun OnboardingScreen(
                         }
                     }
                 },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                ),
                 enabled = if (pages[pagerState.currentPage] is OnboardingContent.CustomPage) {
                     (pages[pagerState.currentPage] as OnboardingContent.CustomPage).isNextEnabled.value
                 } else {
@@ -245,7 +238,6 @@ fun StandardPageContent(
     ) {
         Text(
             text = title,
-            color = Color.White,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -254,7 +246,6 @@ fun StandardPageContent(
 
         Text(
             text = description,
-            color = Color.White,
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp)

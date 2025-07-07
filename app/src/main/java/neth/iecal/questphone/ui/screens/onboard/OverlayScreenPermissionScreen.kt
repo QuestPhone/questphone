@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,7 +16,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,7 +49,6 @@ fun OverlayPermissionScreen(isOnBoardingScreen : Boolean= true) {
     ) {
         Text(
             text = "Overlay Permission",
-            color = Color.White,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -63,7 +60,6 @@ fun OverlayPermissionScreen(isOnBoardingScreen : Boolean= true) {
                 "QuestPhone needs permission to draw over other apps for app blocking. "
             else
                 "Overlay permission granted!",
-            color = Color.White,
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -80,10 +76,6 @@ fun OverlayPermissionScreen(isOnBoardingScreen : Boolean= true) {
                     )
                     context.startActivity(intent)
                 },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                ),
             ) {
                 Text(text = "Grant Overlay Permission")
             }
