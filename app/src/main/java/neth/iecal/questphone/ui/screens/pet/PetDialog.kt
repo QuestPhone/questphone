@@ -492,7 +492,8 @@ fun PetDialog(
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(120.dp) // Fixed height for text area
+                                    // Fixed height for text area, might leave some white space
+                                    .height(135.dp)
                                     .verticalScroll(scroll) // Scroll if text overflows
                             ) {
                                 Text(
