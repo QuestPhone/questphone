@@ -1,0 +1,271 @@
+{
+  "id": "turtie",
+  "imageResource": "turtie_happy",
+  "defaultSequence": "introBeforeLogin",
+  "personality": {
+    "speakingStyle": {
+      "typingSpeed": 5.1,
+      "punctuation": "...",
+      "catchphrases": ["Hmm?", "Oh my!", "Well now..."],
+      "emojis": ["🐢", "🤔"]
+    },
+    "animations": {
+      "bounceHeight": 0.6,
+      "bounceSpeed": 0.7,
+      "extraAnimations": []
+    }
+  },
+  "dialogSequences": {
+    "introBeforeLogin": {
+      "steps": [
+        {
+          "emotion": "happy",
+          "message": "Whoa—new footsteps? 👀 Didn’t think I’d meet someone today!"
+        },
+        {
+          "message": "You here to break some habits... or make new ones?"
+        },
+        {
+          "emotion": "cheeky",
+          "message": "I’m hiding in my shell on the home screen. Come find me when you're ready 🐢✨",
+          "choices": [
+            {"text": "Ohkay!", "storeValue": ["isOnboarded", "true"]}
+          ]
+        }
+      ],
+      "eventType": "NAVIGATION",
+      "eventData": "onboard/",
+      "conditions":{
+        "isTutorialOnGoing": "true",
+        "isOnboarded": "false"
+      }
+    },
+    "greetings": {
+      "steps": [
+        {
+          "emotion": "happy",
+          "message": "Hello there, {user}! I'm the Wise Old Turtle 🐢. What brings you to my little pond today?",
+          "expectsInput": true,
+          "inputKey": "userReason"
+        },
+        {
+          "message": "Ahh... is it? Fascinating 🤔.?",
+          "choices": [
+            {"text": "Continue","storeValue": ["isGreeted", "true"]}
+          ]
+        },
+        {
+          "message": "Now tell me—would you like some advice or perhaps hear a story?",
+          "choices": [
+            {"text": "Some advice, please!", "nextStepId": "adviceSequence" },
+            {"text": "Tell me a story!", "nextStepId": "storySequence"},
+            {"text": "Neither, thanks."}
+          ]
+        },
+        {
+          "message": "Very well... sometimes silence carries the answers we seek. Until next time, {user}."
+        }
+      ],
+      "eventType": "NAVIGATION",
+      "eventData": "home_screen/",
+      "nextSequence": "askForTutorial",
+      "conditions": {
+        "isOnboarded" : "true",
+        "isGreeted" : "false",
+        "isTutorialOnGoing" : "true"
+      }
+    },
+    "askForTutorial": {
+      "steps": [
+        {
+          "message": "Would you like me to show you around a bit?",
+          "choices": [
+            {"text": "Yea sure", "storeValue": ["isTutorialOnGoing", "true"], "nextStepId":"openListQuests"},
+            {"text": "Nah, I'm fine","storeValue": ["isTutorialOnGoing", "false"]}
+          ]
+        }
+      ]
+    },
+    "openListQuests": {
+      "steps": [
+        {
+          "message": "So... 'Quests' is just a cooler way to say 'habits'! Fancy, huh? 😄"
+        },
+        {
+          "message": "Alrighty! Just tap the 'Manage Quests' button to view your quests—or add brand new ones!"
+        }
+      ]
+    },
+    "adviceSequence": {
+      "steps": [
+        {
+          "emotion": "peace",
+          "message": "My advice for you, {user}, is this: Slow and steady wins the race 🐢. Rushing often leads to tripping over your own feet."
+        },
+        {
+          "message": "Does that help you with what you said about '{userReason}'?",
+          "choices": [
+            {"text": "Yes, thank you!", "nextStepId": "greeting"},
+            {"text": "Not really."}
+          ]
+        },
+        {
+          "emotion": "happy",
+          "message": "Hmm... let it simmer in your mind. Wisdom doesn’t shout—it whispers over time."
+        }
+      ],
+      "nextSequence": "askForTutorial"
+    },
+    "storySequence": {
+      "steps": [
+        {
+          "emotion": "peace",
+          "message": "Once upon a ripple, {user}, in a pond much like this... there lived a tiny tadpole who dreamed of flying."
+        },
+        {
+          "emotion": "peace",
+          "message": "...and while he never grew wings, he learned to leap higher than any frog in the land! The end 🌿"
+        }
+      ],
+      "nextSequence": "askForTutorial"
+    },
+    "listQuests": {
+      "steps": [
+        {
+          "message": "Ready to add a quest? Just press that shiny little 'add' button!",
+          "choices": [
+            {"text": "Ohkay understood!", "storeValue": ["listQuestsTutorialShown", "true"]}
+          ]
+        }
+      ],
+      "eventType": "NAVIGATION",
+      "eventData": "list_quest/",
+      "conditions": {
+        "isTutorialOnGoing": "true",
+        "listQuestsTutorialShown": "false"
+      }
+    },
+    "setQuestIntegration": {
+      "steps": [
+        {
+          "message": "Integration is just a fancy word for: 'How do we make sure you actually did your quest?'"
+        },
+        {
+          "message": "Long press on any integration to get the full scoop—how it works and when to use it!"
+        },
+        {
+          "message": "Once you're familiar with them, you’re all set to create your next awesome quest 💪",
+          "choices": [
+            {"text": "Understood Sur!", "storeValue": ["setQuestIntegrationTutorialShown", "true"]}
+          ]
+        }
+      ],
+      "eventType": "NAVIGATION",
+      "eventData": "set_quest_integration/",
+      "conditions": {
+        "isTutorialOnGoing": "true",
+        "setQuestIntegrationTutorialShown": "false"
+      }
+    },
+    "openQuestSpecificTaskTutorial": {
+      "steps": [
+        {
+          "message": "Now that you've got quests, tap on any of them to see detailed stats just for that quest 📊",
+          "choices": [
+            {"text": "Ok I'll try!", "storeValue": ["openQuestSpecificTaskTutorialShown", "true"]}
+          ]
+        }
+      ],
+      "eventType": "NAVIGATION",
+      "eventData": "list_quest/",
+      "conditions": {
+        "isTutorialOnGoing": "true",
+        "listQuestsTutorialShown": "true",
+        "openQuestSpecificTaskTutorialShown": "false"
+      }
+    },
+    "openProfileTutorial": {
+      "steps": [
+        {
+          "message": "See that little person icon up top? Tap it to view your profile! 🧍",
+          "choices": [
+            {"text": "Ok I'll try!", "storeValue": ["openProfileTutorialShown", "true"]}
+          ]
+        }
+      ],
+      "eventType": "NAVIGATION",
+      "eventData": "home_screen/",
+      "conditions": {
+        "isTutorialOnGoing": "true",
+        "openProfileTutorialShown": "false",
+        "setQuestIntegrationTutorialShown": "true"
+      }
+    },
+
+    "userInfo": {
+      "steps": [
+        {
+          "message": "Here's where you can check your profile, use items you've earned, and discover more goodies 🧰",
+          "choices": [
+            {
+              "text": "Understood sur!",
+              "storeValue": ["isTutorialOnGoing", "false"]
+            }
+          ]
+        }
+      ],
+      "eventType": "NAVIGATION",
+      "eventData": "userInfo/",
+      "conditions": {
+        "isTutorialOnGoing": "true",
+        "userInfoTutorialShown": "false"
+      }
+    },
+    "questStats": {
+      "steps": [
+        {
+          "message": "Welcome to the stats hub for a specific quest! 📊 Dive in and see how you're progressing.",
+          "choices": [
+            {
+              "text": "Understood sur!",
+              "storeValue": ["questStatsTutorialShown", "true"]
+            }
+          ]
+        }
+      ],
+      "eventType": "NAVIGATION",
+      "eventData": "questStats/{id}",
+      "conditions": {
+        "isTutorialOnGoing": "true",
+        "questStatsTutorialShown": "false"
+      }
+    },
+    "questView": {
+      "steps": [
+          {
+            "message": "Welcome to your quest! This is where the action happens."
+          },
+          {
+            "message": "You can edit the quest instructions by tapping the little pencil icon above."
+          },
+          {
+            "message": "Any changes you make will stick around just for today — everything resets back to normal tomorrow."
+          },
+          {
+            "message": "So feel free to tweak it if you need to store notes just for the day!",
+            "choices": [
+              {
+                "text": "okhay",
+                "storeValue": ["questViewTutorialShown", "true"]
+              }
+            ]
+          }
+      ],
+      "eventType": "NAVIGATION",
+      "eventData": "view_quest/{id}",
+      "conditions": {
+        "questViewTutorialShown": "false"
+      }
+    }
+  }
+}

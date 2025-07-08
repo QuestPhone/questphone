@@ -51,9 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startForegroundService
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -87,7 +85,7 @@ fun AppList(navController: NavController) {
     val sp = context.getSharedPreferences("distractions", Context.MODE_PRIVATE)
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    var distractions = emptySet<String>()
+    var distractions by remember{mutableStateOf(emptySet<String>())}
 
 
     val focusRequester = remember { FocusRequester() }
@@ -99,16 +97,12 @@ fun AppList(navController: NavController) {
         groupedAppsState.value = groupAppsByLetter(filteredAppsListRaw)
     }
     LaunchedEffect(Unit) {
+        distractions = sp.getStringSet("distracting_apps", emptySet<String>()) ?: emptySet()
+
         delay(1000)
         focusRequester.requestFocus()
         // Optional slight delay to ensure keyboard shows after focus
         keyboardController?.show()
-    }
-
-    LaunchedEffect(lifecycleOwner) {
-        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            distractions = sp.getStringSet("distracting_apps", emptySet<String>()) ?: emptySet()
-        }
     }
 
     LaunchedEffect(Unit) {
