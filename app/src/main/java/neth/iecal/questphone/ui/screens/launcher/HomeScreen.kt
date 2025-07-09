@@ -7,6 +7,8 @@ import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -27,6 +29,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +43,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -51,8 +55,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -82,6 +88,12 @@ import neth.iecal.questphone.utils.isLockScreenServiceEnabled
 import neth.iecal.questphone.utils.isSetToDefaultLauncher
 import neth.iecal.questphone.utils.openDefaultLauncherSettings
 import neth.iecal.questphone.utils.performLockScreenAction
+
+data class SidePanelItem(
+    val icon: Int,
+    val onClick: () -> Unit,
+    val contentDesc: String
+)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -275,7 +287,7 @@ fun HomeScreen(navController: NavController) {
         modifier = Modifier.safeDrawingPadding(),
         topBar = {
             TopAppBar({}, actions = {
-                TopBarActions(navController, true, true, true)
+                TopBarActions( true, true)
             })
 
         }) { innerPadding ->
@@ -345,14 +357,15 @@ fun HomeScreen(navController: NavController) {
 
                 LazyColumn(
                     contentPadding = PaddingValues(vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    userScrollEnabled = false,
+
                 ) {
                     items(questList.size) { index ->
                         val baseQuest = questList[index]
                         val isFailed = questHelper.isOver(baseQuest)
 
                         val isCompleted = completedQuests.contains(baseQuest.title)
-
                         Text(
                             text = baseQuest.title,
                             fontWeight = FontWeight.ExtraLight,
@@ -361,7 +374,10 @@ fun HomeScreen(navController: NavController) {
                             textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                             modifier = Modifier.clickable(onClick = {
                                 navController.navigate(Screen.ViewQuest.route + baseQuest.id)
-                            })
+                            },
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = ripple(bounded = false)
+                            )
                         )
                     }
                     item {
@@ -370,6 +386,47 @@ fun HomeScreen(navController: NavController) {
                             fontWeight = FontWeight.ExtraLight,
                             fontSize = 15.sp,
                         )
+                    }
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 8.dp,bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 8.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .background(
+                            color = Color(0xFF2A2A2A),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        .padding(15.dp),
+                    userScrollEnabled = false,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+
+                    items(sidePanelItems) {
+                        Box(
+                            modifier = Modifier
+                                .size(35.dp)
+                                .clickable(
+                                    onClick = {it.onClick() },
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = ripple(bounded = false)
+
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(it.icon),
+                                contentDescription = it.contentDesc,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -395,7 +452,8 @@ fun HomeScreen(navController: NavController) {
                     }
                 }
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalAlignment = Alignment.End
                 ) {
                     items(shortcuts) {
                         val name = try {
