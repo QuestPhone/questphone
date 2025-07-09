@@ -16,8 +16,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -102,16 +105,16 @@ fun HomeScreen(navController: NavController) {
     }
 
     LaunchedEffect(Unit) {
+        val shortcutsSp = context.getSharedPreferences("shortcuts", MODE_PRIVATE)
+        val tshortcuts =  shortcutsSp.getStringSet("shortcuts", setOf())?.toList<String>() ?: listOf()
+        shortcuts.addAll(tshortcuts)
+        tempShortcuts.addAll(tshortcuts)
         while (true) {
             time = getCurrentTime12Hr()
             val delayMillis =
                 60_000 - (System.currentTimeMillis() % 60_000) // Delay until next minute
             delay(delayMillis)
         }
-        val shortcutsSp = context.getSharedPreferences("shortcuts", MODE_PRIVATE)
-        val tshortcuts =  shortcutsSp.getStringSet("shortcuts", setOf())?.toList<String>() ?: listOf()
-        shortcuts.addAll(tshortcuts)
-        tempShortcuts.addAll(tshortcuts)
     }
 
 
@@ -373,7 +376,7 @@ fun HomeScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(24.dp),
+                    .padding(WindowInsets.navigationBars.asPaddingValues()),
                 horizontalAlignment = Alignment.End
             ) {
                 if(shortcuts.isEmpty()){
