@@ -23,7 +23,6 @@ import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsInfo
 import neth.iecal.questphone.ui.screens.quest.checkForRewards
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
-import neth.iecal.questphone.ui.theme.JetBrainsMonoFont
 import neth.iecal.questphone.utils.QuestHelper
 import neth.iecal.questphone.utils.formatHour
 import neth.iecal.questphone.utils.getCurrentDate
@@ -95,7 +94,6 @@ fun SwiftMarkQuestView(
             Text(
                 text = commonQuestInfo.title,
                 style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                fontFamily = JetBrainsMonoFont,
                 modifier = Modifier.padding(top = 40.dp)
             )
 

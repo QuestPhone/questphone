@@ -6,26 +6,31 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import neth.iecal.questphone.R
 
-// JetBrains Mono Font Family
-val JetBrainsMonoFont = FontFamily(
-    Font(R.font.jetbrains_regular, FontWeight.Normal)
-)
 val defaultTypography = Typography()
 
+val InterFont = FontFamily(
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_black, FontWeight.Black),
+    Font(R.font.inter_extra_light, FontWeight.ExtraLight),
+    Font(R.font.inter_bold, FontWeight.Bold),
+)
+
+
+
 val customTypography = Typography(
-    displayLarge = defaultTypography.displayLarge.copy(fontFamily = JetBrainsMonoFont),
-    displayMedium = defaultTypography.displayMedium.copy(fontFamily = JetBrainsMonoFont),
-    displaySmall = defaultTypography.displaySmall.copy(fontFamily = JetBrainsMonoFont),
-    headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = JetBrainsMonoFont),
-    headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = JetBrainsMonoFont),
-    headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = JetBrainsMonoFont),
-    titleLarge = defaultTypography.titleLarge.copy(fontFamily = JetBrainsMonoFont),
-    titleMedium = defaultTypography.titleMedium.copy(fontFamily = JetBrainsMonoFont),
-    titleSmall = defaultTypography.titleSmall.copy(fontFamily = JetBrainsMonoFont),
-    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = FontFamily.Serif),
-    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = FontFamily.Serif),
-    bodySmall = defaultTypography.bodySmall.copy(fontFamily = FontFamily.Serif),
-    labelLarge = defaultTypography.labelLarge.copy(fontFamily = JetBrainsMonoFont),
-    labelMedium = defaultTypography.labelMedium.copy(fontFamily = JetBrainsMonoFont),
-    labelSmall = defaultTypography.labelSmall.copy(fontFamily = JetBrainsMonoFont),
+    displayLarge = defaultTypography.displayLarge.copy(fontFamily = InterFont),
+    displayMedium = defaultTypography.displayMedium.copy(fontFamily = InterFont),
+    displaySmall = defaultTypography.displaySmall.copy(fontFamily = InterFont),
+    headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = InterFont, fontWeight = FontWeight.Black),
+    headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = InterFont),
+    headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = InterFont),
+    titleLarge = defaultTypography.titleLarge.copy(fontFamily = InterFont),
+    titleMedium = defaultTypography.titleMedium.copy(fontFamily = InterFont),
+    titleSmall = defaultTypography.titleSmall.copy(fontFamily = InterFont),
+    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = InterFont),
+    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = InterFont),
+    bodySmall = defaultTypography.bodySmall.copy(fontFamily = InterFont),
+    labelLarge = defaultTypography.labelLarge.copy(fontFamily = InterFont),
+    labelMedium = defaultTypography.labelMedium.copy(fontFamily = InterFont),
+    labelSmall = defaultTypography.labelSmall.copy(fontFamily = InterFont),
 )

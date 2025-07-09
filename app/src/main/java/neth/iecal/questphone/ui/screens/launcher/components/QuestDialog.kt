@@ -5,8 +5,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +29,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,8 +52,6 @@ import kotlinx.coroutines.flow.collectLatest
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.ui.navigation.Screen
-import neth.iecal.questphone.ui.screens.launcher.QuestItem
 import neth.iecal.questphone.utils.QuestHelper
 import neth.iecal.questphone.utils.formatHour
 import neth.iecal.questphone.utils.formatInstantToDate
@@ -257,23 +252,7 @@ fun QuestDialog(
                                             else timeRange
                                         val isOver = questHelper.isOver(baseQuest)
 
-                                        QuestItem(
-                                            text = if (
-                                                QuestHelper.isInTimeRange(baseQuest) && isOver
-                                            ) baseQuest.title else prefix + baseQuest.title,
-                                            isCompleted = completedQuests.contains(baseQuest.title),
-                                            isFailed = isOver,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .animateItem()
-                                                .clickable(
-                                                    indication = ripple(),
-                                                    interactionSource = remember { MutableInteractionSource() }
-                                                ) {
-                                                    onDismiss()
-                                                    navController.navigate(Screen.ViewQuest.route + baseQuest.id)
-                                                }
-                                        )
+
                                     }
                                 }
                             }

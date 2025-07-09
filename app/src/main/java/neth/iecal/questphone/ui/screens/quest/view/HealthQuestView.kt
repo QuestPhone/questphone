@@ -32,7 +32,6 @@ import neth.iecal.questphone.data.quest.stats.StatsInfo
 import neth.iecal.questphone.ui.screens.quest.checkForRewards
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import neth.iecal.questphone.ui.screens.tutorial.HealthConnectScreen
-import neth.iecal.questphone.ui.theme.JetBrainsMonoFont
 import neth.iecal.questphone.utils.HealthConnectManager
 import neth.iecal.questphone.utils.HealthConnectPermissionManager
 import neth.iecal.questphone.utils.QuestHelper
@@ -155,7 +154,6 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                 Text(
                     text = commonQuestInfo.title,
                     style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                    fontFamily = JetBrainsMonoFont,
                     modifier = Modifier.padding(top = 40.dp)
                 )
                 Text(

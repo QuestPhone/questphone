@@ -28,6 +28,11 @@ fun getCurrentDate(): String {
     return sdf.format(Date())
 }
 
+
+fun getCurrentTime12Hr(): String {
+    return SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date()) // HH:MM AM/PM format
+}
+
 /**
  * format: yyyy-MM-dd
  */

@@ -1,3 +1,4 @@
+
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -122,4 +123,6 @@ dependencies {
     implementation(libs.androidx.room.ktx)
 
     ksp(libs.androidx.room.compiler)
- }
+    implementation (libs.androidx.ui.text.google.fonts)
+
+}

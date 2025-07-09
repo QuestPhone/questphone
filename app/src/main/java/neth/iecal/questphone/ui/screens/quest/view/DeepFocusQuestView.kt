@@ -51,7 +51,6 @@ import neth.iecal.questphone.services.INTENT_ACTION_STOP_DEEP_FOCUS
 import neth.iecal.questphone.services.ServiceInfo
 import neth.iecal.questphone.ui.screens.quest.checkForRewards
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
-import neth.iecal.questphone.ui.theme.JetBrainsMonoFont
 import neth.iecal.questphone.utils.QuestHelper
 import neth.iecal.questphone.utils.formatHour
 import neth.iecal.questphone.utils.getCurrentDate
@@ -285,7 +284,6 @@ fun DeepFocusQuestView(
             Text(
                 text = commonQuestInfo.title,
                 style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                fontFamily = JetBrainsMonoFont,
                 modifier = Modifier.padding(top = 40.dp)
             )
 
