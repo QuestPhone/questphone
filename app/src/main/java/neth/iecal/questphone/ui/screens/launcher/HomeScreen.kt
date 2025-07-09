@@ -6,8 +6,7 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -22,10 +21,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -33,6 +34,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,14 +47,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
 import androidx.navigation.NavController
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -64,8 +65,10 @@ import neth.iecal.questphone.data.game.continueStreak
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.navigation.Screen
+import neth.iecal.questphone.ui.screens.components.TopBarActions
 import neth.iecal.questphone.ui.screens.quest.DialogState
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
+import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.utils.QuestHelper
 import neth.iecal.questphone.utils.VibrationHelper
 import neth.iecal.questphone.utils.getCurrentDate
@@ -75,7 +78,7 @@ import neth.iecal.questphone.utils.isSetToDefaultLauncher
 import neth.iecal.questphone.utils.openDefaultLauncherSettings
 import neth.iecal.questphone.utils.performLockScreenAction
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
@@ -101,10 +104,17 @@ fun HomeScreen(navController: NavController) {
     LaunchedEffect(Unit) {
         while (true) {
             time = getCurrentTime12Hr()
-            val delayMillis = 60_000 - (System.currentTimeMillis() % 60_000) // Delay until next minute
+            val delayMillis =
+                60_000 - (System.currentTimeMillis() % 60_000) // Delay until next minute
             delay(delayMillis)
         }
+        val shortcutsSp = context.getSharedPreferences("shortcuts", MODE_PRIVATE)
+        val tshortcuts =  shortcutsSp.getStringSet("shortcuts", setOf())?.toList<String>() ?: listOf()
+        shortcuts.addAll(tshortcuts)
+        tempShortcuts.addAll(tshortcuts)
     }
+
+
 
     fun streakFailResultHandler(streakCheckReturn: StreakCheckReturn?) {
         if (streakCheckReturn != null) {
@@ -140,7 +150,7 @@ fun HomeScreen(navController: NavController) {
                     completedQuests.add(item.title)
                 }
                 if (questHelper.isQuestRunning(item.title)) {
-//                    viewQuest(item, navController)
+                    navController.navigate(item.integration_id.name + item.id)
                 }
             }
 
@@ -256,34 +266,33 @@ fun HomeScreen(navController: NavController) {
                 style = MaterialTheme.typography.bodyLarge,
             )
 
-
-    Scaffold(modifier = Modifier.safeDrawingPadding(), topBar = {
-        TopAppBar(
-            title = {},
-            actions = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .background(
-                            color = Color(0xFF2A2A2A),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.coin_icon),
-                        contentDescription = "Coins",
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "32",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+    Scaffold(
+        modifier = Modifier.safeDrawingPadding(),
+        topBar = {
+            TopAppBar({}, actions = {
+                TopBarActions(navController, true, true, true)
             })
-    }) { innerPadding ->
+
+        }) { innerPadding ->
+
+        if (isAppSelectorVisible) {
+            SelectAppsDialog(
+                tempShortcuts,
+                onDismiss = { isAppSelectorVisible = false },
+                onConfirm = {
+                    val shortcutsSp = context.getSharedPreferences("shortcuts", MODE_PRIVATE)
+                    shortcutsSp.edit(commit = true) {
+                        putStringSet(
+                            "shortcuts",
+                            tempShortcuts.toSet()
+                        )
+                    }
+                    shortcuts.clear()
+                    shortcuts.addAll(tempShortcuts)
+                    isAppSelectorVisible = false
+                })
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -317,6 +326,7 @@ fun HomeScreen(navController: NavController) {
             Column(
                 Modifier.padding(8.dp)
             ) {
+                Spacer(Modifier.size(12.dp))
                 Text(
                     time,
                     style = MaterialTheme.typography.headlineLarge,
@@ -330,7 +340,8 @@ fun HomeScreen(navController: NavController) {
                 Spacer(Modifier.height(12.dp))
 
                 LazyColumn(
-                    contentPadding = PaddingValues(vertical = 4.dp)
+                    contentPadding = PaddingValues(vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     items(questList.size) { index ->
                         val baseQuest = questList[index]
@@ -359,20 +370,54 @@ fun HomeScreen(navController: NavController) {
                 }
             }
 
-            // Bottom links
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(24.dp),
                 horizontalAlignment = Alignment.End
             ) {
-                for(i in 1..4){
-                    Text(
-                        text = "Shortcut $i",
-                        fontWeight = FontWeight.ExtraLight,
-                        fontSize = 23.sp,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
+                if(shortcuts.isEmpty()){
+                    TextButton(onClick = {
+                        isAppSelectorVisible = true
+                    }) {
+                    Row {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Shortcuts")
+                        Spacer(Modifier.size(4.dp))
+                        Text(
+                            text = "Add Shortcuts",
+                            fontWeight = FontWeight.ExtraLight,
+                            fontSize = 23.sp)
+                    }
+                    }
+                }
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(shortcuts) {
+                        val name = try {
+                            val appInfo = context.packageManager.getApplicationInfo(it, 0)
+                            appInfo.loadLabel(context.packageManager).toString()
+                        } catch (_: Exception) {
+                            it
+                        }
+
+                        Text(
+                            text = name,
+                            fontWeight = FontWeight.ExtraLight,
+                            fontSize = 23.sp,
+                            modifier = Modifier
+                                .padding(vertical = 4.dp)
+                                .combinedClickable(onClick = {
+                                    val intent =
+                                        context.packageManager.getLaunchIntentForPackage(
+                                            it
+                                        )
+                                    intent?.let { context.startActivity(it) }
+                                }, onLongClick = {
+                                    isAppSelectorVisible = true
+                                })
+                        )
+                    }
                 }
             }
         }

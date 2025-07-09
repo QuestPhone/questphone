@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import neth.iecal.questphone.data.AppInfo
 import neth.iecal.questphone.utils.reloadApps
 
@@ -46,6 +47,7 @@ fun SelectAppsDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        properties = DialogProperties(dismissOnClickOutside = false),
         title = { Text("Select Apps") },
         text = {
             Column {
