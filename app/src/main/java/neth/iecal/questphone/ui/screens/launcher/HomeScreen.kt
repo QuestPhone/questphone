@@ -6,6 +6,12 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,6 +21,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,15 +30,19 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -95,7 +106,9 @@ data class SidePanelItem(
     val contentDesc: String
 )
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalLayoutApi::class
+)
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
@@ -452,10 +465,10 @@ fun HomeScreen(navController: NavController) {
                     }
                 }
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalAlignment = Alignment.End
                 ) {
-                    items(shortcuts) {
+                    itemsIndexed(shortcuts) { index, it ->
                         val name = try {
                             val appInfo = context.packageManager.getApplicationInfo(it, 0)
                             appInfo.loadLabel(context.packageManager).toString()
@@ -469,7 +482,6 @@ fun HomeScreen(navController: NavController) {
                             fontSize = 23.sp,
                             textAlign = TextAlign.End,
                             modifier = Modifier
-                                .padding(vertical = 4.dp)
                                 .wrapContentWidth()
                                 .combinedClickable(onClick = {
                                     val intent =
@@ -484,6 +496,14 @@ fun HomeScreen(navController: NavController) {
                     }
                 }
             }
+
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowUp,
+                contentDescription = "Swipe up",
+                modifier = Modifier.align(Alignment.BottomCenter)
+                    .offset(y = swipeIconAnimation.dp)
+                    .padding(bottom = WindowInsets.navigationBarsIgnoringVisibility.asPaddingValues().calculateBottomPadding()*2)
+            )
         }
     }
 }
