@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -53,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -325,7 +327,6 @@ fun HomeScreen(navController: NavController) {
                     }
                 }
         ) {
-            // Quests
             Column(
                 Modifier.padding(8.dp)
             ) {
@@ -376,7 +377,7 @@ fun HomeScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(WindowInsets.navigationBars.asPaddingValues()),
+                    .padding(end = 8.dp,bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 8.dp),
                 horizontalAlignment = Alignment.End
             ) {
                 if(shortcuts.isEmpty()){
@@ -408,8 +409,10 @@ fun HomeScreen(navController: NavController) {
                             text = name,
                             fontWeight = FontWeight.ExtraLight,
                             fontSize = 23.sp,
+                            textAlign = TextAlign.End,
                             modifier = Modifier
                                 .padding(vertical = 4.dp)
+                                .wrapContentWidth()
                                 .combinedClickable(onClick = {
                                     val intent =
                                         context.packageManager.getLaunchIntentForPackage(
