@@ -80,7 +80,7 @@ fun NeuralMeshSymmetrical(modifier: Modifier = Modifier) {
             val centerX = size.width / 2f
             val centerY = size.height / 2f
 
-            // The main radius of our spherical mesh.
+            // The main radius of spherical mesh.
             // It's based on the smaller dimension of the canvas to fit well.
             val baseRadius = size.minDimension / 3f
 

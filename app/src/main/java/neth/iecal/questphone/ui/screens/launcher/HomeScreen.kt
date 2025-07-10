@@ -87,7 +87,9 @@ import neth.iecal.questphone.data.game.continueStreak
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.navigation.Screen
+import neth.iecal.questphone.ui.screens.components.NeuralMeshSymmetrical
 import neth.iecal.questphone.ui.screens.components.TopBarActions
+import neth.iecal.questphone.ui.screens.launcher.components.AllQuestsDialog
 import neth.iecal.questphone.ui.screens.quest.DialogState
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
@@ -167,15 +169,13 @@ fun HomeScreen(navController: NavController) {
             val todayDay = getCurrentDay()
             val isUserCreatedToday = getCurrentDate() == User.userInfo.getCreatedOnString()
 
-            val list = questListUnfiltered.filter {
+            var list = questListUnfiltered.filter {
                 !it.is_destroyed && it.selected_days.contains(todayDay) &&
                         (isUserCreatedToday || it.created_on != getCurrentDate())
             }
-            questList.clear()
-            questList.addAll(list)
 
 
-            questList.forEach { item ->
+            list.forEach { item ->
                 if (item.last_completed_on == getCurrentDate()) {
                     completedQuests.add(item.title)
                 }
@@ -184,6 +184,16 @@ fun HomeScreen(navController: NavController) {
                 }
             }
 
+
+            if(list.size>4){
+                list = list.filter { it.title !in completedQuests }
+                list.sortedBy { QuestHelper.isInTimeRange(it) }
+                if(list.size>4){
+                    list = list.take(4)
+                }
+            }
+            questList.clear()
+            questList.addAll(list)
             val data = context.getSharedPreferences("onboard", MODE_PRIVATE)
 
 
@@ -322,6 +332,13 @@ fun HomeScreen(navController: NavController) {
                     isAppSelectorVisible = false
                 })
         }
+        if(isAllQuestsDialogVisible){
+            AllQuestsDialog(
+                navController = navController
+            ) {
+                isAllQuestsDialogVisible = false
+            }
+        }
 
         Box(
             modifier = Modifier
@@ -355,6 +372,7 @@ fun HomeScreen(navController: NavController) {
             Column(
                 Modifier.padding(8.dp)
             ) {
+                NeuralMeshSymmetrical(modifier = Modifier.size(200.dp))
                 Spacer(Modifier.size(12.dp))
                 Text(
                     time,
@@ -367,6 +385,21 @@ fun HomeScreen(navController: NavController) {
                     fontWeight = FontWeight.Black
                 )
                 Spacer(Modifier.height(12.dp))
+
+                if(questList.isEmpty()){
+                    TextButton(onClick = {
+                        navController.navigate(Screen.SelectTemplates.route)
+                    }) {
+                        Row {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Add Quests")
+                            Spacer(Modifier.size(4.dp))
+                            Text(
+                                text = "Add Quests",
+                                fontWeight = FontWeight.ExtraLight,
+                                fontSize = 23.sp)
+                        }
+                    }
+                }
 
                 LazyColumn(
                     contentPadding = PaddingValues(vertical = 4.dp),
@@ -398,7 +431,31 @@ fun HomeScreen(navController: NavController) {
                             text = "✦✦✦✦✦",
                             fontWeight = FontWeight.ExtraLight,
                             fontSize = 15.sp,
+                            modifier = Modifier.clickable(onClick = {
+                                isAllQuestsDialogVisible  = true
+                            },
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = ripple(bounded = false))
                         )
+
+                        if(!isSetToDefaultLauncher(context)) {
+                            Spacer(Modifier.size(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {
+                                openDefaultLauncherSettings(context)
+                            })) {
+                                Icon(
+                                    painter = painterResource(R.drawable.baseline_info_24),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(30.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(Modifier.size(8.dp))
+                                Text(
+                                    text = "Set QuestPhone as your default launcher for the best experience",
+                                    fontSize = 15.sp,
+                                )
+                            }
+                        }
                     }
                 }
             }

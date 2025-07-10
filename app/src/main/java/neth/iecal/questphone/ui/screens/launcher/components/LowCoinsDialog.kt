@@ -33,7 +33,7 @@ fun LowCoinsDialog(
     var isPerformAQuestDialogVisible = remember { mutableStateOf(false) }
 
     if (isPerformAQuestDialogVisible.value) {
-        QuestDialog(navController = navController) {
+        AllQuestsDialog(navController = navController) {
             isPerformAQuestDialogVisible.value = false
         }
     } else {

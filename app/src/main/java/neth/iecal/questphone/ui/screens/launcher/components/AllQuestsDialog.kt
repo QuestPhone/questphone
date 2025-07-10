@@ -5,6 +5,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +31,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,7 +47,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
@@ -52,6 +57,7 @@ import kotlinx.coroutines.flow.collectLatest
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
+import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.utils.QuestHelper
 import neth.iecal.questphone.utils.formatHour
 import neth.iecal.questphone.utils.formatInstantToDate
@@ -59,7 +65,7 @@ import neth.iecal.questphone.utils.getCurrentDate
 import neth.iecal.questphone.utils.getCurrentDay
 
 @Composable
-fun QuestDialog(
+fun AllQuestsDialog(
     navController: NavController,
     onDismiss: () -> Unit,
 
@@ -137,7 +143,6 @@ fun QuestDialog(
                             modifier = Modifier
                                 .padding(12.dp)
                                 .size(24.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
 
@@ -196,9 +201,7 @@ fun QuestDialog(
                             // Progress indicator
                             if (questList.isNotEmpty()) {
 
-                                Column(
-                                    modifier = Modifier.padding(16.dp)
-                                ) {
+                                Column{
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -250,9 +253,22 @@ fun QuestDialog(
                                         val prefix =
                                             if (baseQuest.time_range[0] == 0 && baseQuest.time_range[1] == 24) ""
                                             else timeRange
-                                        val isOver = questHelper.isOver(baseQuest)
+                                        val isFailed = questHelper.isOver(baseQuest)
+                                        val isCompleted = completedQuests.contains(baseQuest.title)
 
-
+                                        Text(
+                                            text = if(QuestHelper.Companion.isInTimeRange(baseQuest) && isFailed) baseQuest.title else  prefix +  baseQuest.title,
+                                            fontWeight = FontWeight.ExtraLight,
+                                            fontSize = 23.sp,
+                                            color = if (isFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                                            textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
+                                            modifier = Modifier.clickable(onClick = {
+                                                navController.navigate(Screen.ViewQuest.route + baseQuest.id)
+                                            },
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = ripple(bounded = false)
+                                            )
+                                        )
                                     }
                                 }
                             }
