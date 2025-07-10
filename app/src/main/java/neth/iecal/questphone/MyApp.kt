@@ -3,7 +3,6 @@ package neth.iecal.questphone
 import android.app.Application
 import android.net.ConnectivityManager
 import android.net.Network
-import neth.iecal.questphone.data.game.Pet
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.services.reloadServiceInfo
 import neth.iecal.questphone.utils.VibrationHelper
@@ -21,7 +20,6 @@ class MyApp : Application() {
 
         User.init(this)
         VibrationHelper.init(this)
-        Pet.init(this)
         reloadServiceInfo(this)
         connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
 

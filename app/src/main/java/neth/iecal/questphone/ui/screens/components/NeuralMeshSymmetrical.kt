@@ -30,17 +30,17 @@ import kotlin.math.sqrt
  * @param y The y-coordinate.
  * @param z The z-coordinate.
  */
-private data class Point3D(val x: Float, val y: Float, val z: Float)
+private data class SPoint3D(val x: Float, val y: Float, val z: Float)
 
 /**
  * Represents a single node in the neural network.
  * It holds its 3D position.
  * @param position The current 3D position of the node.
  */
-private data class Node(val position: Point3D)
+private data class SNode(val position: SPoint3D)
 
 @Composable
-fun NeuralNetworkCanvas(modifier: Modifier = Modifier) {
+fun NeuralMeshSymmetrical(modifier: Modifier = Modifier) {
     Box( modifier = modifier) {
 
         val infiniteTransition = rememberInfiniteTransition(label = "infinite_rotation")
@@ -99,7 +99,7 @@ fun NeuralNetworkCanvas(modifier: Modifier = Modifier) {
                 y = tempY
 
                 // Create the final transformed 3D point
-                val transformedPoint = Point3D(x * pulsatingRadius, y * pulsatingRadius, z * pulsatingRadius)
+                val transformedPoint = SPoint3D(x * pulsatingRadius, y * pulsatingRadius, z * pulsatingRadius)
 
                 // Project 3D point to 2D screen space
                 val (projectedX, projectedY, scale) = projectPoint(transformedPoint, centerX, centerY)
@@ -123,8 +123,8 @@ fun NeuralNetworkCanvas(modifier: Modifier = Modifier) {
  * @param numNodes The total number of nodes to create.
  * @return A list of Node objects.
  */
-private fun createSphericalNodes(numNodes: Int = 100): List<Node> {
-    val nodes = mutableListOf<Node>()
+private fun createSphericalNodes(numNodes: Int = 100): List<SNode> {
+    val SNodes = mutableListOf<SNode>()
     val goldenRatio = (1f + sqrt(5f)) / 2f
     val angleIncrement = PI.toFloat() * 2f * goldenRatio
 
@@ -136,9 +136,9 @@ private fun createSphericalNodes(numNodes: Int = 100): List<Node> {
         val x = sin(inclination) * cos(azimuth)
         val y = sin(inclination) * sin(azimuth)
         val z = cos(inclination)
-        nodes.add(Node(Point3D(x, y, z)))
+        SNodes.add(SNode(SPoint3D(x, y, z)))
     }
-    return nodes
+    return SNodes
 }
 
 /**
@@ -148,7 +148,7 @@ private fun createSphericalNodes(numNodes: Int = 100): List<Node> {
  * @param centerY The vertical center of the screen.
  * @return A Triple containing the projected X, Y coordinates, and a scale factor.
  */
-private fun projectPoint(point: Point3D, centerX: Float, centerY: Float): Triple<Float, Float, Float> {
+private fun projectPoint(point: SPoint3D, centerX: Float, centerY: Float): Triple<Float, Float, Float> {
     // Perspective is controlled by how much 'z' affects the scale.
     // A larger perspective value means a stronger depth effect.
     val perspective = 300f

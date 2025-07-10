@@ -87,7 +87,6 @@ import neth.iecal.questphone.data.game.continueStreak
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.navigation.Screen
-import neth.iecal.questphone.ui.screens.components.NeuralNetworkCanvas
 import neth.iecal.questphone.ui.screens.components.TopBarActions
 import neth.iecal.questphone.ui.screens.quest.DialogState
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
