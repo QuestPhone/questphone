@@ -1,5 +1,6 @@
 package neth.iecal.questphone.ui.screens.pet
 
+import android.content.Context
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -25,7 +26,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.edit
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.delay
 import neth.iecal.questphone.data.game.StoryNode
@@ -54,9 +56,13 @@ import kotlin.random.Random
 
 @Composable
 fun TheSystemDialog() {
-    var isDialogVisible by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    var isDialogVisible by remember { mutableStateOf(false) }
+
+
     var currentNode by remember { mutableStateOf<StoryNode?>(introductionStory["welcome"]) }
-    val scope = rememberCoroutineScope()
+    var currentStory = remember { mutableStateOf<Map<String,StoryNode>>(mapOf()) }
+
     val isFullTextShown = remember { mutableStateOf(false) }
 
     // Animation for options fade-in
@@ -68,6 +74,16 @@ fun TheSystemDialog() {
         ),
         label = "optionsAlpha"
     )
+
+    LaunchedEffect(Unit) {
+        val sp = context.getSharedPreferences("systemDialog",Context.MODE_PRIVATE)
+        val isIntroDone = sp.getBoolean("isIntroDone",false)
+        if(!isIntroDone){
+            isDialogVisible = true
+            currentStory.value = introductionStory
+            currentNode = introductionStory["welcome"]
+        }
+    }
 
     // Dialog exit animation
     fun onDismiss() {
@@ -126,7 +142,17 @@ fun TheSystemDialog() {
                             currentNode?.options?.forEachIndexed { index, option ->
                                 OutlinedButton(
                                     onClick = {
-                                        currentNode = introductionStory[option.nextNodeId]
+                                        if(option.nextNodeId == null){
+                                            onDismiss()
+                                            val sp = context.getSharedPreferences("systemDialog",Context.MODE_PRIVATE)
+                                            sp.edit(commit = true) {
+                                                putBoolean(
+                                                    "isIntroDone",
+                                                    true
+                                                )
+                                            }
+                                        }
+                                        currentNode = currentStory.value[option.nextNodeId]
                                         isFullTextShown.value = false // Reset typing animation
                                     },
                                     shape = RoundedCornerShape(8.dp)
@@ -151,7 +177,7 @@ fun BadassTypingText(
     fullText: String,
     isFullTextShown: MutableState<Boolean>,
     modifier: Modifier = Modifier,
-    typingSpeed: Long = 20L,
+    typingSpeed: Long = 10L,
     glitchChance: Float = 0.05f,
     cursorBlinkSpeed: Long = 350L
 ) {
@@ -172,7 +198,7 @@ fun BadassTypingText(
             }
             visibleText += fullText[i]
             if (i % 10 == 0 && i != 0) {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
             }
             delay(typingSpeed)
         }

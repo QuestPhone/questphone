@@ -28,7 +28,7 @@ val introductionStory = mapOf<String,StoryNode>(
     "introduction_4" to StoryNode(
         "This is your turning point.\nYou play, or stay stuck.\n**Welcome to Level 1.**",
         listOf(
-            StoryOption("Explore Application", "explore"),
+            StoryOption("Explore Application", null),
             StoryOption("Close", null)
         )
     ),

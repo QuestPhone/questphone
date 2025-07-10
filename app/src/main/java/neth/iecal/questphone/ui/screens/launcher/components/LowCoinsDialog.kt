@@ -26,7 +26,6 @@ import androidx.navigation.NavController
 fun LowCoinsDialog(
     coins: Int,
     onDismiss: () -> Unit,
-    appName : String,
     pkgName: String,
     navController: NavController
 ) {
@@ -63,6 +62,12 @@ fun LowCoinsDialog(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
+                val appName = try {
+                    context.packageManager.getApplicationInfo(pkgName, 0)
+                        .loadLabel(context.packageManager).toString()
+                } catch (_: Exception) {
+                    pkgName
+                }
                 Text(
                     text = "You're too broke to use $appName right now. ",
                     color = Color.White,

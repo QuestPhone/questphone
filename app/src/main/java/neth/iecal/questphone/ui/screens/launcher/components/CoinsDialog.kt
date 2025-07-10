@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -20,8 +21,9 @@ fun CoinDialog(
     coins: Int,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
-    appName : String
+    pkgName : String
 ) {
+    val context = LocalContext.current
     Dialog(onDismissRequest = onDismiss) {
             Column(
                 modifier = Modifier.padding(24.dp),
@@ -32,7 +34,12 @@ fun CoinDialog(
                     color = Color.White,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-
+                val appName = try {
+                    context.packageManager.getApplicationInfo(pkgName, 0)
+                        .loadLabel(context.packageManager).toString()
+                } catch (_: Exception) {
+                    pkgName
+                }
                 Text(
                     text = "Open $appName?",
                     color = Color.White,

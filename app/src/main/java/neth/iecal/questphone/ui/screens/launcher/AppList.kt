@@ -49,12 +49,19 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startForegroundService
 import androidx.core.net.toUri
 import androidx.navigation.NavController
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import neth.iecal.questphone.data.AppInfo
+import neth.iecal.questphone.data.game.User
+import neth.iecal.questphone.data.game.useCoins
+import neth.iecal.questphone.services.AppBlockerService
+import neth.iecal.questphone.services.INTENT_ACTION_UNLOCK_APP
+import neth.iecal.questphone.services.ServiceInfo
+import neth.iecal.questphone.ui.screens.launcher.components.CoinDialog
+import neth.iecal.questphone.ui.screens.launcher.components.LowCoinsDialog
 import neth.iecal.questphone.utils.getCachedApps
 import neth.iecal.questphone.utils.reloadApps
 
@@ -69,8 +76,8 @@ fun AppList(navController: NavController) {
     var isLoading by remember { mutableStateOf(true) }
     var errorState by remember { mutableStateOf<String?>(null) }
 
-    val showCoinDialog by remember { mutableStateOf(false) }
-    val selectedPackage by remember { mutableStateOf("") }
+    var showCoinDialog by remember { mutableStateOf(false) }
+    var selectedPackage by remember { mutableStateOf("") }
 
     var distractions by remember { mutableStateOf(emptySet<String>()) }
 
@@ -78,6 +85,8 @@ fun AppList(navController: NavController) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
     var searchQuery by remember { mutableStateOf("") }
+
+    var textFieldLoaded by remember { mutableStateOf(false) }
 
     LaunchedEffect(searchQuery) {
         filteredAppState =
@@ -105,9 +114,6 @@ fun AppList(navController: NavController) {
         val sp = context.getSharedPreferences("distractions", Context.MODE_PRIVATE)
         distractions = sp.getStringSet("distracting_apps", emptySet<String>()) ?: emptySet()
 
-        delay(100)
-        focusRequester.requestFocus()
-        keyboardController?.show()
     }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -156,7 +162,13 @@ fun AppList(navController: NavController) {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .focusRequester(focusRequester),
+                        .focusRequester(focusRequester)
+                        .onGloballyPositioned {
+                            if (!textFieldLoaded) {
+                                focusRequester.requestFocus()
+                                textFieldLoaded = true // stop cyclic recompositions
+                            }
+                        },
                     singleLine = true
                 )
             },
@@ -172,11 +184,20 @@ fun AppList(navController: NavController) {
                         .fillMaxWidth()
                         .combinedClickable(
                             onClick = {
-                                val intent =
-                                    context.packageManager.getLaunchIntentForPackage(
-                                        app.packageName
-                                    )
-                                intent?.let { context.startActivity(it) }
+                                val packageName = app.packageName
+                                if (distractions.contains(packageName)) {
+                                    val cooldownUntil = ServiceInfo.unlockedApps[packageName] ?: 0L
+                                    if (cooldownUntil == -1L || System.currentTimeMillis() > cooldownUntil) {
+                                        // Not under cooldown - show dialog
+                                        showCoinDialog = true
+                                        selectedPackage = packageName
+                                    } else {
+                                        launchApp(context, packageName)
+                                    }
+                                } else {
+                                    // Not a distraction - launch directly
+                                    launchApp(context, packageName)
+                                }
                             },
                             onLongClick = {
                                 val intent =
