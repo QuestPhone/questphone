@@ -19,7 +19,6 @@ import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.ui.screens.account.SetupNewPassword
 import neth.iecal.questphone.ui.screens.onboard.OnBoardScreen
 import neth.iecal.questphone.ui.screens.onboard.TermsScreen
-import neth.iecal.questphone.ui.screens.pet.PetDialog
 import neth.iecal.questphone.ui.theme.LauncherTheme
 import neth.iecal.questphone.utils.Supabase
 
@@ -69,12 +68,12 @@ class OnboardActivity : ComponentActivity() {
             LauncherTheme {
                 Surface {
                     val navController = rememberNavController()
-
-                    PetDialog(
-                        petId = "turtie",
-                        isPetDialogVisible,
-                        navController
-                    )
+//
+//                    PetDialog(
+//                        petId = "turtie",
+//                        isPetDialogVisible,
+//                        navController
+//                    )
 
                     NavHost(
                         navController = navController,

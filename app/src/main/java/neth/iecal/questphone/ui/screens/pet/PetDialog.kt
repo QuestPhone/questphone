@@ -51,7 +51,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,15 +80,14 @@ import neth.iecal.questphone.data.game.PetDialogState
 @Composable
 fun PetDialog(
     petId: String,
-    isPetDialogVisible: MutableState<Boolean> = mutableStateOf(false),
     navController: NavHostController,
 ) {
-    val context = LocalContext.current // Context (not used in this snippet but often useful)
+    val context = LocalContext.current
     val petScript by remember { mutableStateOf(Pet.loadPetScript(petId)) }
     val dialogState = remember { Pet.petDialogState }
 
     var isDialogVisible by remember { mutableStateOf(true) }
-    // Dismiss if pet script fails to load
+
     if (petScript == null) {
         LaunchedEffect(Unit) {
             isDialogVisible = false

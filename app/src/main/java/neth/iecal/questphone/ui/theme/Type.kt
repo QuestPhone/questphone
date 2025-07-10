@@ -15,6 +15,10 @@ val InterFont = FontFamily(
     Font(R.font.inter_bold, FontWeight.Bold),
 )
 
+val JetBrainMono = FontFamily(
+    Font (R.font.jetbrains_mono_extra_light, FontWeight.ExtraLight)
+)
+
 
 
 val customTypography = Typography(
