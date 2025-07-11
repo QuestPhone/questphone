@@ -4,7 +4,7 @@ import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -16,8 +16,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,12 +65,15 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -77,7 +82,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.navigation.NavController
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.game.StreakCheckReturn
@@ -94,9 +99,9 @@ import neth.iecal.questphone.ui.screens.quest.DialogState
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.utils.QuestHelper
-import neth.iecal.questphone.utils.VibrationHelper
 import neth.iecal.questphone.utils.getCurrentDate
 import neth.iecal.questphone.utils.getCurrentDay
+import neth.iecal.questphone.utils.getCurrentTime12Hr
 import neth.iecal.questphone.utils.isLockScreenServiceEnabled
 import neth.iecal.questphone.utils.isSetToDefaultLauncher
 import neth.iecal.questphone.utils.openDefaultLauncherSettings
@@ -126,12 +131,40 @@ fun HomeScreen(navController: NavController) {
 
     val completedQuests = remember { SnapshotStateList<String>() }
 
+    var isAppSelectorVisible by remember { mutableStateOf(false) }
+    var shortcuts = remember { mutableStateListOf<String>() }
+    var tempShortcuts = remember { mutableStateListOf<String>() } //used by app selector dialog, to store the shortcuts temporarily before saving
+
+    val sidePanelItems = listOf<SidePanelItem>(
+        SidePanelItem(R.drawable.profile_d,{navController.navigate(Screen.UserInfo.route)},"Profile"),
+        SidePanelItem(R.drawable.notification_up,{ Toast.makeText(context,"Coming soon!", Toast.LENGTH_SHORT).show()},"Notifications"),
+        SidePanelItem(R.drawable.store,{navController.navigate(Screen.Store.route)},"Store"),
+        SidePanelItem(R.drawable.quest_analytics,{navController.navigate(Screen.ListAllQuest.route)},"Quest Analytics"),
+        SidePanelItem(R.drawable.quest_adderpng,{navController.navigate(Screen.SelectTemplates.route)},"Add Quest")
+    )
+
+    var isAllQuestsDialogVisible by remember { mutableStateOf(false) }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "floating")
+    val swipeIconAnimation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = -10f, // move up 10 dp (negative is up in Compose)
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "offsetY"
+    )
+
+    val hapticFeedback = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     val isServiceEnabled = remember(context) {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isLockScreenServiceEnabled(context)
     }
+
+    BackHandler { }
 
     LaunchedEffect(Unit) {
         val shortcutsSp = context.getSharedPreferences("shortcuts", MODE_PRIVATE)
@@ -209,102 +242,6 @@ fun HomeScreen(navController: NavController) {
 
         }
     }
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { innerPadding ->
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)
-            .pointerInput(Unit) {
-                coroutineScope {
-                    launch {
-                        var verticalDragOffset = 0f
-                        detectDragGestures(
-                            onDragStart = {
-                                verticalDragOffset = 0f
-                            },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                verticalDragOffset += dragAmount.y
-                            },
-                            onDragEnd = {
-                                // less value implies less swipe required
-                                val swipeThreshold = -100
-
-                                if (verticalDragOffset < swipeThreshold) {
-                                    navController.navigate(Screen.AppList.route)
-                                    VibrationHelper.vibrate(50)
-                                }
-                            }
-                        )
-                    }
-
-                    launch {
-                        detectTapGestures(
-                            onDoubleTap = {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isServiceEnabled) {
-                                    performLockScreenAction()
-                                } else {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = "Enable Accessibility Service to use double-tap to sleep.",
-                                            actionLabel = "Open",
-                                            duration = SnackbarDuration.Short
-                                        ).also { result ->
-                                            if (result == SnackbarResult.ActionPerformed) {
-                                                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                }
-                                                context.startActivity(intent)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Coins display on the left
-            Image(
-                painter = painterResource(R.drawable.coin_icon),
-                contentDescription = "Streak",
-                modifier = Modifier
-                    .padding(8.dp)
-                    .size(20.dp)
-                    .clickable{
-                        navController.navigate(Screen.Store.route)
-                    }
-            )
-            Text(
-                text = "${User.userInfo.coins}",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Spacer(Modifier.size(8.dp))
-
-            Image(
-                painter = painterResource(R.drawable.streak),
-                contentDescription = "Streak",
-                modifier = Modifier
-                    .padding(8.dp)
-                    .size(30.dp)
-                    .clickable{
-                        navController.navigate(Screen.Store.route)
-                    }
-            )
-            Text(
-                text = "${User.userInfo.streak.currentStreak}D",
-                style = MaterialTheme.typography.bodyLarge,
-            )
 
     Scaffold(
         modifier = Modifier.safeDrawingPadding(),
@@ -314,7 +251,8 @@ fun HomeScreen(navController: NavController) {
             })
 
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { innerPadding ->
+
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState)}) { innerPadding ->
 
         if (isAppSelectorVisible) {
             SelectAppsDialog(
@@ -357,10 +295,11 @@ fun HomeScreen(navController: NavController) {
                             verticalDragOffset += dragAmount
                         },
                         onDragEnd = {
-                            val swipeThreshold = -50f
+                            // Negative value for swipe-up, adjust threshold as needed
+                            val swipeThreshold = -100f // Increased for more deliberate swipe
                             if (verticalDragOffset < swipeThreshold) {
                                 navController.navigate(Screen.AppList.route)
-                                VibrationHelper.vibrate( 50)
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             }
                         }
                     )
@@ -390,7 +329,6 @@ fun HomeScreen(navController: NavController) {
                     )
                 }
         ) {
-
             Column(
                 Modifier.padding(8.dp)
             ) {
@@ -428,7 +366,7 @@ fun HomeScreen(navController: NavController) {
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     userScrollEnabled = false,
 
-                ) {
+                    ) {
                     items(questList.size) { index ->
                         val baseQuest = questList[index]
                         val isFailed = questHelper.isOver(baseQuest)
@@ -533,14 +471,14 @@ fun HomeScreen(navController: NavController) {
                     TextButton(onClick = {
                         isAppSelectorVisible = true
                     }) {
-                    Row {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add Shortcuts")
-                        Spacer(Modifier.size(4.dp))
-                        Text(
-                            text = "Add Shortcuts",
-                            fontWeight = FontWeight.ExtraLight,
-                            fontSize = 23.sp)
-                    }
+                        Row {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Add Shortcuts")
+                            Spacer(Modifier.size(4.dp))
+                            Text(
+                                text = "Add Shortcuts",
+                                fontWeight = FontWeight.ExtraLight,
+                                fontSize = 23.sp)
+                        }
                     }
                 }
                 LazyColumn(
