@@ -313,7 +313,8 @@ fun HomeScreen(navController: NavController) {
                 TopBarActions( true, true)
             })
 
-        }) { innerPadding ->
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { innerPadding ->
 
         if (isAppSelectorVisible) {
             SelectAppsDialog(
@@ -345,30 +346,51 @@ fun HomeScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(innerPadding)
                 .pointerInput(Unit) {
-                    coroutineScope {
-                        awaitEachGesture {
-                            // Wait for the first touch down event
-                            awaitFirstDown()
-                            var dragAmount = 0f
-
-                            // Track vertical drag events
-                            do {
-                                val event = awaitPointerEvent()
-                                val dragEvent = event.changes.first()
-                                val dragChange = dragEvent.positionChange().y
-                                dragAmount += dragChange
-
-                                // If the swipe exceeds the threshold, trigger navigation
-                                if (dragAmount < -5) { // Swipe-up threshold
-                                    navController.navigate(Screen.AppList.route)
-                                    VibrationHelper.vibrate(50)
-                                    break
-                                }
-                            } while (dragEvent.pressed)
+                    var verticalDragOffset = 0f
+                    detectVerticalDragGestures(
+                        onDragStart = {
+                            // Reset offset when drag starts
+                            verticalDragOffset = 0f
+                        },
+                        onVerticalDrag = { change, dragAmount ->
+                            change.consume()
+                            verticalDragOffset += dragAmount
+                        },
+                        onDragEnd = {
+                            val swipeThreshold = -50f
+                            if (verticalDragOffset < swipeThreshold) {
+                                navController.navigate(Screen.AppList.route)
+                                VibrationHelper.vibrate( 50)
+                            }
                         }
-                    }
+                    )
+                }
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onDoubleTap = {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isServiceEnabled) {
+                                performLockScreenAction()
+                            } else {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Enable Accessibility Service to use double-tap to sleep.",
+                                        actionLabel = "Open",
+                                        duration = SnackbarDuration.Short
+                                    ).also { result ->
+                                        if (result == SnackbarResult.ActionPerformed) {
+                                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            }
+                                            context.startActivity(intent)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    )
                 }
         ) {
+
             Column(
                 Modifier.padding(8.dp)
             ) {
