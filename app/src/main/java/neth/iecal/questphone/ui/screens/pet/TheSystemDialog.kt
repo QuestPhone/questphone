@@ -78,11 +78,11 @@ fun TheSystemDialog() {
     LaunchedEffect(Unit) {
         val sp = context.getSharedPreferences("systemDialog",Context.MODE_PRIVATE)
         val isIntroDone = sp.getBoolean("isIntroDone",false)
-        if(!isIntroDone){
-            isDialogVisible = true
-            currentStory.value = introductionStory
-            currentNode = introductionStory["welcome"]
-        }
+//        if(!isIntroDone){
+//            isDialogVisible = true
+//            currentStory.value = introductionStory
+//            currentNode = introductionStory["welcome"]
+//        }
     }
 
     // Dialog exit animation

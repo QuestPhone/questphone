@@ -200,17 +200,15 @@ fun HomeScreen(navController: NavController) {
             isFirstRender = false // Ignore the first emission (initial = emptyList())
         } else {
             val todayDay = getCurrentDay()
-            val isUserCreatedToday = getCurrentDate() == User.userInfo.getCreatedOnString()
 
             var list = questListUnfiltered.filter {
-                !it.is_destroyed && it.selected_days.contains(todayDay) &&
-                        (isUserCreatedToday || it.created_on != getCurrentDate())
+                !it.is_destroyed && it.selected_days.contains(todayDay)
             }
 
 
             list.forEach { item ->
                 if (item.last_completed_on == getCurrentDate()) {
-                    completedQuests.add(item.title)
+                    completedQuests.add(item.id)
                 }
                 if (questHelper.isQuestRunning(item.title)) {
                     navController.navigate(item.integration_id.name + item.id)
@@ -218,13 +216,17 @@ fun HomeScreen(navController: NavController) {
             }
 
 
-            if(list.size>4){
-                list = list.filter { it.title !in completedQuests }
-                list.sortedBy { QuestHelper.isInTimeRange(it) }
-                if(list.size>4){
-                    list = list.take(4)
-                }
-            }
+            // Separate uncompleted and completed quests
+            val uncompleted = list.filter { it.id !in completedQuests }
+            val completed = list.filter { it.id in completedQuests }
+
+            // Merge and sort, prioritizing uncompleted first
+            val merged = (uncompleted + completed).sortedBy { QuestHelper.isInTimeRange(it) }
+
+            // Take up to 4 items from the merged list
+            list = if (merged.size >= 4) merged.take(4) else merged
+
+
             questList.clear()
             questList.addAll(list)
             val data = context.getSharedPreferences("onboard", MODE_PRIVATE)

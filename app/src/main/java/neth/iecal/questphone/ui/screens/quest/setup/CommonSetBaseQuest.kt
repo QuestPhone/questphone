@@ -58,7 +58,7 @@ fun SetBaseQuest(questInfoState: QuestInfoState, isTimeRangeSupported: Boolean =
     }
 
     if(questInfoState.selectedDays.contains(getCurrentDay()) && User.userInfo.getCreatedOnString() != getCurrentDate()){
-        Text("To prevent abuse, you can't perform this quest today. You'll be able to do it starting from the next time it occurs.")
+        Text("Fake a quest if you want. It'll sit in your history, reminding you you're a fraud. Real ones can ignore this, you’ve got nothing to hide.")
     }
     SelectDaysOfWeek(questInfoState)
 

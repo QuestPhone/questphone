@@ -225,7 +225,7 @@ fun SetupTemplate(id: String,controller: NavController) {
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = if (getCurrentDate() == User.userInfo.getCreatedOnString())"Click on the highlighted items to change values" else "To prevent abuse, this quest can only be performed starting tomorrow in case you create it.",
+                                text = if (getCurrentDate() == User.userInfo.getCreatedOnString())"Click on the highlighted items to change values" else "Fake a quest if you want. It'll sit in your history, reminding you you're a fraud. Real ones can ignore this, you’ve got nothing to hide.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontWeight = FontWeight.Medium
