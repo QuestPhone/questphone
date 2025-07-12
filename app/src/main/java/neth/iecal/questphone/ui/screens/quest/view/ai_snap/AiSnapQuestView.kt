@@ -112,16 +112,15 @@ fun AiSnapQuestView(
                 Text(
                     text = commonQuestInfo.title,
                     style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(top = 40.dp)
                 )
 
                 Text(
-                    text = (if (isQuestComplete.value) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
+                    text = (if (!isQuestComplete.value) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
                         xpToRewardForQuest(
                             userInfo.level
                         )
                     } xp",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin)
+                    style = MaterialTheme.typography.bodyLarge
                 )
 
                 if (!isInTimeRange.value) {
@@ -131,7 +130,7 @@ fun AiSnapQuestView(
                                 commonQuestInfo.time_range[1]
                             )
                         }",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin)
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
                 MdPad(commonQuestInfo)

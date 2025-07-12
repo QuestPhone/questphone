@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.startForegroundService
@@ -282,30 +283,28 @@ fun DeepFocusQuestView(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = commonQuestInfo.title,
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(top = 40.dp)
+                text =  commonQuestInfo.title,
+                textDecoration = if(isFailed.value) TextDecoration.LineThrough else TextDecoration.None,
+                style = MaterialTheme.typography.headlineLarge.copy(),
             )
 
             Text(
-                text = (if(isQuestComplete.value) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
+                text = (if(!isQuestComplete.value) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
                     xpToRewardForQuest(
                         userInfo.level
                     )
                 } xp",
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin)
+                style = MaterialTheme.typography.bodyLarge
             )
 
-            if(!isInTimeRange.value){
-                Text(
-                    text = "Time: ${formatHour(commonQuestInfo.time_range[0])} to ${
-                        formatHour(
-                            commonQuestInfo.time_range[1]
-                        )
-                    }",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin)
-                )
-            }
+            Text(
+                text = "Time: ${formatHour(commonQuestInfo.time_range[0])} to ${
+                    formatHour(
+                        commonQuestInfo.time_range[1]
+                    )
+                }",
+                style = MaterialTheme.typography.bodyLarge
+            )
             // Show remaining time
             if (isQuestRunning && progress < 1f) {
                 val remainingSeconds = ((duration * (1 - progress)) / 1000).toInt()
@@ -321,8 +320,7 @@ fun DeepFocusQuestView(
 
             Text(
                 text = if (!isQuestComplete.value) "Duration: ${duration / 60_000}m" else "Next Duration: ${duration / 60_000}m",
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin),
-                modifier = Modifier.padding(top = 32.dp)
+                style = MaterialTheme.typography.bodyLarge
             )
 
             val pm = context.packageManager
@@ -341,12 +339,12 @@ fun DeepFocusQuestView(
             ) {
                 Text(
                     text = "Unrestricted Apps: ",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin),
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                 )
                 apps.forEach { (appName, packageName) ->
                     Text(
                         text = "$appName, ",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin),
+                        style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier
                             .clickable {
                                 // Show notification before launching other app

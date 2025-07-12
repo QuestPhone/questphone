@@ -2,6 +2,7 @@ package neth.iecal.questphone.ui.screens.launcher
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -42,7 +43,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startForegroundService
-import androidx.core.net.toUri
 import androidx.navigation.NavController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -194,7 +194,7 @@ fun AppList(navController: NavController) {
             items(filteredAppState) { app ->
                 Text(
                     text = app.name,
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Normal),
                     modifier = Modifier
                         .fillMaxWidth()
                         .combinedClickable(
@@ -217,10 +217,10 @@ fun AppList(navController: NavController) {
                                 }
                             },
                             onLongClick = {
-                                val intent =
-                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                        data = "package:${app.name}".toUri()
-                                    }
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", app.packageName, null)
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Important if calling from outside an Activity
+                                }
                                 context.startActivity(intent)
                             })
                 )

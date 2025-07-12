@@ -94,7 +94,6 @@ fun SwiftMarkQuestView(
             Text(
                 text = commonQuestInfo.title,
                 style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(top = 40.dp)
             )
 
             Text(
@@ -103,7 +102,7 @@ fun SwiftMarkQuestView(
                         userInfo.level
                     )
                 } xp",
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin)
+                style = MaterialTheme.typography.bodyLarge
             )
 
 
@@ -114,10 +113,9 @@ fun SwiftMarkQuestView(
                             commonQuestInfo.time_range[1]
                         )
                     }",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin)
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
-
             MdPad(commonQuestInfo)
         }
     }

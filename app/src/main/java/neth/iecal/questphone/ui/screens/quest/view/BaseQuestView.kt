@@ -19,10 +19,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.MutableState
@@ -45,10 +46,12 @@ import neth.iecal.questphone.data.game.InventoryItem
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.getInventoryItemCount
 import neth.iecal.questphone.data.game.useInventoryItem
+import neth.iecal.questphone.ui.screens.components.TopBarActions
 import neth.iecal.questphone.utils.VibrationHelper
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BaseQuestView(startButtonTitle: String = "Start Quest", hideStartQuestBtn: Boolean = false, onQuestStarted: () -> Unit, loadingAnimationDuration: Int = 3000,isFailed: MutableState<Boolean> = mutableStateOf(false), progress:MutableFloatState = mutableFloatStateOf(0f),onQuestCompleted: ()->Unit = {}, isQuestCompleted: MutableState<Boolean> = mutableStateOf(false), questViewBody : @Composable () -> Unit,) {
+fun BaseQuestView(topBar: @Composable () -> Unit = {}, startButtonTitle: String = "Start Quest", hideStartQuestBtn: Boolean = false, onQuestStarted: () -> Unit, loadingAnimationDuration: Int = 3000, isFailed: MutableState<Boolean> = mutableStateOf(false), progress:MutableFloatState = mutableFloatStateOf(0f), onQuestCompleted: ()->Unit = {}, isQuestCompleted: MutableState<Boolean> = mutableStateOf(false), questViewBody : @Composable () -> Unit,) {
     val context = LocalContext.current
 
     val scrollState = rememberScrollState()
@@ -62,14 +65,19 @@ fun BaseQuestView(startButtonTitle: String = "Start Quest", hideStartQuestBtn: B
 
     Box(Modifier.fillMaxSize()) {
         Canvas(Modifier.fillMaxSize()) {
+            if(isFailed.value){
             drawRect(
-                color = if(!isFailed.value) Color(0xFF006064) else Color(0xFFB00023),
+                color =  Color(0xFFB00023),
                 size = Size(size.width, animatedProgress * size.height),
             )
+                }
         }
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(title = {}, actions = { TopBarActions(true) })
+                     },
             floatingActionButton = {
                     Row(
                         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -156,14 +164,6 @@ fun BaseQuestView(startButtonTitle: String = "Start Quest", hideStartQuestBtn: B
 
                 }
 
-                // Coins display
-                Text(
-                    text = "${User.userInfo.coins} coins",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier
-                        .padding(24.dp)
-                        .align(Alignment.End)
-                )
 
                 questViewBody()
             }

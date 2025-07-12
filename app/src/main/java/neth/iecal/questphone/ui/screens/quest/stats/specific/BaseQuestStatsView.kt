@@ -208,10 +208,6 @@ fun BaseQuestStatsView(id: String, navController: NavHostController) {
 fun QuestHeader(baseData: CommonQuestInfo, currentStreak: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -222,7 +218,6 @@ fun QuestHeader(baseData: CommonQuestInfo, currentStreak: Int) {
                 text = baseData.title,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
 
             Row(
@@ -235,14 +230,12 @@ fun QuestHeader(baseData: CommonQuestInfo, currentStreak: Int) {
                     Icon(
                         imageVector = Icons.Default.DateRange,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "${formatHour(baseData.time_range[0])} - ${formatHour(baseData.time_range[1])}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                     )
                 }
 
@@ -252,7 +245,6 @@ fun QuestHeader(baseData: CommonQuestInfo, currentStreak: Int) {
                         painter = painterResource(R.drawable.baseline_local_fire_department_24
                         ),
                         contentDescription = "Current Streak",
-                        tint = if (currentStreak > 0) Color(0xFFF57C00) else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -260,10 +252,6 @@ fun QuestHeader(baseData: CommonQuestInfo, currentStreak: Int) {
                         text = if (currentStreak > 0) "$currentStreak days" else "No active streak",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = if (currentStreak > 0) FontWeight.Bold else FontWeight.Normal,
-                        color = if (currentStreak > 0)
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        else
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
                     )
                 }
             }

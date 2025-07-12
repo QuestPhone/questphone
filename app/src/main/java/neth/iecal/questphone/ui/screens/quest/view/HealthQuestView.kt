@@ -154,7 +154,6 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                 Text(
                     text = commonQuestInfo.title,
                     style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(top = 40.dp)
                 )
                 Text(
                     text = (if(isQuestComplete.value) "Next Reward" else "Reward") + ": ${commonQuestInfo.reward} coins + ${
@@ -162,12 +161,12 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                             userInfo.level
                         )
                     } xp",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin),
+                    style = MaterialTheme.typography.bodyLarge,
                 )
 
                 Text(
                     text = "Health Task Type: ${healthQuest.type.label}",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin)
+                    style = MaterialTheme.typography.bodyLarge
                 )
 
                 if (isQuestComplete.value) {
@@ -178,8 +177,7 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                                 currentHealthData.doubleValue
                             )
                         }",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin),
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     )
                     Text(
                         text = "Next Goal: ${healthQuest.nextGoal} ${healthQuest.type.unit}",
@@ -197,8 +195,7 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                         } / ${healthQuest.nextGoal} ${
                             healthQuest.type.unit
                         }",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Thin),
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     )
                 }
                 MdPad(commonQuestInfo)

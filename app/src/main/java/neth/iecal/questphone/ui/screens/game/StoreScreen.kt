@@ -273,7 +273,7 @@ fun CategoryItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val backgroundColor = if (isSelected) Color(0xFFE091FF) else Color(0xFF2A2A2A)
+    val backgroundColor = if (isSelected) Color.White else Color.Black
     val contentColor = if (isSelected) Color.Black else Color.White
 
     Surface(

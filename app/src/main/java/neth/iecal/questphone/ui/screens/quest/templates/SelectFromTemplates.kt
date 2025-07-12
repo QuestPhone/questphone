@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -360,10 +359,6 @@ private fun CustomQuestCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
             modifier = Modifier
@@ -371,22 +366,11 @@ private fun CustomQuestCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add custom quest",
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add custom quest",
+                modifier = Modifier.size(24.dp)
+            )
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -397,13 +381,11 @@ private fun CustomQuestCard(
                     text = "Create Custom Quest",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
 
                 Text(
                     text = "Build your own quest from scratch",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -421,10 +403,6 @@ private fun ActivityCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
