@@ -10,9 +10,7 @@ import neth.iecal.questphone.data.ReminderData
 import neth.iecal.questphone.data.ReminderDatabaseProvider
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.utils.Supabase
-import neth.iecal.questphone.utils.ai.ReminderClient
 import neth.iecal.questphone.utils.getCurrentDate
-import neth.iecal.questphone.utils.getTimeRemainingDescription
 import neth.iecal.questphone.utils.unixToReadable
 import java.io.BufferedReader
 import java.text.SimpleDateFormat
@@ -20,9 +18,13 @@ import java.util.Calendar
 import java.util.Locale
 import kotlin.random.Random
 
+data class ReminderResult(
+    val title: String,
+    val description: String
+)
+
 fun generateReminders(context: Context, quest: CommonQuestInfo) {
     val dao = ReminderDatabaseProvider.getInstance(context).reminderDao()
-    val reminderClient = ReminderClient()
     val userId = Supabase.supabase.auth.currentAccessTokenOrNull().toString()
 
     val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
@@ -125,27 +127,23 @@ fun generateReminders(context: Context, quest: CommonQuestInfo) {
                 set(Calendar.MILLISECOND, 0)
             }.timeInMillis
 
-            reminderClient.generateReminder(getTimeRemainingDescription(endHour), quest.id, userId) { result ->
-                val data = result.getOrDefault(
-                    ReminderClient.ReminderResult(quest.title, getRandomReminderLine(context) ?: "")
-                )
+            val data = ReminderResult(quest.title, getRandomReminderLine(context) ?: "")
 
-                val tData = ReminderData(
-                    quest_id = quest.id,
-                    timeMillis = timeMillis,
-                    title = data.title,
-                    description = data.description,
-                    date = scheduledDate,
-                    count = 1  // starting fresh tomorrow
-                )
+            val tData = ReminderData(
+                quest_id = quest.id,
+                timeMillis = timeMillis,
+                title = data.title,
+                description = data.description,
+                date = scheduledDate,
+                count = 1  // starting fresh tomorrow
+            )
 
-                CoroutineScope(Dispatchers.IO).launch {
-                    dao.upsertReminder(tData)
-                }
-                Log.d("Reminder Set for $userId at ", unixToReadable(tData.timeMillis))
-
-                NotificationScheduler(context).scheduleReminder(tData)
+            CoroutineScope(Dispatchers.IO).launch {
+                dao.upsertReminder(tData)
             }
+            Log.d("Reminder Set for $userId at ", unixToReadable(tData.timeMillis))
+
+            NotificationScheduler(context).scheduleReminder(tData)
         } else {
             // --- Otherwise, schedule for today (if shouldScheduleTomorrow is false) ---
             val scheduledTime = Calendar.getInstance().apply {
@@ -155,26 +153,22 @@ fun generateReminders(context: Context, quest: CommonQuestInfo) {
                 set(Calendar.MILLISECOND, 0)
             }.timeInMillis
 
-            reminderClient.generateReminder(getTimeRemainingDescription(endHour), quest.id, userId) { result ->
-                val data = result.getOrDefault(
-                    ReminderClient.ReminderResult(quest.title, getRandomReminderLine(context).toString())
-                )
+            val data = ReminderResult(quest.title, getRandomReminderLine(context).toString())
 
-                val updated = ReminderData(
-                    quest_id = quest.id,
-                    timeMillis = scheduledTime,
-                    title = data.title,
-                    description = data.description,
-                    date = scheduledDate,
-                    count = count + 1
-                )
+            val updated = ReminderData(
+                quest_id = quest.id,
+                timeMillis = scheduledTime,
+                title = data.title,
+                description = data.description,
+                date = scheduledDate,
+                count = count + 1
+            )
 
-                CoroutineScope(Dispatchers.IO).launch {
-                    dao.upsertReminder(updated)
-                    NotificationScheduler(context).scheduleReminder(updated)
-                }
-                Log.d("Reminder Set for $userId at ", unixToReadable(updated.timeMillis))
+            CoroutineScope(Dispatchers.IO).launch {
+                dao.upsertReminder(updated)
+                NotificationScheduler(context).scheduleReminder(updated)
             }
+            Log.d("Reminder Set for $userId at ", unixToReadable(updated.timeMillis))
         }
     }
 }

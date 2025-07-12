@@ -208,10 +208,12 @@ fun AppList(navController: NavController) {
                                         selectedPackage = packageName
                                     } else {
                                         launchApp(context, packageName)
+                                        searchQuery = ""
                                     }
                                 } else {
                                     // Not a distraction - launch directly
                                     launchApp(context, packageName)
+                                    searchQuery = ""
                                 }
                             },
                             onLongClick = {
