@@ -54,13 +54,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.collectLatest
-import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.utils.QuestHelper
 import neth.iecal.questphone.utils.formatHour
-import neth.iecal.questphone.utils.formatInstantToDate
 import neth.iecal.questphone.utils.getCurrentDate
 import neth.iecal.questphone.utils.getCurrentDay
 
@@ -81,9 +79,6 @@ fun AllQuestsDialog(
         val dao = QuestDatabaseProvider.getInstance(context).questDao()
         dao.getAllQuests().collectLatest { unfiltered ->
             val todayDay = getCurrentDay()
-            val isUserCreatedToday =
-                getCurrentDate() == formatInstantToDate(User.userInfo.created_on)
-
             val filtered = unfiltered.filter {
                 !it.is_destroyed && it.selected_days.contains(todayDay)
             }
@@ -94,7 +89,7 @@ fun AllQuestsDialog(
             completedQuests.clear()
             completedQuests.addAll(
                 filtered.filter { it.last_completed_on == getCurrentDate() }
-                    .map { it.title }
+                    .map { it.id }
             )
 
             isLoading = false
@@ -253,7 +248,7 @@ fun AllQuestsDialog(
                                             if (baseQuest.time_range[0] == 0 && baseQuest.time_range[1] == 24) ""
                                             else timeRange
                                         val isFailed = questHelper.isOver(baseQuest)
-                                        val isCompleted = completedQuests.contains(baseQuest.title)
+                                        val isCompleted = completedQuests.contains(baseQuest.id)
 
                                         Text(
                                             text = if(QuestHelper.Companion.isInTimeRange(baseQuest) && isFailed) baseQuest.title else  prefix +  baseQuest.title,

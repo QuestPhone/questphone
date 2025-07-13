@@ -215,6 +215,16 @@ fun HomeScreen(navController: NavController) {
                 }
             }
 
+            val data = context.getSharedPreferences("onboard", MODE_PRIVATE)
+            if (User.userInfo.streak.currentStreak != 0) {
+                streakFailResultHandler(User.checkIfStreakFailed())
+            }
+            if (completedQuests.size == list.size && data.getBoolean("onboard", false)) {
+                if (User.continueStreak()) {
+                    RewardDialogInfo.currentDialog = DialogState.STREAK_UP
+                    RewardDialogInfo.isRewardDialogVisible = true
+                }
+            }
 
             // Separate uncompleted and completed quests
             val uncompleted = list.filter { it.id !in completedQuests }
@@ -226,21 +236,11 @@ fun HomeScreen(navController: NavController) {
             // Take up to 4 items from the merged list
             list = if (merged.size >= 4) merged.take(4) else merged
 
-
             questList.clear()
             questList.addAll(list)
-            val data = context.getSharedPreferences("onboard", MODE_PRIVATE)
 
 
-            if (User.userInfo.streak.currentStreak != 0) {
-                streakFailResultHandler(User.checkIfStreakFailed())
-            }
-            if (completedQuests.size == questList.size && data.getBoolean("onboard", false)) {
-                if (User.continueStreak()) {
-                    RewardDialogInfo.currentDialog = DialogState.STREAK_UP
-                    RewardDialogInfo.isRewardDialogVisible = true
-                }
-            }
+
 
         }
     }
@@ -373,7 +373,7 @@ fun HomeScreen(navController: NavController) {
                         val baseQuest = questList[index]
                         val isFailed = questHelper.isOver(baseQuest)
 
-                        val isCompleted = completedQuests.contains(baseQuest.title)
+                        val isCompleted = completedQuests.contains(baseQuest.id)
                         Text(
                             text = baseQuest.title,
                             fontWeight = FontWeight.ExtraLight,
