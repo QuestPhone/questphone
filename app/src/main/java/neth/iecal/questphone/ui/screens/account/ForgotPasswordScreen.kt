@@ -125,7 +125,7 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
 
             // Logo or app name
             Text(
-                text = "Blank Phone",
+                text = "QuestPhone",
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Bold
                 ),
@@ -199,8 +199,7 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
                     Button(
                         onClick = handleEmailSubmit,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
+                            .fillMaxWidth(),
                         enabled = !isLoading
                     ) {
                         if (isLoading) {
@@ -209,7 +208,7 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         } else {
-                            Text("Send Code")
+                            Text("Send Password Reset Link")
                         }
                     }
                 }
