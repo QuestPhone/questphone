@@ -121,8 +121,8 @@ fun AppList(navController: NavController) {
                 UnlockAppDialog(
                     coins = User.userInfo.coins,
                     onDismiss = { showCoinDialog = false },
-                    onConfirm = {
-                        val cooldownTime = minutesPerFiveCoins.intValue * 60_000
+                    onConfirm = { coins ->
+                        val cooldownTime = (minutesPerFiveCoins.intValue * coins) * 60_000
                         val intent = Intent().apply {
                             action = INTENT_ACTION_UNLOCK_APP
                             putExtra("selected_time", cooldownTime)
@@ -142,7 +142,7 @@ fun AppList(navController: NavController) {
                         showCoinDialog = false
                     },
                     pkgName = selectedPackage,
-                    minutesPerFiveCoins
+                    minutesPerFiveCoins.intValue
                 )
             } else {
                 LowCoinsDialog(

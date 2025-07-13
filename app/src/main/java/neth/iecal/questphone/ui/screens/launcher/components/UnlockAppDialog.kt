@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
@@ -21,51 +23,88 @@ import androidx.compose.ui.window.Dialog
 fun UnlockAppDialog(
     coins: Int,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-    pkgName : String,
-    minutesPerSp: MutableIntState
+    onConfirm: (coinsSpent: Int) -> Unit,
+    pkgName: String,
+    minutesPerSpPer5Coins: Int
 ) {
     val context = LocalContext.current
+    val maxSpendableCoins = coins - (coins % 5)
+    val coinSteps = maxSpendableCoins / 5
+    var coinsToSpend by remember { mutableIntStateOf(5) }
+
     Dialog(onDismissRequest = onDismiss) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Balance: $coins coins",
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            val appName = try {
+                context.packageManager.getApplicationInfo(pkgName, 0)
+                    .loadLabel(context.packageManager).toString()
+            } catch (_: Exception) {
+                pkgName
+            }
+
+            Text(
+                text = "Open $appName?",
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Text(
+                text = "Select coins to spend (in 5s):",
+                color = Color.White
+            )
+
+            // Coin step selector
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(vertical = 12.dp)
             ) {
-                Text(
-                    text = "Balance: $coins coins",
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-                val appName = try {
-                    context.packageManager.getApplicationInfo(pkgName, 0)
-                        .loadLabel(context.packageManager).toString()
-                } catch (_: Exception) {
-                    pkgName
-                }
-                Text(
-                    text = "Open $appName?",
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                Text(
-                    text = "Are you sure you want to spend 5 coins to use this app for ${minutesPerSp.intValue} minutes?",
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                Button(
+                    onClick = { if (coinsToSpend > 5) coinsToSpend -= 5 },
+                    enabled = coinsToSpend > 5
                 ) {
-                    Button(onClick = onDismiss) {
-                        Text("No")
-                    }
-                    Button(onClick = onConfirm) {
-                        Text("Yes")
-                    }
+                    Text("-5")
+                }
+
+                Text(
+                    text = "$coinsToSpend",
+                    color = Color.White,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+
+                Button(
+                    onClick = { if (coinsToSpend + 5 <= maxSpendableCoins) coinsToSpend += 5 },
+                    enabled = coinsToSpend + 5 <= maxSpendableCoins
+                ) {
+                    Text("+5")
                 }
             }
+
+            Text(
+                text = "You'll get ${coinsToSpend / 5 * minutesPerSpPer5Coins} minutes",
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(onClick = onDismiss) {
+                    Text("No")
+                }
+                Button(onClick = { onConfirm(coinsToSpend) }) {
+                    Text("Yes")
+                }
+            }
+        }
     }
 }
