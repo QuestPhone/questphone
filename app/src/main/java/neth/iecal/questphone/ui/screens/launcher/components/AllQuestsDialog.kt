@@ -262,6 +262,7 @@ fun AllQuestsDialog(
                                             color = if (isFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
                                             textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                                             modifier = Modifier.clickable(onClick = {
+                                                onDismiss()
                                                 navController.navigate(Screen.ViewQuest.route + baseQuest.id)
                                             },
                                                 interactionSource = remember { MutableInteractionSource() },

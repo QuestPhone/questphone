@@ -210,7 +210,6 @@ fun SetupTemplate(id: String,controller: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
@@ -227,7 +226,6 @@ fun SetupTemplate(id: String,controller: NavController) {
                             Text(
                                 text = if (getCurrentDate() == User.userInfo.getCreatedOnString())"Click on the highlighted items to change values" else "Fake a quest if you want. It'll sit in your history, reminding you you're a fraud. Real ones can ignore this, you’ve got nothing to hide.",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontWeight = FontWeight.Medium
                             )
                         }

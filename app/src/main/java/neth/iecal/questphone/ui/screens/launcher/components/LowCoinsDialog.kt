@@ -2,6 +2,7 @@ package neth.iecal.questphone.ui.screens.launcher.components
 
 import android.graphics.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.graphics.createBitmap
@@ -31,10 +33,17 @@ fun LowCoinsDialog(
 ) {
     val context = LocalContext.current
     var isPerformAQuestDialogVisible = remember { mutableStateOf(false) }
+    var isUnlockAnywayDialogVisible = remember { mutableStateOf(false) }
+
+
+    if(isUnlockAnywayDialogVisible.value){
+        UnlockAnywayDialog({isUnlockAnywayDialogVisible.value = false},pkgName,navController)
+    }
 
     if (isPerformAQuestDialogVisible.value) {
         AllQuestsDialog(navController = navController) {
             isPerformAQuestDialogVisible.value = false
+            onDismiss()
         }
     } else {
         val appIconDrawable = context.packageManager.getApplicationIcon(pkgName)
@@ -51,6 +60,7 @@ fun LowCoinsDialog(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
                 Image(
                     bitmap = bitmap,
                     contentDescription = "Instagram Icon",
@@ -85,6 +95,18 @@ fun LowCoinsDialog(
                 ) {
                     Text("Start A Quest")
                 }
+                Spacer(Modifier.size(8.dp))
+
+                Text(
+                    text = "Just let me in for a while",
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                        .clickable(onClick = {
+                            isUnlockAnywayDialogVisible.value = true
+                        })
+                )
 
             }
         }

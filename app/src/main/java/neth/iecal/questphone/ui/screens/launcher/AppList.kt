@@ -52,8 +52,8 @@ import neth.iecal.questphone.data.game.useCoins
 import neth.iecal.questphone.services.AppBlockerService
 import neth.iecal.questphone.services.INTENT_ACTION_UNLOCK_APP
 import neth.iecal.questphone.services.ServiceInfo
-import neth.iecal.questphone.ui.screens.launcher.components.CoinDialog
 import neth.iecal.questphone.ui.screens.launcher.components.LowCoinsDialog
+import neth.iecal.questphone.ui.screens.launcher.components.UnlockAppDialog
 import neth.iecal.questphone.utils.getCachedApps
 import neth.iecal.questphone.utils.reloadApps
 
@@ -112,7 +112,7 @@ fun AppList(navController: NavController) {
     Scaffold { innerPadding ->
         if (showCoinDialog) {
             if (User.userInfo.coins > 5) {
-                CoinDialog(
+                UnlockAppDialog(
                     coins = User.userInfo.coins,
                     onDismiss = { showCoinDialog = false },
                     onConfirm = {

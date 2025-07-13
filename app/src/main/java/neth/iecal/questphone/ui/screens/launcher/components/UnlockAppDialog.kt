@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
 @Composable
-fun CoinDialog(
+fun UnlockAppDialog(
     coins: Int,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
