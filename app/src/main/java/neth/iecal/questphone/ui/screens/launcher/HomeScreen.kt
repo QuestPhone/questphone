@@ -62,6 +62,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -83,14 +84,18 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 import neth.iecal.questphone.R
+import neth.iecal.questphone.data.MeshStyles
 import neth.iecal.questphone.data.game.StreakCheckReturn
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.checkIfStreakFailed
 import neth.iecal.questphone.data.game.continueStreak
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
+import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
 import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.ui.screens.components.NeuralMeshAsymmetrical
 import neth.iecal.questphone.ui.screens.components.NeuralMeshSymmetrical
@@ -99,6 +104,7 @@ import neth.iecal.questphone.ui.screens.launcher.components.AllQuestsDialog
 import neth.iecal.questphone.ui.screens.quest.DialogState
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
+import neth.iecal.questphone.ui.screens.quest.stats.components.HeatMapChart
 import neth.iecal.questphone.utils.QuestHelper
 import neth.iecal.questphone.utils.getCurrentDate
 import neth.iecal.questphone.utils.getCurrentDay
@@ -157,7 +163,7 @@ fun HomeScreen(navController: NavController) {
         label = "offsetY"
     )
 
-    var meshStyle by remember { mutableStateOf(0) }
+    var meshStyle by remember { mutableStateOf(MeshStyles.ASYMMETRICAL) }
 
     val hapticFeedback = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -168,10 +174,29 @@ fun HomeScreen(navController: NavController) {
     }
 
     BackHandler { }
+    val successfulDates = remember { mutableStateMapOf<LocalDate, List<String>>() }
+
+    LaunchedEffect (meshStyle) {
+        if(meshStyle == MeshStyles.USER_STATS_HEATMAP){
+            val dao = StatsDatabaseProvider.getInstance(context).statsDao()
+
+            var stats = dao.getAllStatsForUser().first()
+
+            stats = stats.toMutableList()
+            stats.addAll(dao.getAllUnSyncedStats().first())
+
+            stats.forEach {
+                val prevList = (successfulDates[it.date]?: emptyList()).toMutableList()
+                prevList.add(it.quest_id)
+                successfulDates[it.date] = prevList
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         val meshStylesp = context.getSharedPreferences("mesh_style",MODE_PRIVATE)
-        meshStyle = meshStylesp.getInt("mesh_style",0)
+        val meshStyleOrd = meshStylesp.getInt("mesh_style",meshStyle.ordinal)
+        meshStyle = MeshStyles.entries.toTypedArray()[meshStyleOrd]
 
         val shortcutsSp = context.getSharedPreferences("shortcuts", MODE_PRIVATE)
         val tshortcuts =  shortcutsSp.getStringSet("shortcuts", setOf())?.toList<String>() ?: listOf()
@@ -343,15 +368,15 @@ fun HomeScreen(navController: NavController) {
             ) {
                 Box(Modifier.size(200.dp).combinedClickable(onClick = {},onLongClick = {
                     val meshStylesp = context.getSharedPreferences("mesh_style",MODE_PRIVATE)
-                    meshStyle = 1 - meshStyle
-                    meshStylesp.edit(commit = true) { putInt("mesh_style", meshStyle) }
+                    val options = MeshStyles.entries.filter { it != meshStyle }
+                    meshStyle = options.random()
+                    meshStylesp.edit(commit = true) { putInt("mesh_style", meshStyle.ordinal) }
 
                 })){
                     when(meshStyle){
-                        0 -> { NeuralMeshSymmetrical(modifier = Modifier.fillMaxSize()) }
-                        1 -> {
-                            NeuralMeshAsymmetrical(modifier = Modifier.fillMaxSize())
-                        }
+                        MeshStyles.SYMMETRICAL -> NeuralMeshSymmetrical(modifier = Modifier.fillMaxSize())
+                        MeshStyles.ASYMMETRICAL -> NeuralMeshAsymmetrical(modifier = Modifier.fillMaxSize())
+                        MeshStyles.USER_STATS_HEATMAP -> HeatMapChart(successfulDates, Modifier.height(200.dp))
                     }
                 }
                 Spacer(Modifier.size(12.dp))

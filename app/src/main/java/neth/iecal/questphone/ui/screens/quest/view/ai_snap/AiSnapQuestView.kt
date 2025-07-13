@@ -1,6 +1,7 @@
 package neth.iecal.questphone.ui.screens.quest.view.ai_snap
 
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -97,7 +98,19 @@ fun AiSnapQuestView(
         BaseQuestView(
             hideStartQuestBtn = isQuestComplete.value || isFailed.value || !isInTimeRange.value,
             onQuestStarted = {
-                isCameraScreen.value = true
+                //get the latest instance and check
+                scope.launch {
+                    val db = QuestDatabaseProvider.getInstance(context).questDao()
+                    val latestQuest = db.getQuestById(commonQuestInfo.id)
+
+                    if(latestQuest?.synced == true){
+                        isCameraScreen.value = true
+                    } else {
+                        Toast.makeText(context, "We're saving this quest to the cloud. Please hang tight and check back in a moment.",
+                            Toast.LENGTH_SHORT).show()
+                    }
+                }
+
             },
             progress = progress,
             loadingAnimationDuration = 400,
