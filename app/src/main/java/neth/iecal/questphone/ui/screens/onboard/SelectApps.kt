@@ -1,5 +1,6 @@
 package neth.iecal.questphone.ui.screens.onboard
 
+import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
@@ -53,7 +54,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import neth.iecal.questphone.data.AppInfo
-import neth.iecal.questphone.services.AccessibilityService
 import neth.iecal.questphone.services.INTENT_ACTION_REFRESH_APP_BLOCKER
 import neth.iecal.questphone.services.ServiceInfo
 import neth.iecal.questphone.utils.openAccessibilityServiceScreen

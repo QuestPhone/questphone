@@ -16,6 +16,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
@@ -25,15 +26,19 @@ import neth.iecal.questphone.MainActivity
 import neth.iecal.questphone.R
 import neth.iecal.questphone.utils.getKeyboards
 import neth.iecal.questphone.utils.reloadApps
-import kotlin.collections.iterator
 
+
+private const val NOTIFICATION_CHANNEL_ID = "app_cooldown_channel"
+private const val NOTIFICATION_ID = 1002
 
 class AppBlockerService : Service() {
 
     private val TAG = "AppBockServiceFG"
     private lateinit var usageStatsManager: UsageStatsManager
     private lateinit var handler: Handler
+    private var timerRunnable: Runnable? = null
     private var lastForegroundPackage: String? = null
+    private var isTimerRunning = false
 
 
     // Default locked apps - will be overridden by saved preferences
@@ -458,12 +463,152 @@ class AppBlockerService : Service() {
 
                     // Only proceed if we have a valid package and duration
                     if (coolPackage.isNotEmpty() && interval > 0) {
+
+                        createNotificationChannel()
+                        startCooldownTimer(coolPackage, interval.toLong())
                         unlockApp(coolPackage,interval)
                     } else {
                         Log.e("AppBlockerServiceFG", "Invalid cooldown parameters: package=$coolPackage, interval=$interval")
                     }
                 }
             }
+        }
+    }
+
+    private fun startCooldownTimer(packageName: String, durationMs: Long) {
+        // Stop any existing timer first
+        stopCooldownTimer()
+
+
+        val startTime = SystemClock.uptimeMillis()
+        val endTime = startTime + durationMs
+        val totalSeconds = durationMs / 1000
+
+        // Show initial notification immediately
+        updateTimerNotification(packageName, 0f, totalSeconds)
+
+        isTimerRunning = true
+        timerRunnable = object : Runnable {
+            override fun run() {
+                val currentTime = SystemClock.uptimeMillis()
+                val elapsedMs = currentTime - startTime
+                val remainingMs = endTime - currentTime
+
+                // Convert to seconds for display and calculations
+                val remainingSeconds = remainingMs / 1000
+
+                val progress = elapsedMs.toFloat() / durationMs.toFloat()
+
+                if (remainingSeconds > 0) {
+                    Log.d("AppBlockerService", "Updating notification: $packageName, progress: ${progress * 100}%, remaining: $remainingSeconds s")
+                    updateTimerNotification(packageName, progress, remainingSeconds)
+                    handler.postDelayed(this, 1000)
+                } else {
+                    Log.d("AppBlockerService", "Cooldown timer completed for $packageName")
+
+                    // Final notification update showing completion
+                    updateTimerNotification(packageName, 1f, 0)
+
+                    // Small delay before removing the notification
+                    handler.postDelayed({
+                        stopCooldownTimer()
+                    }, 2000)
+                }
+            }
+        }
+
+        // Start the timer runnable
+        handler.post(timerRunnable!!)
+    }
+
+    private fun stopCooldownTimer() {
+        timerRunnable?.let {
+            handler.removeCallbacks(it)
+            Log.d("AppBlockerService", "Stopped cooldown timer")
+        }
+        isTimerRunning = false
+        timerRunnable = null
+        cancelTimerNotification()
+    }
+
+
+    @SuppressLint("DefaultLocale")
+    private fun updateTimerNotification(packageName: String, progress: Float, remainingSeconds: Long) {
+        try {
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+            // Check if notifications are enabled
+            val channel = notificationManager.getNotificationChannel(neth.iecal.questphone.services.NOTIFICATION_CHANNEL_ID)
+            if (channel != null) {
+                if (channel.importance == NotificationManager.IMPORTANCE_NONE) {
+                    Log.w("AppBlockerService", "Notification channel is disabled")
+                    return
+                }
+            }
+
+            // Create a basic intent for the app
+            val intent = packageManager.getLaunchIntentForPackage(packageName) ?: Intent().apply {
+                action = Intent.ACTION_MAIN
+                addCategory(Intent.CATEGORY_HOME)
+            }
+
+            val pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // Format time display
+            val minutes = remainingSeconds / 60
+            val seconds = remainingSeconds % 60
+            val timeText = String.format("%d:%02d", minutes, seconds)
+
+            // Get app name for better UX
+            val appName = try {
+                packageManager.getApplicationInfo(packageName, 0)
+                    .loadLabel(packageManager).toString()
+            } catch (e: Exception) {
+                Log.w("AppBlockerService", "Failed to get app name: ${e.message}")
+                packageName
+            }
+
+            // Build the notification
+            val builder = NotificationCompat.Builder(this,
+                NOTIFICATION_CHANNEL_ID
+            )
+                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setContentTitle("App Cooldown: $appName")
+                .setContentText("Time remaining: $timeText")
+                .setProgress(100, (progress * 100).toInt(), false)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setOngoing(true)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(false)
+                .setSilent(true)
+
+            // Set foreground if device is on Android 8.0 or higher
+            builder.setChannelId(NOTIFICATION_CHANNEL_ID)
+
+            val notification = builder.build()
+
+            // Post the notification
+            Log.d("AppBlockerService", "Posting notification for $packageName with time $timeText")
+            notificationManager.notify(NOTIFICATION_ID, notification)
+
+        } catch (e: Exception) {
+            Log.e("AppBlockerService", "Failed to update notification: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    private fun cancelTimerNotification() {
+        try {
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.cancel(NOTIFICATION_ID)
+            Log.d("AppBlockerService", "Notification cancelled")
+        } catch (e: Exception) {
+            Log.e("AppBlockerService", "Failed to cancel notification: ${e.message}")
         }
     }
 }

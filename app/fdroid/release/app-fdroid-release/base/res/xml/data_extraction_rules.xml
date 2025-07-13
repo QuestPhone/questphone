@@ -1,11 +1,0 @@
-
-´data-extraction-rules*K
-Ccloud-backup*3
-+include"
-path.*"domain
-sharedpref2*N
-Fdevice-transfer*3
-+include"
-path.*"domain
-sharedpref
-2
