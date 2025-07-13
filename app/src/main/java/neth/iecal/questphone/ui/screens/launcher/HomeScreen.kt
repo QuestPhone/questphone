@@ -93,6 +93,7 @@ import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.ui.screens.components.NeuralMeshAsymmetrical
+import neth.iecal.questphone.ui.screens.components.NeuralMeshSymmetrical
 import neth.iecal.questphone.ui.screens.components.TopBarActions
 import neth.iecal.questphone.ui.screens.launcher.components.AllQuestsDialog
 import neth.iecal.questphone.ui.screens.quest.DialogState
@@ -156,6 +157,8 @@ fun HomeScreen(navController: NavController) {
         label = "offsetY"
     )
 
+    var meshStyle by remember { mutableStateOf(0) }
+
     val hapticFeedback = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -167,6 +170,9 @@ fun HomeScreen(navController: NavController) {
     BackHandler { }
 
     LaunchedEffect(Unit) {
+        val meshStylesp = context.getSharedPreferences("mesh_style",MODE_PRIVATE)
+        meshStyle = meshStylesp.getInt("mesh_style",0)
+
         val shortcutsSp = context.getSharedPreferences("shortcuts", MODE_PRIVATE)
         val tshortcuts =  shortcutsSp.getStringSet("shortcuts", setOf())?.toList<String>() ?: listOf()
         shortcuts.addAll(tshortcuts)
@@ -319,9 +325,10 @@ fun HomeScreen(navController: NavController) {
                                         duration = SnackbarDuration.Short
                                     ).also { result ->
                                         if (result == SnackbarResult.ActionPerformed) {
-                                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                            }
+                                            val intent =
+                                                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                }
                                             context.startActivity(intent)
                                         }
                                     }
@@ -334,7 +341,19 @@ fun HomeScreen(navController: NavController) {
             Column(
                 Modifier.padding(8.dp)
             ) {
-                NeuralMeshAsymmetrical(modifier = Modifier.size(200.dp))
+                Box(Modifier.size(200.dp).combinedClickable(onClick = {},onLongClick = {
+                    val meshStylesp = context.getSharedPreferences("mesh_style",MODE_PRIVATE)
+                    meshStyle = 1 - meshStyle
+                    meshStylesp.edit(commit = true) { putInt("mesh_style", meshStyle) }
+
+                })){
+                    when(meshStyle){
+                        0 -> { NeuralMeshSymmetrical(modifier = Modifier.fillMaxSize()) }
+                        1 -> {
+                            NeuralMeshAsymmetrical(modifier = Modifier.fillMaxSize())
+                        }
+                    }
+                }
                 Spacer(Modifier.size(12.dp))
                 Text(
                     time,
@@ -425,7 +444,10 @@ fun HomeScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(start = 8.dp,bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 8.dp),
+                    .padding(start = 8.dp,
+                        bottom = WindowInsets.navigationBars.asPaddingValues()
+                            .calculateBottomPadding() + 8.dp
+                    ),
                 horizontalAlignment = Alignment.End
             ) {
                 LazyColumn(
@@ -446,7 +468,7 @@ fun HomeScreen(navController: NavController) {
                             modifier = Modifier
                                 .size(35.dp)
                                 .clickable(
-                                    onClick = {it.onClick() },
+                                    onClick = { it.onClick() },
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = ripple(bounded = false)
 
@@ -466,7 +488,10 @@ fun HomeScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 8.dp,bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 8.dp),
+                    .padding(end = 8.dp,
+                        bottom = WindowInsets.navigationBars.asPaddingValues()
+                            .calculateBottomPadding() + 8.dp
+                    ),
                 horizontalAlignment = Alignment.End
             ) {
                 if(shortcuts.isEmpty()){
@@ -519,9 +544,13 @@ fun HomeScreen(navController: NavController) {
             Icon(
                 imageVector = Icons.Default.KeyboardArrowUp,
                 contentDescription = "Swipe up",
-                modifier = Modifier.align(Alignment.BottomCenter)
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
                     .offset(y = swipeIconAnimation.dp)
-                    .padding(bottom = WindowInsets.navigationBarsIgnoringVisibility.asPaddingValues().calculateBottomPadding()*2)
+                    .padding(
+                        bottom = WindowInsets.navigationBarsIgnoringVisibility.asPaddingValues()
+                            .calculateBottomPadding() * 2
+                    )
             )
         }
     }
