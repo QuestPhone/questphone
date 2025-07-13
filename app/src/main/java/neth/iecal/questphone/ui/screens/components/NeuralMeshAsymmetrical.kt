@@ -95,7 +95,7 @@ fun NeuralMeshAsymmetrical(modifier: Modifier = Modifier) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val centerX = size.width / 2f
             val centerY = size.height / 2f
-            val baseRadius = size.minDimension / 3f
+            val baseRadius = size.minDimension / 2f
 
             val transformedNodes = nodes.map { node ->
                 val pulsatingRadius = baseRadius * pulse
@@ -209,13 +209,11 @@ private fun projectPoint(point: APoint3D, centerX: Float, centerY: Float): Tripl
 private fun DrawScope.drawNodes(projectedNodes: List<Pair<Offset, Float>>) {
     projectedNodes.forEach { (offset, scale) ->
         val radius = 5f * scale
-        val alpha = (scale - 0.5f).coerceIn(0f, 1f) * 1.5f
 
         drawCircle(
             color = Color.White, // Bright cyan for a digital look
             radius = radius,
             center = offset,
-            alpha = alpha
         )
     }
 }
@@ -227,14 +225,12 @@ private fun DrawScope.drawConnections(projectedNodes: List<Pair<Offset, Float>>,
     AEdges.forEach { edge ->
         val (p1, scale1) = projectedNodes[edge.node1]
         val (p2, scale2) = projectedNodes[edge.node2]
-        val alpha = ((scale1 + scale2) / 2f - 0.5f).coerceIn(0f, 1f) * 1.2f
 
         drawLine(
             color = Color.White, // Light blue for connections
             start = p1,
             end = p2,
             strokeWidth = 1.5f * ((scale1 + scale2) / 2f),
-            alpha = alpha,
             cap = StrokeCap.Round
         )
     }

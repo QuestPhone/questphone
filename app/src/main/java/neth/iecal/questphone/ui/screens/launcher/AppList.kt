@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -78,6 +79,8 @@ fun AppList(navController: NavController) {
 
     var searchQuery by remember { mutableStateOf("") }
 
+    var minutesPerFiveCoins = remember { mutableIntStateOf(10) }
+
     var textFieldLoaded by remember { mutableStateOf(false) }
 
     LaunchedEffect(searchQuery) {
@@ -85,6 +88,9 @@ fun AppList(navController: NavController) {
             appsState.filter { it.name.contains(searchQuery, ignoreCase = true) }
     }
     LaunchedEffect(Unit) {
+        val minutes_per_c = context.getSharedPreferences("minutes_per_5", Context.MODE_PRIVATE)
+        minutesPerFiveCoins.intValue = minutes_per_c.getInt("minutes_per_5", minutesPerFiveCoins.intValue)
+
         val cachedApps = getCachedApps(context)
         if (cachedApps.isNotEmpty()) {
             appsState = cachedApps
@@ -111,12 +117,12 @@ fun AppList(navController: NavController) {
 
     Scaffold { innerPadding ->
         if (showCoinDialog) {
-            if (User.userInfo.coins > 5) {
+            if (User.userInfo.coins >= 5) {
                 UnlockAppDialog(
                     coins = User.userInfo.coins,
                     onDismiss = { showCoinDialog = false },
                     onConfirm = {
-                        val cooldownTime = 10 * 60_000
+                        val cooldownTime = minutesPerFiveCoins.intValue * 60_000
                         val intent = Intent().apply {
                             action = INTENT_ACTION_UNLOCK_APP
                             putExtra("selected_time", cooldownTime)
@@ -135,7 +141,8 @@ fun AppList(navController: NavController) {
                         launchApp(context, selectedPackage)
                         showCoinDialog = false
                     },
-                    pkgName = selectedPackage
+                    pkgName = selectedPackage,
+                    minutesPerFiveCoins
                 )
             } else {
                 LowCoinsDialog(

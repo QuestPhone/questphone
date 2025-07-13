@@ -92,7 +92,7 @@ import neth.iecal.questphone.data.game.continueStreak
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.navigation.Screen
-import neth.iecal.questphone.ui.screens.components.NeuralMeshSymmetrical
+import neth.iecal.questphone.ui.screens.components.NeuralMeshAsymmetrical
 import neth.iecal.questphone.ui.screens.components.TopBarActions
 import neth.iecal.questphone.ui.screens.launcher.components.AllQuestsDialog
 import neth.iecal.questphone.ui.screens.quest.DialogState
@@ -334,7 +334,7 @@ fun HomeScreen(navController: NavController) {
             Column(
                 Modifier.padding(8.dp)
             ) {
-                NeuralMeshSymmetrical(modifier = Modifier.size(200.dp))
+                NeuralMeshAsymmetrical(modifier = Modifier.size(200.dp))
                 Spacer(Modifier.size(12.dp))
                 Text(
                     time,

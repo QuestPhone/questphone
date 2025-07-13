@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,7 +22,8 @@ fun UnlockAppDialog(
     coins: Int,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
-    pkgName : String
+    pkgName : String,
+    minutesPerSp: MutableIntState
 ) {
     val context = LocalContext.current
     Dialog(onDismissRequest = onDismiss) {
@@ -47,7 +49,7 @@ fun UnlockAppDialog(
                 )
 
                 Text(
-                    text = "Are you sure you want to spend 5 coins to use this app for 10 minutes?",
+                    text = "Are you sure you want to spend 5 coins to use this app for ${minutesPerSp.intValue} minutes?",
                     color = Color.White,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom = 24.dp)

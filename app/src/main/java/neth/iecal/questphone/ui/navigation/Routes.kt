@@ -24,6 +24,7 @@ sealed class Screen(val route: String) {
     data object SelectTemplates : Screen("templates_screen/")
     data object SetupTemplate : Screen("setup_template/")
 
+    data object SetCoinRewardRatio : Screen("set_coin_reward_ratio/")
 }
 
 /**

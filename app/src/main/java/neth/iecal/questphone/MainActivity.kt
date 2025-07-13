@@ -33,6 +33,7 @@ import neth.iecal.questphone.ui.screens.launcher.AppList
 import neth.iecal.questphone.ui.screens.launcher.HomeScreen
 import neth.iecal.questphone.ui.screens.onboard.SelectApps
 import neth.iecal.questphone.ui.screens.onboard.SelectAppsModes
+import neth.iecal.questphone.ui.screens.onboard.SetCoinRewardRatio
 import neth.iecal.questphone.ui.screens.pet.TheSystemDialog
 import neth.iecal.questphone.ui.screens.quest.ListAllQuests
 import neth.iecal.questphone.ui.screens.quest.RewardDialogMaker
@@ -176,6 +177,9 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Screen.SelectTemplates.route) {
                             SelectFromTemplates(navController)
+                        }
+                        composable(Screen.SetCoinRewardRatio.route){
+                            SetCoinRewardRatio()
                         }
                         composable("${Screen.SetupTemplate.route}{id}") { backStackEntry ->
                             val id = backStackEntry.arguments?.getString("id")
