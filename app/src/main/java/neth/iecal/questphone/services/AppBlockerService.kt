@@ -578,7 +578,7 @@ class AppBlockerService : Service() {
                 NOTIFICATION_CHANNEL_ID
             )
                 .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-                .setContentTitle("App Cooldown: $appName")
+                .setContentTitle("Unlocked App: $appName")
                 .setContentText("Time remaining: $timeText")
                 .setProgress(100, (progress * 100).toInt(), false)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
