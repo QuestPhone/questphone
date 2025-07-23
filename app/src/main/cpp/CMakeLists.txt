@@ -3,8 +3,7 @@ project("sentencepiece_jni")
 
 add_library(sentencepiece SHARED IMPORTED)
 set_target_properties(sentencepiece PROPERTIES IMPORTED_LOCATION
-        ${CMAKE_SOURCE_DIR}/../jniLibs/arm64-v8a/libsentencepiece.so)
-
+        ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libsentencepiece.so)
 
 add_library(sentencepiece_jni SHARED sentencepiece_jni.cpp)
 

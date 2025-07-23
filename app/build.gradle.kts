@@ -26,8 +26,8 @@ android {
         applicationId = "neth.iecal.questphone"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.5"
+        versionCode = 7
+        versionName = "1.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "SUPABASE_URL", "\"${localProperties["SUPABASE_URL"]}\"")
@@ -48,8 +48,16 @@ android {
             versionNameSuffix = "-play"
             buildConfigField("Boolean", "IS_FDROID", "false")
         }
-    }
 
+    }
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            isUniversalApk = true
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -77,6 +85,7 @@ android {
             path = file("src/main/cpp/CMakeLists.txt")
         }
     }
+
     ndkVersion = "29.0.13599879 rc2"
 }
 
