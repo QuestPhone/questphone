@@ -74,6 +74,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.DayOfWeek
+import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.data.TemplateData
 import neth.iecal.questphone.data.TemplateVariable
 import neth.iecal.questphone.data.VariableName
@@ -81,6 +82,7 @@ import neth.iecal.questphone.data.VariableType
 import neth.iecal.questphone.data.convertToTemplate
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
+import neth.iecal.questphone.ui.screens.quest.setup.ai_snap.model.ModelDownloadDialog
 import neth.iecal.questphone.ui.screens.quest.setup.components.DateSelector
 import neth.iecal.questphone.ui.screens.quest.setup.components.TimeRangeDialog
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
@@ -100,6 +102,7 @@ fun SetupTemplate(id: String,controller: NavController) {
     var showDialog by remember { mutableStateOf(false) }
     var showSaveConfirmation by remember { mutableStateOf(false) }
     var currentVariable by remember { mutableStateOf<TemplateVariable?>(null) }
+    var isModelDownloadDialogVisible =remember{ mutableStateOf(false)}
 
     // Check if all required variables are filled
     val allVariablesFilled by remember {
@@ -177,6 +180,9 @@ fun SetupTemplate(id: String,controller: NavController) {
             }
         }
     ) { padding ->
+        if(templateData?.basicQuest?.integration_id == IntegrationId.AI_SNAP){
+            ModelDownloadDialog(modelDownloadDialogVisible = isModelDownloadDialogVisible)
+        }
         if (isLoading) {
             Box(
                 modifier = Modifier

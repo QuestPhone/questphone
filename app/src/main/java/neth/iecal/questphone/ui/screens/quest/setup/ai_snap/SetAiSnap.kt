@@ -53,15 +53,15 @@ import neth.iecal.questphone.data.quest.QuestInfoState
 import neth.iecal.questphone.data.quest.ai.snap.AiSnap
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
-import neth.iecal.questphone.utils.QuestHelper
+import neth.iecal.questphone.ui.screens.quest.setup.ai_snap.model.ModelDownloadDialog
 import neth.iecal.questphone.utils.json
+
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun SetAiSnap(editQuestId:String? = null,navController: NavHostController) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val sp = QuestHelper(LocalContext.current)
 
     // State for the quest
     val questInfoState = remember { QuestInfoState(initialIntegrationId = IntegrationId.AI_SNAP) }
@@ -69,8 +69,11 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController) {
     var features = remember { mutableStateListOf<String>() }
 
     val scope = rememberCoroutineScope()
-    // Dialog state
+
     val isReviewDialogVisible = remember { mutableStateOf(false) }
+    var isModelDownloadDialogVisible =remember{ mutableStateOf(false)}
+
+    ModelDownloadDialog(modelDownloadDialogVisible = isModelDownloadDialogVisible)
 
     LaunchedEffect(Unit) {
         if(editQuestId!=null){
