@@ -1,5 +1,6 @@
 package neth.iecal.questphone
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -19,6 +20,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
@@ -46,6 +50,8 @@ import neth.iecal.questphone.ui.theme.LauncherTheme
 import neth.iecal.questphone.utils.isOnline
 import neth.iecal.questphone.utils.reminder.NotificationScheduler
 import neth.iecal.questphone.utils.triggerQuestSync
+import neth.iecal.questphone.utils.worker.FileDownloadWorker
+import java.io.File
 
 
 class MainActivity : ComponentActivity() {
@@ -56,6 +62,24 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val data = getSharedPreferences("onboard", MODE_PRIVATE)
         val notificationScheduler = NotificationScheduler(applicationContext)
+        val modelSp = getSharedPreferences("models", Context.MODE_PRIVATE)
+
+        val isTokenizerDownloaded = modelSp.getBoolean("is_downloaded_tokenizer",false)
+        val tokenizer = File(filesDir, "tokenizer.model")
+
+        if(!isTokenizerDownloaded || !tokenizer.exists()){
+            val inputData = Data.Builder()
+                .putString(FileDownloadWorker.KEY_URL, "https://huggingface.co/onnx-community/siglip2-base-patch16-224-ONNX/resolve/main/tokenizer.model")
+                .putString(FileDownloadWorker.KEY_FILE_NAME, "tokenizer.model")
+                .putString(FileDownloadWorker.KEY_MODEL_ID, "tokenizer")
+                .build()
+
+            val downloadWork = OneTimeWorkRequestBuilder<FileDownloadWorker>()
+                .setInputData(inputData)
+                .build()
+
+            WorkManager.getInstance(applicationContext).enqueue(downloadWork)
+        }
 
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}

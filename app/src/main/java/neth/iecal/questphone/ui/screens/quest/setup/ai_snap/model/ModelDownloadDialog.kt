@@ -35,207 +35,216 @@ import androidx.core.content.edit
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import kotlinx.serialization.builtins.ListSerializer
+import neth.iecal.questphone.utils.fetchUrlContent
 import neth.iecal.questphone.utils.worker.FileDownloadWorker
 
+@kotlinx.serialization.Serializable
 data class DownloadableModel(
     val sizeMB: Int,
     val accuracy: String,
     val id: String,
     val url: String,
+    val version: String,
     val isRecommended: Boolean = false
 )
+
 @Composable
 fun ModelDownloadDialog(
     allowSkipping: Boolean = true,
     modelDownloadDialogVisible: MutableState<Boolean>,
 ) {
-
-    val models = listOf(
-        DownloadableModel(
-            751,
-            "Medium",
-            "SIGLIP2_FP16",
-            "https://huggingface.co/onnx-community/siglip2-base-patch16-224-ONNX/resolve/main/onnx/model_fp16.onnx",
-            isRecommended = true
-        ),
-        DownloadableModel(
-            1500,
-            "HIGHEST",
-            "SIGLIP2",
-            "https://huggingface.co/onnx-community/siglip2-base-patch16-224-ONNX/resolve/main/onnx/model.onnx"
-        ),
-        DownloadableModel(
-            13,
-            "HIGHEST",
-            "D",
-            "https://github.com/nethical6/Siglip2_Android/raw/refs/heads/main/app/src/main/jniLibs/arm64-v8a/libsentencepiece.so"
-        ),
-        DownloadableModel(
-            378,
-            "LOWEST",
-            "SIGLIP2_INT8",
-            "https://huggingface.co/onnx-community/siglip2-base-patch16-224-ONNX/resolve/main/onnx/model_int8.onnx"
-        ),
-    )
-
-    val modelStates = remember { models.map { mutableStateOf(it) } }
-
     val context = LocalContext.current
     val sp = context.getSharedPreferences("models", Context.MODE_PRIVATE)
     var currentModel by remember { mutableStateOf<String?>(null) }
-
     var isModelDownloading by remember { mutableStateOf(sp.contains("downloading")) }
-
+    var modelStates by remember { mutableStateOf<List<MutableState<DownloadableModel>>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         currentModel = sp.getString("selected_one_shot_model", null)
-        if(currentModel==null) modelDownloadDialogVisible.value = true
+
+        if (currentModel == null) modelDownloadDialogVisible.value = true
+
+        val json = fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/models/refs/heads/main/model_data.json")
+        try {
+            val parsed = kotlinx.serialization.json.Json.decodeFromString(
+                ListSerializer(DownloadableModel.serializer()), json!!
+            )
+            modelStates = parsed.map { mutableStateOf(it) }
+
+            // Check if any downloaded model has a version mismatch
+            for (modelState in modelStates) {
+                val model = modelState.value
+                val localVersion = sp.getString("version_${model.id}", null)
+                val isDownloaded = sp.getBoolean("is_downloaded_${model.id}", false)
+                if (isDownloaded && localVersion != model.version) {
+                    // Trigger re-download
+                    context.deleteFile("${model.id}.onnx")
+                    sp.edit {
+                        remove("is_downloaded_${model.id}")
+                        remove("version_${model.id}")
+                    }
+                    Toast.makeText(context, "Model ${model.id} is outdated. Re-downloading...", Toast.LENGTH_SHORT).show()
+
+                    sp.edit(commit = true) { putString("downloading", model.id) }
+                    isModelDownloading = true
+                    val inputData = Data.Builder()
+                        .putString("url", model.url)
+                        .putString("fileName", "${model.id}.onnx")
+                        .putString("model_id", model.id)
+                        .putString("model_version", model.version)
+                        .build()
+
+                    val downloadWork = OneTimeWorkRequestBuilder<FileDownloadWorker>()
+                        .setInputData(inputData)
+                        .build()
+
+                    WorkManager.getInstance(context).enqueue(downloadWork)
+                }
+            }
+
+        } catch (e: Exception) {
+            Toast.makeText(context, "Failed to load model list", Toast.LENGTH_SHORT).show()
+        }
     }
 
-    fun onDismiss(){
-        if(currentModel==null&& !allowSkipping && !isModelDownloading) {
-            Toast.makeText(context,"Please select a model to perform this quest", Toast.LENGTH_SHORT).show()
+    fun onDismiss() {
+        if (currentModel == null && !allowSkipping && !isModelDownloading) {
+            Toast.makeText(context, "Please select a model to perform this quest", Toast.LENGTH_SHORT).show()
         }
         modelDownloadDialogVisible.value = false
     }
 
-    if(modelDownloadDialogVisible.value){
-    Dialog(onDismissRequest = { onDismiss() }) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Column(modifier = Modifier.padding(24.dp)) {
-                Text(
-                    "Download Model",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = 20.dp)
-                )
+    if (modelDownloadDialogVisible.value) {
+        Dialog(onDismissRequest = { onDismiss() }) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text("Download Model", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 20.dp))
 
-                if(isModelDownloading){
-                    Text(
-                        "Please wait while the model downloads. You can explore the app until the model downloads in background.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
+                    if (isModelDownloading) {
+                        Text(
+                            "Please wait while the model downloads.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                    } else {
+                        if(modelStates.isEmpty()){
+                            Text("Loading Available Models")
+                        }
+                        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.weight(1f, false)) {
+                            items(modelStates) { modelState ->
+                                val model = modelState.value
+                                val isDownloaded = sp.getBoolean("is_downloaded_${model.id}", false)
+                                val localVersion = sp.getString("version_${model.id}", null)
+                                val isSelected = currentModel == model.id
+                                val needsUpdate = localVersion != model.version && isDownloaded
 
-                } else {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.weight(1f, fill = false)
-                    ) {
-                        items(modelStates) { modelState ->
-                            val model = modelState.value
-                            val isDownloaded = sp.getBoolean("is_downloaded_${model.id}", false)
-                            val isSelected = currentModel == model.id
+                                Card(
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = when {
+                                            isSelected -> MaterialTheme.colorScheme.primaryContainer
+                                            isDownloaded -> MaterialTheme.colorScheme.surfaceVariant
+                                            else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                                        }
+                                    ),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 2.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(enabled = !isModelDownloading) {
+                                            if (isDownloaded && !needsUpdate) {
+                                                sp.edit(commit = true) {
+                                                    putString("selected_one_shot_model", model.id)
+                                                }
+                                                currentModel = model.id
+                                            } else {
+                                                sp.edit(commit = true) {
+                                                    putString("downloading", model.id)
+                                                }
+                                                isModelDownloading = true
+                                                val inputData = Data.Builder()
+                                                    .putString(FileDownloadWorker.KEY_URL, model.url)
+                                                    .putString(FileDownloadWorker.KEY_FILE_NAME, "${model.id}.onnx")
+                                                    .putString(FileDownloadWorker.KEY_MODEL_ID, model.id)
+                                                    .putString(FileDownloadWorker.KEY_MODEL_VERSION, model.version)
+                                                    .putBoolean(FileDownloadWorker.KEY_IS_ONE_SHOT, true)
+                                                    .build()
 
-                            Card(
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = when {
-                                        isSelected -> MaterialTheme.colorScheme.primaryContainer
-                                        isDownloaded -> MaterialTheme.colorScheme.surfaceVariant
-                                        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                                    }
-                                ),
-                                elevation = CardDefaults.cardElevation(
-                                    defaultElevation = if (isSelected) 4.dp else 2.dp
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(enabled = !isModelDownloading) {
-                                        if (isDownloaded) {
-                                            sp.edit(commit = true) {
-                                                putString("selected_one_shot_model", model.id)
-                                            }
-                                            currentModel = model.id
-                                        } else {
-                                            sp.edit(commit = true) {
-                                                putString("downloading", model.id)
-                                            }
-                                            isModelDownloading = true
-                                            val inputData = Data.Builder()
-                                                .putString("url", model.url)
-                                                .putString("fileName", model.id + ".onnx")
-                                                .putString("model_id", model.id)
-                                                .build()
-
-                                            val downloadWork =
-                                                OneTimeWorkRequestBuilder<FileDownloadWorker>()
+                                                val downloadWork = OneTimeWorkRequestBuilder<FileDownloadWorker>()
                                                     .setInputData(inputData)
                                                     .build()
 
-                                            WorkManager.getInstance(context).enqueue(downloadWork)
-
-                                            Toast.makeText(
-                                                context,
-                                                "Download Started",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-
-                                        }
-                                    }
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(16.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            if (model.isRecommended) {
-                                                Text(
-                                                    "Recommended",
-                                                    style = MaterialTheme.typography.bodyLarge,
-                                                    color = MaterialTheme.colorScheme.primary
-                                                )
+                                                WorkManager.getInstance(context).enqueue(downloadWork)
+                                                Toast.makeText(context, "Download Started", Toast.LENGTH_SHORT).show()
                                             }
-                                            Text(
-                                                model.id,
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                color = if (isSelected)
-                                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                                else MaterialTheme.colorScheme.onSurface
-                                            )
-                                            Text(
-                                                "Accuracy: " + model.accuracy,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = if (isSelected)
-                                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                        alpha = 0.7f
-                                                    )
-                                                else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.padding(top = 2.dp)
-                                            )
                                         }
-
-                                        Column(horizontalAlignment = Alignment.End) {
-                                            Text(
-                                                "${model.sizeMB}mb",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = if (isSelected)
-                                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                        alpha = 0.8f
-                                                    )
-                                                else MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-
-                                            if (isSelected && !isDownloaded) {
+                                ) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                if (model.isRecommended) {
+                                                    Text("Recommended", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+                                                }
                                                 Text(
-                                                    "selected",
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = MaterialTheme.colorScheme.primary,
+                                                    model.id,
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    color = if (isSelected)
+                                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                                    else MaterialTheme.colorScheme.onSurface
+                                                )
+                                                Text(
+                                                    "Accuracy: ${model.accuracy}",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = if (isSelected)
+                                                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                                    else MaterialTheme.colorScheme.onSurfaceVariant,
                                                     modifier = Modifier.padding(top = 2.dp)
                                                 )
+                                                Text(
+                                                    "Version: ${model.version}" + if (needsUpdate) " (Update Available)" else "",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = MaterialTheme.colorScheme.error.takeIf { needsUpdate }
+                                                        ?: MaterialTheme.colorScheme.outline,
+                                                    modifier = Modifier.padding(top = 2.dp)
+                                                )
+                                            }
+
+                                            Column(horizontalAlignment = Alignment.End) {
+
+
+                                                if (isDownloaded) {
+                                                    TextButton(
+                                                        onClick = {
+                                                            context.deleteFile("${model.id}.onnx")
+                                                            sp.edit {
+                                                                remove("is_downloaded_${model.id}")
+                                                                remove("version_${model.id}")
+                                                            }
+                                                            Toast.makeText(context, "Model deleted", Toast.LENGTH_SHORT).show()
+                                                        },
+                                                        modifier = Modifier.padding(top = 4.dp)
+                                                    ) {
+                                                        Text("Delete", style = MaterialTheme.typography.labelSmall)
+                                                    }
+                                                }else {
+                                                    Text(
+                                                        "${model.sizeMB}mb",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = if (isSelected)
+                                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -244,18 +253,15 @@ fun ModelDownloadDialog(
                         }
                     }
 
-                }
-                Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = { onDismiss() }) {
-                        Text("close")
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = { onDismiss() }) {
+                            Text("Close")
+                        }
                     }
                 }
             }
         }
     }
-}}
+}

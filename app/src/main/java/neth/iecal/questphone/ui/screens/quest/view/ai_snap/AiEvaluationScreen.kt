@@ -149,14 +149,12 @@ fun AiEvaluationScreen(
                 val modelSession = env.createSession(modelFile.absolutePath, opts)
 
                 currentStep = EvaluationStep.PREPROCESSING
-                delay(300)
 
                 Log.d("Started Oneshot evaluation", "run")
                 val queries = listOf(aiQuest.taskDescription)
                 val processedQueries = queries.map { "$it </s>" }
 
                 currentStep = EvaluationStep.TOKENIZING
-                delay(200)
 
                 val tokenIdsList = try {
                     tokenizeText(context, processedQueries)
@@ -188,7 +186,6 @@ fun AiEvaluationScreen(
                 )
 
                 currentStep = EvaluationStep.EVALUATING
-                delay(500)
 
                 val inputs: MutableMap<String?, OnnxTensor?> = HashMap<String?, OnnxTensor?>()
                 inputs.put("pixel_values", imageTensor) // float32: [1, 3, 224, 224]
@@ -211,7 +208,6 @@ fun AiEvaluationScreen(
                 Log.d("results", "$x")
 
                 currentStep = EvaluationStep.COMPLETED
-                delay(200)
 
                 if (results[0].second > MINIMUM_ZERO_SHOT_THRESHOLD) {
                     onEvaluationComplete()

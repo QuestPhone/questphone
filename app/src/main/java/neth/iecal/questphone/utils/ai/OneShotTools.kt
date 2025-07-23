@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.core.graphics.get
 import androidx.core.graphics.scale
 import java.io.File
-import java.io.FileOutputStream
 import java.nio.FloatBuffer
 
 
@@ -49,7 +48,8 @@ fun preprocessBitmapToFloatBuffer(bitmap: Bitmap): FloatBuffer {
 
 
 fun tokenizeText(context: Context, texts: List<String>): List<IntArray> {
-    val modelPath = copyModelToInternalStorage(context, "tokenizer.model")
+    val modelPath = File(context.filesDir, "tokenizer.model").absolutePath
+
     if (SentencePieceProcessor.load(modelPath) != 0) {
         throw RuntimeException("Failed to load SentencePiece model")
     }
@@ -74,26 +74,4 @@ fun testTokenization(context: Context) {
     tokenIdsList.forEachIndexed { i, ids ->
         Log.d("Tokenization", "Text: ${texts[i]}, Token IDs: ${ids.joinToString()}")
     }
-}
-
-fun copyModelToInternalStorage(context: Context, assetFileName: String): String {
-    val file = File(context.filesDir, assetFileName)
-
-    if (!file.exists()) {
-        try {
-            context.assets.open(assetFileName).use { input ->
-                FileOutputStream(file).use { output ->
-                    input.copyTo(output)
-                }
-            }
-            Log.d("ModelCopy", "Copied $assetFileName to internal storage.")
-        } catch (e: Exception) {
-            Log.e("ModelCopy", "Failed to copy model: ${e.message}")
-            e.printStackTrace()
-        }
-    } else {
-        Log.d("ModelCopy", "$assetFileName already exists in internal storage.")
-    }
-
-    return file.absolutePath
 }
