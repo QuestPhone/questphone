@@ -3,16 +3,12 @@ package neth.iecal.questphone.utils.ai
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.ImageDecoder
-import android.net.Uri
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
+import androidx.core.graphics.get
+import androidx.core.graphics.scale
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.FloatBuffer
-import androidx.core.graphics.scale
-import androidx.core.graphics.get
 
 
 object SentencePieceProcessor {
@@ -23,6 +19,8 @@ object SentencePieceProcessor {
     external fun load(modelPath: String): Int
     external fun encodeAsIds(input: String): IntArray
 }
+
+
 
 fun preprocessBitmapToFloatBuffer(bitmap: Bitmap): FloatBuffer {
     val width = 224

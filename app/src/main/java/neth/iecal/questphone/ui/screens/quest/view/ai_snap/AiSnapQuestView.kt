@@ -88,8 +88,8 @@ fun AiSnapQuestView(
 
     if(isAiEvaluating.value) {
         Log.d("aiQuest",aiQuest.toString())
-        AiEvaluationScreen(isAiEvaluating,commonQuestInfo.id ?: "return error") { isComplete ->
-            if(isComplete) onQuestComplete()
+        AiEvaluationScreen(isAiEvaluating,commonQuestInfo.id ?: "return error") {
+            onQuestComplete()
         }
     } else if (isCameraScreen.value) {
         CameraScreen(isAiEvaluating)

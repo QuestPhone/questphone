@@ -5,7 +5,7 @@
 sentencepiece::SentencePieceProcessor sp;
 
 extern "C" JNIEXPORT jint JNICALL
-Java_com_example_siglip_SentencePieceProcessor_load(JNIEnv *env, jobject, jstring modelPath) {
+Java_neth_iecal_questphone_utils_ai_SentencePieceProcessor_load(JNIEnv *env, jobject, jstring modelPath) {
     const char *path = env->GetStringUTFChars(modelPath, nullptr);
     auto status = sp.Load(path);
     env->ReleaseStringUTFChars(modelPath, path);
@@ -13,7 +13,7 @@ Java_com_example_siglip_SentencePieceProcessor_load(JNIEnv *env, jobject, jstrin
 }
 
 extern "C" JNIEXPORT jintArray JNICALL
-Java_com_example_siglip_SentencePieceProcessor_encodeAsIds(JNIEnv *env, jobject, jstring input) {
+Java_neth_iecal_questphone_utils_ai_SentencePieceProcessor_encodeAsIds(JNIEnv *env, jobject, jstring input) {
     const char *text = env->GetStringUTFChars(input, nullptr);
     std::vector<int> ids;
     sp.Encode(text, &ids);

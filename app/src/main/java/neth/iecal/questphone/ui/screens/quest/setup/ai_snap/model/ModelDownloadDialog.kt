@@ -73,8 +73,8 @@ fun ModelDownloadDialog(
         DownloadableModel(
             378,
             "LOWEST",
-            "SIGLIP2_UINT8",
-            "https://huggingface.co/onnx-community/siglip2-base-patch16-224-ONNX/resolve/main/onnx/model_uint8.onnx"
+            "SIGLIP2_INT8",
+            "https://huggingface.co/onnx-community/siglip2-base-patch16-224-ONNX/resolve/main/onnx/model_int8.onnx"
         ),
     )
 
@@ -88,7 +88,6 @@ fun ModelDownloadDialog(
 
 
     LaunchedEffect(Unit) {
-        val sp = context.getSharedPreferences("models", Context.MODE_PRIVATE)
         currentModel = sp.getString("selected_one_shot_model", null)
         if(currentModel==null) modelDownloadDialogVisible.value = true
     }

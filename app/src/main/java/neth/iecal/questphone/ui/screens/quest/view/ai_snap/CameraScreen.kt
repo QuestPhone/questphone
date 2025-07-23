@@ -99,25 +99,6 @@ fun CameraScreen(isAiEvaluating: MutableState<Boolean>) {
                 }
             }
         )
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(24.dp)
-        ) {
-            IconButton(
-                onClick = {
-                    isModelDownloadDialogVisible.value = true
-                },
-                modifier = Modifier
-                    .size(48.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Build,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    contentDescription = "Choose Model"
-                )
-            }
-        }
         // Control Buttons
         Row(
             modifier = Modifier
@@ -131,6 +112,20 @@ fun CameraScreen(isAiEvaluating: MutableState<Boolean>) {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
+
+            IconButton(
+                onClick = {
+                    isModelDownloadDialogVisible.value = true
+                },
+                modifier = Modifier
+                    .size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Build,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = "Choose Model"
+                )
+            }
             IconButton(
                 onClick = {
                     // Switch between front and back camera
@@ -147,6 +142,21 @@ fun CameraScreen(isAiEvaluating: MutableState<Boolean>) {
                     painter = painterResource(id = R.drawable.baseline_cameraswitch_24),
                     tint = MaterialTheme.colorScheme.onSurface,
                     contentDescription = "Switch Camera"
+                )
+            }
+
+            IconButton(
+                onClick = {
+                    // Toggle flashlight
+                    flashEnabled = !flashEnabled
+                },
+                modifier = Modifier
+                    .size(48.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = if (flashEnabled) R.drawable.baseline_flash_on_24 else R.drawable.baseline_flash_off_24),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = "Toggle Flash"
                 )
             }
 
@@ -169,20 +179,6 @@ fun CameraScreen(isAiEvaluating: MutableState<Boolean>) {
                 )
             }
 
-            IconButton(
-                onClick = {
-                    // Toggle flashlight
-                    flashEnabled = !flashEnabled
-                },
-                modifier = Modifier
-                    .size(48.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = if (flashEnabled) R.drawable.baseline_flash_on_24 else R.drawable.baseline_flash_off_24),
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    contentDescription = "Toggle Flash"
-                )
-            }
         }
     }
 }
