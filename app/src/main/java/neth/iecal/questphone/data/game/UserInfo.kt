@@ -141,7 +141,7 @@ fun User.addItemsToInventory(items: HashMap<InventoryItem, Int>){
 
 fun User.saveUserInfo(isSetLastUpdated: Boolean = true){
     val sharedPreferences = appContext.getSharedPreferences("user_info", Context.MODE_PRIVATE)
-    if(isSetLastUpdated && !User.userInfo.isAnonymous){
+    if(isSetLastUpdated && !userInfo.isAnonymous){
         userInfo.last_updated = System.currentTimeMillis()
         userInfo.needsSync = true
         triggerProfileSync(appContext)

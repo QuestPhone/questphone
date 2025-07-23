@@ -286,7 +286,7 @@ fun SelectFromTemplates(
                         activity = activity,
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {
-                            if(activity.integration == IntegrationId.AI_SNAP && User.userInfo.isAnonymous){
+                            if(activity.integration.isLoginRequired && User.userInfo.isAnonymous){
                                 showLoginRequiredDialog.value = true
                             }else {
                                 navController.navigate(Screen.SetupTemplate.route + activity.id)
