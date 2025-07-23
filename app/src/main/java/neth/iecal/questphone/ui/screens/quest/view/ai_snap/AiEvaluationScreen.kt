@@ -41,7 +41,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -51,7 +50,6 @@ import coil.compose.rememberAsyncImagePainter
 import io.github.jan.supabase.auth.auth
 import neth.iecal.questphone.R
 import neth.iecal.questphone.utils.Supabase
-import neth.iecal.questphone.utils.ai.TaskValidationClient
 import java.io.File
 
 @Composable
@@ -61,13 +59,11 @@ fun AiEvaluationScreen(
     onEvaluationComplete: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
-    val client = remember { TaskValidationClient() }
     val photoFile = File(context.getExternalFilesDir(null), "ai_snap_captured_image.jpg")
     var jwtoken = Supabase.supabase.auth.currentAccessTokenOrNull()
 
     // State variables
     var isLoading by remember { mutableStateOf(true) }
-    var result by remember { mutableStateOf<TaskValidationClient.ValidationResult?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
 
     // Trigger validation immediately
@@ -77,19 +73,19 @@ fun AiEvaluationScreen(
             isLoading = false
             return@LaunchedEffect
         }
-        client.validateTask(photoFile, questId, jwtoken.toString()) { response ->
-            isLoading = false
-            response.fold(
-                onSuccess = { validationResult ->
-                    result = validationResult
-                    onEvaluationComplete(validationResult.isValid)
-                },
-                onFailure = { e ->
-                    error = e.message
-                    onEvaluationComplete(false) // Treat error as failure
-                }
-            )
-        }
+//        client.validateTask(photoFile, questId, jwtoken.toString()) { response ->
+//            isLoading = false
+//            response.fold(
+//                onSuccess = { validationResult ->
+//                    result = validationResult
+//                    onEvaluationComplete(validationResult.isValid)
+//                },
+//                onFailure = { e ->
+//                    error = e.message
+//                    onEvaluationComplete(false) // Treat error as failure
+//                }
+//            )
+//        }
     }
 
     // Show toast for errors
@@ -141,39 +137,39 @@ fun AiEvaluationScreen(
                         )
                     }
                 }
-                result != null -> {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (result!!.isValid)
-                                Color(0xFF4CAF50).copy(alpha = 0.1f)
-                            else
-                                Color(0xFFFF9800).copy(alpha = 0.1f)
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = if (result!!.isValid) "Valid" else "Invalid",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = if (result!!.isValid) Color(0xFF4CAF50) else Color(0xFFFF9800)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = result!!.reason,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Button(onClick = { isAiEvaluating.value = false }) {
-                                Text(text = if(result!!.isValid) "Close" else "Retake")
-                            }
-                        }
-                    }
-                }
+//                result != null -> {
+//                    Card(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        colors = CardDefaults.cardColors(
+//                            containerColor = if (result!!.isValid)
+//                                Color(0xFF4CAF50).copy(alpha = 0.1f)
+//                            else
+//                                Color(0xFFFF9800).copy(alpha = 0.1f)
+//                        )
+//                    ) {
+//                        Column(
+//                            modifier = Modifier
+//                                .padding(16.dp)
+//                                .fillMaxWidth()
+//                        ) {
+//                            Text(
+//                                text = if (result!!.isValid) "Valid" else "Invalid",
+//                                style = MaterialTheme.typography.titleLarge,
+//                                color = if (result!!.isValid) Color(0xFF4CAF50) else Color(0xFFFF9800)
+//                            )
+//                            Spacer(modifier = Modifier.height(4.dp))
+//                            Text(
+//                                text = result!!.reason,
+//                                style = MaterialTheme.typography.bodyMedium,
+//                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+//                            )
+//                            Spacer(modifier = Modifier.height(4.dp))
+//                            Button(onClick = { isAiEvaluating.value = false }) {
+//                                Text(text = if(result!!.isValid) "Close" else "Retake")
+//                            }
+//                        }
+//                    }
+//                }
                 error != null -> {
                     Card(
                         modifier = Modifier.fillMaxWidth(),

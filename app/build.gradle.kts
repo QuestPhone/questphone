@@ -70,10 +70,19 @@ android {
         compose = true
         buildConfig = true
     }
+    sourceSets["main"].jniLibs.srcDirs("src/main/jniLibs")
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+        }
+    }
+    ndkVersion = "29.0.13599879 rc2"
 }
 
 dependencies {
 
+    implementation (libs.onnxruntime.android)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

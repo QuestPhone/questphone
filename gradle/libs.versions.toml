@@ -26,6 +26,7 @@ kotlinxCoroutinesGuava = "1.10.1"
 constraintlayout = "2.2.1"
 uiTextGoogleFonts = "1.8.3"
 workRuntimeKtx = "2.10.1"
+onnxruntimeAndroid = "1.22.0"
 
 [libraries]
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraView" }
@@ -66,7 +67,7 @@ supabase-storage = { module = "io.github.jan-tennert.supabase:storage-kt", versi
 supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt", version.ref = "supabase" }
 kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinxCoroutinesGuava" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
-
+onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntimeAndroid" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
