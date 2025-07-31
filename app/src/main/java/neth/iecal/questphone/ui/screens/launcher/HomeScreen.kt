@@ -1,9 +1,6 @@
 package neth.iecal.questphone.ui.screens.launcher
 
-import android.content.Context.MODE_PRIVATE
-import android.content.Intent
 import android.os.Build
-import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.LinearEasing
@@ -78,13 +75,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.edit
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
+import neth.iecal.questphone.core.services.LockScreenService
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.core.utils.managers.isLockScreenServiceEnabled
 import neth.iecal.questphone.core.utils.managers.isSetToDefaultLauncher
+import neth.iecal.questphone.core.utils.managers.openAccessibilityServiceScreen
 import neth.iecal.questphone.core.utils.managers.openDefaultLauncherSettings
 import neth.iecal.questphone.core.utils.managers.performLockScreenAction
 import neth.iecal.questphone.data.MeshStyles
@@ -111,7 +109,7 @@ data class SidePanelItem(
     ExperimentalLayoutApi::class
 )
 @Composable
-fun HomeScreen(navController: NavController, viewModel: LauncherViewModel) {
+fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
     val context = LocalContext.current
 
     val time by viewModel.time
@@ -197,15 +195,7 @@ fun HomeScreen(navController: NavController, viewModel: LauncherViewModel) {
                 tempShortcuts,
                 onDismiss = { isAppSelectorVisible = false },
                 onConfirm = {
-                    val shortcutsSp = context.getSharedPreferences("shortcuts", MODE_PRIVATE)
-                    shortcutsSp.edit(commit = true) {
-                        putStringSet(
-                            "shortcuts",
-                            tempShortcuts.toSet()
-                        )
-                    }
-                    shortcuts.clear()
-                    shortcuts.addAll(tempShortcuts)
+                    viewModel.saveShortcuts()
                     isAppSelectorVisible = false
                 })
         }
@@ -255,11 +245,8 @@ fun HomeScreen(navController: NavController, viewModel: LauncherViewModel) {
                                         duration = SnackbarDuration.Short
                                     ).also { result ->
                                         if (result == SnackbarResult.ActionPerformed) {
-                                            val intent =
-                                                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                }
-                                            context.startActivity(intent)
+                                            openAccessibilityServiceScreen(context,
+                                                LockScreenService::class.java)
                                         }
                                     }
                                 }

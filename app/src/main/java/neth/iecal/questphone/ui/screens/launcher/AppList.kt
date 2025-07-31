@@ -1,9 +1,5 @@
 package neth.iecal.questphone.ui.screens.launcher
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,9 +25,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,115 +34,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startForegroundService
 import androidx.navigation.NavController
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import neth.iecal.questphone.data.AppInfo
 import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.game.useCoins
-import neth.iecal.questphone.core.services.AppBlockerService
-import neth.iecal.questphone.core.services.INTENT_ACTION_UNLOCK_APP
-import neth.iecal.questphone.core.services.AppBlockerServiceInfo
 import neth.iecal.questphone.ui.screens.launcher.components.LowCoinsDialog
 import neth.iecal.questphone.ui.screens.launcher.components.UnlockAppDialog
-import neth.iecal.questphone.core.utils.managers.getCachedApps
-import neth.iecal.questphone.core.utils.managers.reloadApps
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun AppList(navController: NavController) {
-    val context = LocalContext.current
-
-    var appsState by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-    var filteredAppState by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var errorState by remember { mutableStateOf<String?>(null) }
-
-    var showCoinDialog by remember { mutableStateOf(false) }
-    var selectedPackage by remember { mutableStateOf("") }
-
-    var distractions by remember { mutableStateOf(emptySet<String>()) }
+fun AppList(navController: NavController, viewModel: AppListViewModel) {
+    val apps by viewModel.filteredApps.collectAsState()
+    val showDialog by viewModel.showCoinDialog.collectAsState()
+    val selectedPackage by viewModel.selectedPackage.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val minutesPer5Coins by viewModel.minutesPerFiveCoins.collectAsState()
 
     val focusRequester = remember { FocusRequester() }
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    var searchQuery by remember { mutableStateOf("") }
-
-    var minutesPerFiveCoins = remember { mutableIntStateOf(10) }
-
     var textFieldLoaded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(searchQuery) {
-        filteredAppState =
-            appsState.filter { it.name.contains(searchQuery, ignoreCase = true) }
-    }
-    LaunchedEffect(Unit) {
-        val minutes_per_c = context.getSharedPreferences("minutes_per_5", Context.MODE_PRIVATE)
-        minutesPerFiveCoins.intValue = minutes_per_c.getInt("minutes_per_5", minutesPerFiveCoins.intValue)
-
-        val cachedApps = getCachedApps(context)
-        if (cachedApps.isNotEmpty()) {
-            appsState = cachedApps
-            isLoading = false
-        }
-        val packageManager = context.packageManager
-        withContext(Dispatchers.IO) {
-            reloadApps(packageManager, context)
-                .onSuccess { apps ->
-                    appsState = apps
-                    filteredAppState = appsState
-                    isLoading = false
-                }
-                .onFailure { error ->
-                    errorState = error.message
-                    isLoading = false
-                }
-        }
-        val sp = context.getSharedPreferences("distractions", Context.MODE_PRIVATE)
-        distractions = sp.getStringSet("distracting_apps", emptySet<String>()) ?: emptySet()
-
-    }
 
 
     Scaffold { innerPadding ->
-        if (showCoinDialog) {
+        if (showDialog) {
             if (User.userInfo.coins >= 5) {
                 UnlockAppDialog(
                     coins = User.userInfo.coins,
-                    onDismiss = { showCoinDialog = false },
-                    onConfirm = { coins ->
-                        val cooldownTime = (minutesPerFiveCoins.intValue * coins) * 60_000
-                        val intent = Intent().apply {
-                            action = INTENT_ACTION_UNLOCK_APP
-                            putExtra("selected_time", cooldownTime)
-                            putExtra("package_name", selectedPackage)
-                        }
-                        context.sendBroadcast(intent)
-                        if (!AppBlockerServiceInfo.isUsingAccessibilityService && AppBlockerServiceInfo.appBlockerService == null) {
-                            startForegroundService(
-                                context,
-                                Intent(context, AppBlockerService::class.java)
-                            )
-                            AppBlockerServiceInfo.unlockedApps[selectedPackage] =
-                                System.currentTimeMillis() + cooldownTime
-                        }
-                        User.useCoins(5)
-                        launchApp(context, selectedPackage)
-                        showCoinDialog = false
+                    onDismiss = { viewModel.dismissDialog() },
+                    onConfirm = {
+                        viewModel.onConfirmUnlockApp(it)
                     },
                     pkgName = selectedPackage,
-                    minutesPerFiveCoins.intValue
+                    minutesPer5Coins
                 )
             } else {
                 LowCoinsDialog(
                     coins = User.userInfo.coins,
-                    onDismiss = { showCoinDialog = false },
+                    onDismiss = { viewModel.dismissDialog() },
                     navController = navController,
                     pkgName = selectedPackage
                 )
@@ -166,7 +90,7 @@ fun AppList(navController: NavController) {
             item {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    onValueChange = viewModel::onSearchQueryChange,
                     label = { Text("Search Apps") },
                     placeholder = { Text("Type app name...") },
                     leadingIcon = {
@@ -177,7 +101,7 @@ fun AppList(navController: NavController) {
                     },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { searchQuery = "" }) {
+                            IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
                                 Icon(
                                     imageVector = Icons.Default.Clear,
                                     contentDescription = "Clear search"
@@ -198,7 +122,7 @@ fun AppList(navController: NavController) {
                 )
                 Spacer(Modifier.size(4.dp))
             }
-            items(filteredAppState) { app ->
+            items(apps) { app ->
                 Text(
                     text = app.name,
                     style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Normal),
@@ -206,30 +130,9 @@ fun AppList(navController: NavController) {
                         .fillMaxWidth()
                         .combinedClickable(
                             onClick = {
-                                val packageName = app.packageName
-                                if (distractions.contains(packageName)) {
-                                    val cooldownUntil = AppBlockerServiceInfo.unlockedApps[packageName] ?: 0L
-                                    if (cooldownUntil == -1L || System.currentTimeMillis() > cooldownUntil) {
-                                        // Not under cooldown - show dialog
-                                        showCoinDialog = true
-                                        selectedPackage = packageName
-                                    } else {
-                                        launchApp(context, packageName)
-                                        searchQuery = ""
-                                    }
-                                } else {
-                                    // Not a distraction - launch directly
-                                    launchApp(context, packageName)
-                                    searchQuery = ""
-                                }
+                                viewModel.onAppClick(app.packageName)
                             },
-                            onLongClick = {
-                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                    data = Uri.fromParts("package", app.packageName, null)
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Important if calling from outside an Activity
-                                }
-                                context.startActivity(intent)
-                            })
+                            onLongClick = { viewModel.onLongAppClick(app.packageName) })
                 )
             }
             item {
@@ -241,11 +144,4 @@ fun AppList(navController: NavController) {
             }
         }
     }
-}
-fun launchApp(context:Context, packageName: String){
-    val intent =
-        context.packageManager.getLaunchIntentForPackage(
-            packageName
-        )
-    intent?.let { context.startActivity(it) }
 }

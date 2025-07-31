@@ -40,8 +40,9 @@ import neth.iecal.questphone.ui.navigation.SetupQuestScreen
 import neth.iecal.questphone.ui.screens.account.UserInfoScreen
 import neth.iecal.questphone.ui.screens.game.StoreScreen
 import neth.iecal.questphone.ui.screens.launcher.AppList
+import neth.iecal.questphone.ui.screens.launcher.AppListViewModel
 import neth.iecal.questphone.ui.screens.launcher.HomeScreen
-import neth.iecal.questphone.ui.screens.launcher.LauncherViewModel
+import neth.iecal.questphone.ui.screens.launcher.HomeScreenViewModel
 import neth.iecal.questphone.ui.screens.onboard.SelectApps
 import neth.iecal.questphone.ui.screens.onboard.SelectAppsModes
 import neth.iecal.questphone.ui.screens.onboard.SetCoinRewardRatio
@@ -153,15 +154,16 @@ class MainActivity : ComponentActivity() {
                             SelectApps(SelectAppsModes.entries[mode!!])
                         }
                         composable(Screen.HomeScreen.route) {
-                            val launcherViewModel : LauncherViewModel = hiltViewModel()
-                            HomeScreen(navController,launcherViewModel)
+                            val homeScreenViewModel : HomeScreenViewModel = hiltViewModel()
+                            HomeScreen(navController,homeScreenViewModel)
                         }
 
                         composable(Screen.Store.route) {
                             StoreScreen(navController)
                         }
                         composable(Screen.AppList.route) {
-                            AppList(navController)
+                            val appListViewModel : AppListViewModel = hiltViewModel()
+                            AppList(navController,appListViewModel)
                         }
 
                         composable(Screen.ListAllQuest.route) {

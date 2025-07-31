@@ -30,9 +30,9 @@ import neth.iecal.questphone.data.repositories.StatsRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class LauncherViewModel @Inject constructor(
+class HomeScreenViewModel @Inject constructor(
     application: Application,
-    private val questRepository: QuestRepository,
+    questRepository: QuestRepository,
     private val statsRepository: StatsRepository
 ) : AndroidViewModel(application) {
 
@@ -61,6 +61,7 @@ class LauncherViewModel @Inject constructor(
 
     private val meshStylesp = application.applicationContext.getSharedPreferences("mesh_style", MODE_PRIVATE)
     private val shortcutsSp = application.applicationContext.getSharedPreferences("shortcuts", MODE_PRIVATE)
+
 
     init {
         viewModelScope.launch {
