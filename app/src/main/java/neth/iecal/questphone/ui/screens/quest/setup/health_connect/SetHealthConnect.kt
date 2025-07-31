@@ -49,7 +49,7 @@ import neth.iecal.questphone.data.quest.health.HealthQuest
 import neth.iecal.questphone.data.quest.health.HealthTaskType
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
-import neth.iecal.questphone.utils.json
+import neth.iecal.questphone.core.utils.managers.json
 
 @SuppressLint("UnrememberedMutableState")
 @Composable

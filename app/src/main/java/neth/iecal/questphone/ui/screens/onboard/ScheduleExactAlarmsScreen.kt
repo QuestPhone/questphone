@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import neth.iecal.questphone.utils.reminder.NotificationScheduler
+import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
 
 @Composable
 fun ScheduleExactAlarmScreen(isOnBoardingScreen : Boolean= true) {

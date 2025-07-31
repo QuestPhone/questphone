@@ -81,11 +81,11 @@ import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsInfo
-import neth.iecal.questphone.utils.daysSince
-import neth.iecal.questphone.utils.formatHour
-import neth.iecal.questphone.utils.getStartOfWeek
-import neth.iecal.questphone.utils.json
-import neth.iecal.questphone.utils.toJavaDayOfWeek
+import neth.iecal.questphone.core.utils.daysSince
+import neth.iecal.questphone.core.utils.formatHour
+import neth.iecal.questphone.core.utils.getStartOfWeek
+import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.core.utils.toJavaDayOfWeek
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth

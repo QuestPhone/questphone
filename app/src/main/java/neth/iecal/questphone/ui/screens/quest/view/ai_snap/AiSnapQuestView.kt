@@ -27,10 +27,10 @@ import neth.iecal.questphone.data.quest.stats.StatsInfo
 import neth.iecal.questphone.ui.screens.quest.checkForRewards
 import neth.iecal.questphone.ui.screens.quest.view.BaseQuestView
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
-import neth.iecal.questphone.utils.QuestHelper
-import neth.iecal.questphone.utils.formatHour
-import neth.iecal.questphone.utils.getCurrentDate
-import neth.iecal.questphone.utils.json
+import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.core.utils.formatHour
+import neth.iecal.questphone.core.utils.getCurrentDate
+import neth.iecal.questphone.core.utils.managers.json
 import java.util.UUID
 
 @Composable

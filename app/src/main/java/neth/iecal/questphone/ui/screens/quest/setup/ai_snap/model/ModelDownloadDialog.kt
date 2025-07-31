@@ -36,8 +36,8 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import kotlinx.serialization.builtins.ListSerializer
-import neth.iecal.questphone.utils.fetchUrlContent
-import neth.iecal.questphone.utils.worker.FileDownloadWorker
+import neth.iecal.questphone.core.utils.fetchUrlContent
+import neth.iecal.questphone.core.utils.worker.FileDownloadWorker
 
 @kotlinx.serialization.Serializable
 data class DownloadableModel(

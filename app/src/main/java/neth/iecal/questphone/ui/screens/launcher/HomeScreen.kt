@@ -105,14 +105,14 @@ import neth.iecal.questphone.ui.screens.quest.DialogState
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.ui.screens.quest.stats.components.HeatMapChart
-import neth.iecal.questphone.utils.QuestHelper
-import neth.iecal.questphone.utils.getCurrentDate
-import neth.iecal.questphone.utils.getCurrentDay
-import neth.iecal.questphone.utils.getCurrentTime12Hr
-import neth.iecal.questphone.utils.isLockScreenServiceEnabled
-import neth.iecal.questphone.utils.isSetToDefaultLauncher
-import neth.iecal.questphone.utils.openDefaultLauncherSettings
-import neth.iecal.questphone.utils.performLockScreenAction
+import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.core.utils.getCurrentDate
+import neth.iecal.questphone.core.utils.getCurrentDay
+import neth.iecal.questphone.core.utils.getCurrentTime12Hr
+import neth.iecal.questphone.core.utils.managers.isLockScreenServiceEnabled
+import neth.iecal.questphone.core.utils.managers.isSetToDefaultLauncher
+import neth.iecal.questphone.core.utils.managers.openDefaultLauncherSettings
+import neth.iecal.questphone.core.utils.managers.performLockScreenAction
 
 data class SidePanelItem(
     val icon: Int,

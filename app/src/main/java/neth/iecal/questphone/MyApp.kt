@@ -4,11 +4,11 @@ import android.app.Application
 import android.net.ConnectivityManager
 import android.net.Network
 import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.services.reloadServiceInfo
-import neth.iecal.questphone.utils.VibrationHelper
-import neth.iecal.questphone.utils.isOnline
-import neth.iecal.questphone.utils.triggerQuestSync
-import neth.iecal.questphone.utils.triggerStatsSync
+import neth.iecal.questphone.core.services.reloadServiceInfo
+import neth.iecal.questphone.core.utils.VibrationHelper
+import neth.iecal.questphone.core.utils.isOnline
+import neth.iecal.questphone.core.utils.triggerQuestSync
+import neth.iecal.questphone.core.utils.triggerStatsSync
 
 class MyApp : Application() {
 

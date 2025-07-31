@@ -23,8 +23,8 @@ import neth.iecal.questphone.data.quest.QuestInfoState
 import neth.iecal.questphone.ui.screens.quest.setup.components.AutoDestruct
 import neth.iecal.questphone.ui.screens.quest.setup.components.SelectDaysOfWeek
 import neth.iecal.questphone.ui.screens.quest.setup.components.SetTimeRange
-import neth.iecal.questphone.utils.getCurrentDate
-import neth.iecal.questphone.utils.getCurrentDay
+import neth.iecal.questphone.core.utils.getCurrentDate
+import neth.iecal.questphone.core.utils.getCurrentDay
 
 @Composable
 fun SetBaseQuest(questInfoState: QuestInfoState, isTimeRangeSupported: Boolean = true) {

@@ -80,9 +80,9 @@ import neth.iecal.questphone.data.game.xpToLevelUp
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
 import neth.iecal.questphone.ui.screens.quest.stats.components.HeatMapChart
-import neth.iecal.questphone.utils.Supabase
-import neth.iecal.questphone.utils.formatNumber
-import neth.iecal.questphone.utils.formatRemainingTime
+import neth.iecal.questphone.core.utils.managers.Supabase
+import neth.iecal.questphone.core.utils.formatNumber
+import neth.iecal.questphone.core.utils.formatRemainingTime
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)

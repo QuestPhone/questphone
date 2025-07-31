@@ -23,8 +23,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import neth.iecal.questphone.data.DayOfWeek
 import neth.iecal.questphone.data.IntegrationId
-import neth.iecal.questphone.utils.getCurrentDate
-import neth.iecal.questphone.utils.json
+import neth.iecal.questphone.core.utils.getCurrentDate
+import neth.iecal.questphone.core.utils.managers.json
 import java.util.UUID
 
 /**

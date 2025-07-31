@@ -50,13 +50,13 @@ import kotlinx.coroutines.withContext
 import neth.iecal.questphone.data.AppInfo
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.useCoins
-import neth.iecal.questphone.services.AppBlockerService
-import neth.iecal.questphone.services.INTENT_ACTION_UNLOCK_APP
-import neth.iecal.questphone.services.ServiceInfo
+import neth.iecal.questphone.core.services.AppBlockerService
+import neth.iecal.questphone.core.services.INTENT_ACTION_UNLOCK_APP
+import neth.iecal.questphone.core.services.AppBlockerServiceInfo
 import neth.iecal.questphone.ui.screens.launcher.components.LowCoinsDialog
 import neth.iecal.questphone.ui.screens.launcher.components.UnlockAppDialog
-import neth.iecal.questphone.utils.getCachedApps
-import neth.iecal.questphone.utils.reloadApps
+import neth.iecal.questphone.core.utils.managers.getCachedApps
+import neth.iecal.questphone.core.utils.managers.reloadApps
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -129,12 +129,12 @@ fun AppList(navController: NavController) {
                             putExtra("package_name", selectedPackage)
                         }
                         context.sendBroadcast(intent)
-                        if (!ServiceInfo.isUsingAccessibilityService && ServiceInfo.appBlockerService == null) {
+                        if (!AppBlockerServiceInfo.isUsingAccessibilityService && AppBlockerServiceInfo.appBlockerService == null) {
                             startForegroundService(
                                 context,
                                 Intent(context, AppBlockerService::class.java)
                             )
-                            ServiceInfo.unlockedApps[selectedPackage] =
+                            AppBlockerServiceInfo.unlockedApps[selectedPackage] =
                                 System.currentTimeMillis() + cooldownTime
                         }
                         User.useCoins(5)
@@ -208,7 +208,7 @@ fun AppList(navController: NavController) {
                             onClick = {
                                 val packageName = app.packageName
                                 if (distractions.contains(packageName)) {
-                                    val cooldownUntil = ServiceInfo.unlockedApps[packageName] ?: 0L
+                                    val cooldownUntil = AppBlockerServiceInfo.unlockedApps[packageName] ?: 0L
                                     if (cooldownUntil == -1L || System.currentTimeMillis() > cooldownUntil) {
                                         // Not under cooldown - show dialog
                                         showCoinDialog = true

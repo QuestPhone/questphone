@@ -9,11 +9,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import neth.iecal.questphone.data.game.User.lastRewards
 import neth.iecal.questphone.data.game.User.lastXpEarned
-import neth.iecal.questphone.utils.Supabase
-import neth.iecal.questphone.utils.formatInstantToDate
-import neth.iecal.questphone.utils.isTimeOver
-import neth.iecal.questphone.utils.json
-import neth.iecal.questphone.utils.triggerProfileSync
+import neth.iecal.questphone.core.utils.managers.Supabase
+import neth.iecal.questphone.core.utils.formatInstantToDate
+import neth.iecal.questphone.core.utils.isTimeOver
+import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.core.utils.triggerProfileSync
 
 
 /**

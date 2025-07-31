@@ -2,7 +2,7 @@ package neth.iecal.questphone.data.game
 
 import android.util.Log
 import kotlinx.serialization.Serializable
-import neth.iecal.questphone.utils.getCurrentDate
+import neth.iecal.questphone.core.utils.getCurrentDate
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit

@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import neth.iecal.questphone.R
-import neth.iecal.questphone.utils.getCurrentDate
+import neth.iecal.questphone.core.utils.getCurrentDate
 
 @Composable
 fun TermsScreen(isTosAccepted: MutableState<Boolean>) {

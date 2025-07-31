@@ -46,11 +46,11 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.services.AppBlockerService
-import neth.iecal.questphone.services.INTENT_ACTION_UNLOCK_APP
-import neth.iecal.questphone.services.ServiceInfo
+import neth.iecal.questphone.core.services.AppBlockerService
+import neth.iecal.questphone.core.services.INTENT_ACTION_UNLOCK_APP
+import neth.iecal.questphone.core.services.AppBlockerServiceInfo
 import neth.iecal.questphone.ui.screens.launcher.launchApp
-import neth.iecal.questphone.utils.ScreenUsageStatsHelper
+import neth.iecal.questphone.core.utils.ScreenUsageStatsHelper
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
@@ -148,9 +148,9 @@ private fun useFreePass(
         putExtra("package_name", pkgName)
     })
 
-    if (!ServiceInfo.isUsingAccessibilityService && ServiceInfo.appBlockerService == null) {
+    if (!AppBlockerServiceInfo.isUsingAccessibilityService && AppBlockerServiceInfo.appBlockerService == null) {
         startForegroundService(context, Intent(context, AppBlockerService::class.java))
-        ServiceInfo.unlockedApps[pkgName] = System.currentTimeMillis() + cooldownTime
+        AppBlockerServiceInfo.unlockedApps[pkgName] = System.currentTimeMillis() + cooldownTime
     }
 
     launchApp(context, pkgName)

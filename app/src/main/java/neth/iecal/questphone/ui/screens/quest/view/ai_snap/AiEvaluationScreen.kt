@@ -58,15 +58,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.ai.snap.AiSnap
-import neth.iecal.questphone.utils.ai.padTokenIds
-import neth.iecal.questphone.utils.ai.preprocessBitmapToFloatBuffer
-import neth.iecal.questphone.utils.ai.tokenizeText
-import neth.iecal.questphone.utils.json
+import neth.iecal.questphone.core.utils.ai.padTokenIds
+import neth.iecal.questphone.core.utils.ai.preprocessBitmapToFloatBuffer
+import neth.iecal.questphone.core.utils.ai.tokenizeText
+import neth.iecal.questphone.core.utils.managers.json
 import java.io.File
 import java.nio.LongBuffer
 

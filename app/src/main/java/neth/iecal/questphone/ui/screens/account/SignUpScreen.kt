@@ -56,7 +56,7 @@ import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.saveUserInfo
-import neth.iecal.questphone.utils.Supabase
+import neth.iecal.questphone.core.utils.managers.Supabase
 
 enum class SignUpStep {
     FORM,

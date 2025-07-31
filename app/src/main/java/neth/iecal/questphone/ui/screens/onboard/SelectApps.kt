@@ -54,11 +54,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import neth.iecal.questphone.data.AppInfo
-import neth.iecal.questphone.services.INTENT_ACTION_REFRESH_APP_BLOCKER
-import neth.iecal.questphone.services.ServiceInfo
-import neth.iecal.questphone.utils.openAccessibilityServiceScreen
-import neth.iecal.questphone.utils.reloadApps
-import neth.iecal.questphone.utils.sendRefreshRequest
+import neth.iecal.questphone.core.services.INTENT_ACTION_REFRESH_APP_BLOCKER
+import neth.iecal.questphone.core.services.AppBlockerServiceInfo
+import neth.iecal.questphone.core.utils.managers.openAccessibilityServiceScreen
+import neth.iecal.questphone.core.utils.managers.reloadApps
+import neth.iecal.questphone.core.utils.managers.sendRefreshRequest
 
 enum class SelectAppsModes{
     ALLOW_ADD, // only allow adding one app, block removing any apps
@@ -102,7 +102,7 @@ fun SelectApps(selectAppsModes: SelectAppsModes = SelectAppsModes.ALLOW_ADD_AND_
     fun saveToBlocker(){
         sp.edit { putStringSet("distracting_apps", selectedApps.toSet()) }
         sendRefreshRequest(context, INTENT_ACTION_REFRESH_APP_BLOCKER)
-        ServiceInfo.appBlockerService?.loadLockedApps()
+        AppBlockerServiceInfo.appBlockerService?.loadLockedApps()
     }
 
     LaunchedEffect(lifecycleOwner) {

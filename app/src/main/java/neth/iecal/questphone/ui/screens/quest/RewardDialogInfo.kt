@@ -50,7 +50,7 @@ import neth.iecal.questphone.data.game.xpToRewardForQuest
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.ui.screens.game.StreakFailedDialog
 import neth.iecal.questphone.ui.screens.game.StreakUpDialog
-import neth.iecal.questphone.utils.VibrationHelper
+import neth.iecal.questphone.core.utils.VibrationHelper
 
 enum class DialogState { COINS, LEVEL_UP, STREAK_UP, STREAK_FAILED, NONE }
 

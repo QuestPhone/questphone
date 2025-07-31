@@ -30,7 +30,7 @@ import androidx.compose.ui.window.Dialog
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
-import neth.iecal.questphone.utils.VibrationHelper
+import neth.iecal.questphone.core.utils.VibrationHelper
 
 @Composable
 fun StreakUpDialog( onDismiss: () -> Unit) {

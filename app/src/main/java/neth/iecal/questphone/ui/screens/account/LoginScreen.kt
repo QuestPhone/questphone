@@ -51,7 +51,7 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
-import neth.iecal.questphone.utils.Supabase
+import neth.iecal.questphone.core.utils.managers.Supabase
 
 
 @Composable

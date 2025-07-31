@@ -57,10 +57,10 @@ import kotlinx.coroutines.flow.collectLatest
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.navigation.Screen
-import neth.iecal.questphone.utils.QuestHelper
-import neth.iecal.questphone.utils.formatHour
-import neth.iecal.questphone.utils.getCurrentDate
-import neth.iecal.questphone.utils.getCurrentDay
+import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.core.utils.formatHour
+import neth.iecal.questphone.core.utils.getCurrentDate
+import neth.iecal.questphone.core.utils.getCurrentDay
 
 @Composable
 fun AllQuestsDialog(

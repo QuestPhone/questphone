@@ -59,7 +59,7 @@ import neth.iecal.questphone.R
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.UserInfo
 import neth.iecal.questphone.data.game.saveUserInfo
-import neth.iecal.questphone.utils.Supabase
+import neth.iecal.questphone.core.utils.managers.Supabase
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream

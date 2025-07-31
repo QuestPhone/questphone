@@ -62,8 +62,8 @@ import kotlinx.serialization.Serializable
 import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.ui.navigation.Screen
-import neth.iecal.questphone.utils.fetchUrlContent
-import neth.iecal.questphone.utils.json
+import neth.iecal.questphone.core.utils.fetchUrlContent
+import neth.iecal.questphone.core.utils.managers.json
 
 @Serializable
 data class Activity(

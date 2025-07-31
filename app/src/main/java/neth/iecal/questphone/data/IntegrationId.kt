@@ -10,7 +10,7 @@ import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SetDeepFocus
 import neth.iecal.questphone.ui.screens.quest.setup.health_connect.SetHealthConnect
 import neth.iecal.questphone.ui.screens.quest.setup.swift_mark.SetSwiftMark
 import neth.iecal.questphone.ui.screens.quest.view.DeepFocusQuestView
-import neth.iecal.questphone.ui.screens.quest.view.HealthQuestView
+import neth.iecal.questphone.ui.screens.quest.view.health_connect.HealthQuestView
 import neth.iecal.questphone.ui.screens.quest.view.SwiftMarkQuestView
 import neth.iecal.questphone.ui.screens.quest.view.ai_snap.AiSnapQuestView
 

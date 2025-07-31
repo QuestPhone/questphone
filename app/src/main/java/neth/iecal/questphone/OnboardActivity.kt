@@ -20,7 +20,7 @@ import neth.iecal.questphone.ui.screens.account.SetupNewPassword
 import neth.iecal.questphone.ui.screens.onboard.OnBoardScreen
 import neth.iecal.questphone.ui.screens.onboard.TermsScreen
 import neth.iecal.questphone.ui.theme.LauncherTheme
-import neth.iecal.questphone.utils.Supabase
+import neth.iecal.questphone.core.utils.managers.Supabase
 
 
 class OnboardActivity : ComponentActivity() {

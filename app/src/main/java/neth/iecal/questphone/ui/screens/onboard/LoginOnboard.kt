@@ -16,10 +16,10 @@ import neth.iecal.questphone.ui.screens.account.ForgotPasswordScreen
 import neth.iecal.questphone.ui.screens.account.LoginScreen
 import neth.iecal.questphone.ui.screens.account.LoginStep
 import neth.iecal.questphone.ui.screens.account.SignUpScreen
-import neth.iecal.questphone.utils.Supabase
-import neth.iecal.questphone.utils.isOnline
-import neth.iecal.questphone.utils.triggerQuestSync
-import neth.iecal.questphone.utils.triggerStatsSync
+import neth.iecal.questphone.core.utils.managers.Supabase
+import neth.iecal.questphone.core.utils.isOnline
+import neth.iecal.questphone.core.utils.triggerQuestSync
+import neth.iecal.questphone.core.utils.triggerStatsSync
 
 @Composable
 fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostController){

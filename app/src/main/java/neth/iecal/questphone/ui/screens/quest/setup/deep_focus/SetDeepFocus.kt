@@ -44,8 +44,8 @@ import neth.iecal.questphone.data.quest.focus.FocusTimeConfig
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
 import neth.iecal.questphone.ui.screens.quest.setup.components.SetFocusTimeUI
-import neth.iecal.questphone.utils.QuestHelper
-import neth.iecal.questphone.utils.json
+import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.core.utils.managers.json
 
 @SuppressLint("UnrememberedMutableState")
 @Composable

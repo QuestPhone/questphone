@@ -44,7 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.utils.Supabase
+import neth.iecal.questphone.core.utils.managers.Supabase
 
 enum class ForgotPasswordStep {
     EMAIL,

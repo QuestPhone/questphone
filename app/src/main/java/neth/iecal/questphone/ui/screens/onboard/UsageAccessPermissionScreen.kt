@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import neth.iecal.questphone.utils.checkUsagePermission
-import neth.iecal.questphone.utils.openBatteryOptimizationSettings
+import neth.iecal.questphone.core.utils.managers.checkUsagePermission
+import neth.iecal.questphone.core.utils.managers.openBatteryOptimizationSettings
 
 @Composable
 fun UsageAccessPermission(isFromOnboardingScreen : Boolean = true) {

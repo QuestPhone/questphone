@@ -46,17 +46,17 @@ import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.focus.DeepFocus
 import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsInfo
-import neth.iecal.questphone.services.AppBlockerService
-import neth.iecal.questphone.services.INTENT_ACTION_START_DEEP_FOCUS
-import neth.iecal.questphone.services.INTENT_ACTION_STOP_DEEP_FOCUS
-import neth.iecal.questphone.services.ServiceInfo
+import neth.iecal.questphone.core.services.AppBlockerService
+import neth.iecal.questphone.core.services.INTENT_ACTION_START_DEEP_FOCUS
+import neth.iecal.questphone.core.services.INTENT_ACTION_STOP_DEEP_FOCUS
+import neth.iecal.questphone.core.services.AppBlockerServiceInfo
 import neth.iecal.questphone.ui.screens.quest.checkForRewards
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
-import neth.iecal.questphone.utils.QuestHelper
-import neth.iecal.questphone.utils.formatHour
-import neth.iecal.questphone.utils.getCurrentDate
-import neth.iecal.questphone.utils.json
-import neth.iecal.questphone.utils.sendRefreshRequest
+import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.core.utils.formatHour
+import neth.iecal.questphone.core.utils.getCurrentDate
+import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.core.utils.managers.sendRefreshRequest
 import java.util.UUID
 
 private const val PREF_NAME = "deep_focus_prefs"
@@ -168,7 +168,7 @@ fun DeepFocusQuestView(
         cancelTimerNotification(context)
         sendRefreshRequest(context, INTENT_ACTION_STOP_DEEP_FOCUS)
 
-        ServiceInfo.deepFocus.isRunning = false
+        AppBlockerServiceInfo.deepFocus.isRunning = false
         isQuestComplete.value =true
     }
     fun startQuest() {
@@ -176,7 +176,7 @@ fun DeepFocusQuestView(
         isQuestRunning = true
         timerActive = true
 
-        if(!ServiceInfo.isUsingAccessibilityService && ServiceInfo.appBlockerService==null){
+        if(!AppBlockerServiceInfo.isUsingAccessibilityService && AppBlockerServiceInfo.appBlockerService==null){
             startForegroundService(context,Intent(context, AppBlockerService::class.java))
         }
         // Clear any existing data and set fresh start time
@@ -184,8 +184,8 @@ fun DeepFocusQuestView(
             putLong(KEY_START_TIME + questKey, System.currentTimeMillis())
                 .putLong(KEY_PAUSED_ELAPSED + questKey, 0L)
         }
-        ServiceInfo.deepFocus.isRunning = true
-        ServiceInfo.deepFocus.exceptionApps = deepFocus.unrestrictedApps.toHashSet()
+        AppBlockerServiceInfo.deepFocus.isRunning = true
+        AppBlockerServiceInfo.deepFocus.exceptionApps = deepFocus.unrestrictedApps.toHashSet()
         val intent = Intent(INTENT_ACTION_START_DEEP_FOCUS)
         intent.putStringArrayListExtra("exception", deepFocus.unrestrictedApps.toCollection(ArrayList()))
         context.sendBroadcast(intent)

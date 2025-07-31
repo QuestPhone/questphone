@@ -86,11 +86,11 @@ import neth.iecal.questphone.ui.screens.quest.setup.ai_snap.model.ModelDownloadD
 import neth.iecal.questphone.ui.screens.quest.setup.components.DateSelector
 import neth.iecal.questphone.ui.screens.quest.setup.components.TimeRangeDialog
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
-import neth.iecal.questphone.utils.fetchUrlContent
-import neth.iecal.questphone.utils.formatAppList
-import neth.iecal.questphone.utils.getCurrentDate
-import neth.iecal.questphone.utils.json
-import neth.iecal.questphone.utils.readableTimeRange
+import neth.iecal.questphone.core.utils.fetchUrlContent
+import neth.iecal.questphone.core.utils.managers.formatAppList
+import neth.iecal.questphone.core.utils.getCurrentDate
+import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.core.utils.readableTimeRange
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable

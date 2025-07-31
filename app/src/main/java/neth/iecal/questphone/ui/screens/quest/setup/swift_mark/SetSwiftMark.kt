@@ -37,7 +37,7 @@ import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.QuestInfoState
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
-import neth.iecal.questphone.utils.QuestHelper
+import neth.iecal.questphone.core.utils.managers.QuestHelper
 
 
 @SuppressLint("UnrememberedMutableState")

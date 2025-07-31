@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import neth.iecal.questphone.utils.isIgnoringBatteryOptimizations
-import neth.iecal.questphone.utils.openBatteryOptimizationSettings
+import neth.iecal.questphone.core.utils.managers.isIgnoringBatteryOptimizations
+import neth.iecal.questphone.core.utils.managers.openBatteryOptimizationSettings
 
 @Composable
 fun BackgroundUsagePermission(isFromOnboardingScreen: Boolean = true) {

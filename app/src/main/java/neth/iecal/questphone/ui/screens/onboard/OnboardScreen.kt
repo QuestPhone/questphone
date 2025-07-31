@@ -55,11 +55,11 @@ import androidx.core.net.toUri
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.MainActivity
-import neth.iecal.questphone.services.AppBlockerService
+import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.ui.screens.account.SetupProfileScreen
-import neth.iecal.questphone.utils.checkNotificationPermission
-import neth.iecal.questphone.utils.checkUsagePermission
-import neth.iecal.questphone.utils.reminder.NotificationScheduler
+import neth.iecal.questphone.core.utils.managers.checkNotificationPermission
+import neth.iecal.questphone.core.utils.managers.checkUsagePermission
+import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
 
 open class OnboardingContent {
     // Standard title and description page

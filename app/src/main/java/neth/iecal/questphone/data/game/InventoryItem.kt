@@ -6,7 +6,7 @@ import neth.iecal.questphone.R
 import neth.iecal.questphone.ui.navigation.Navigator
 import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.ui.screens.onboard.SelectAppsModes
-import neth.iecal.questphone.utils.getFullTimeAfter
+import neth.iecal.questphone.core.utils.getFullTimeAfter
 
 @Serializable
 enum class Availability(val displayName: String, val rarityValue: Int) {

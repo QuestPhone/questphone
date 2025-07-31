@@ -47,7 +47,7 @@ import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.getInventoryItemCount
 import neth.iecal.questphone.data.game.useInventoryItem
 import neth.iecal.questphone.ui.screens.components.TopBarActions
-import neth.iecal.questphone.utils.VibrationHelper
+import neth.iecal.questphone.core.utils.VibrationHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.navigation.Screen
-import neth.iecal.questphone.utils.QuestHelper
+import neth.iecal.questphone.core.utils.managers.QuestHelper
 
 @Composable
 fun ViewQuest(

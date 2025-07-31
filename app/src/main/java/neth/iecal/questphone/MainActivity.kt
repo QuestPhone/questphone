@@ -27,7 +27,7 @@ import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
-import neth.iecal.questphone.services.AppBlockerService
+import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.ui.navigation.Navigator
 import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.ui.navigation.SetupQuestScreen
@@ -47,10 +47,10 @@ import neth.iecal.questphone.ui.screens.quest.stats.specific.BaseQuestStatsView
 import neth.iecal.questphone.ui.screens.quest.templates.SelectFromTemplates
 import neth.iecal.questphone.ui.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.ui.theme.LauncherTheme
-import neth.iecal.questphone.utils.isOnline
-import neth.iecal.questphone.utils.reminder.NotificationScheduler
-import neth.iecal.questphone.utils.triggerQuestSync
-import neth.iecal.questphone.utils.worker.FileDownloadWorker
+import neth.iecal.questphone.core.utils.isOnline
+import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
+import neth.iecal.questphone.core.utils.triggerQuestSync
+import neth.iecal.questphone.core.utils.worker.FileDownloadWorker
 import java.io.File
 
 

@@ -5,7 +5,7 @@ import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.ai.snap.AiSnap
 import neth.iecal.questphone.data.quest.focus.DeepFocus
 import neth.iecal.questphone.data.quest.health.HealthQuest
-import neth.iecal.questphone.utils.json
+import neth.iecal.questphone.core.utils.managers.json
 
 @Serializable
 enum class VariableType{
