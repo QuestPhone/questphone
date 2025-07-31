@@ -8,8 +8,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 
     kotlin("plugin.serialization") version "2.0.20"
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 
-    id("com.google.devtools.ksp") version "2.1.21-2.0.1"
 }
 
 val localProperties = Properties()
@@ -107,7 +108,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     implementation (libs.kotlinx.serialization.json)
 
@@ -140,6 +141,10 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
 
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    ksp(libs.hilt.android.compiler)
     ksp(libs.androidx.room.compiler)
     implementation (libs.androidx.ui.text.google.fonts)
 

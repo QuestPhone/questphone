@@ -61,13 +61,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -83,19 +80,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.navigation.NavController
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
 import neth.iecal.questphone.R
+import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.core.utils.managers.isLockScreenServiceEnabled
+import neth.iecal.questphone.core.utils.managers.isSetToDefaultLauncher
+import neth.iecal.questphone.core.utils.managers.openDefaultLauncherSettings
+import neth.iecal.questphone.core.utils.managers.performLockScreenAction
 import neth.iecal.questphone.data.MeshStyles
 import neth.iecal.questphone.data.game.StreakCheckReturn
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.checkIfStreakFailed
-import neth.iecal.questphone.data.game.continueStreak
-import neth.iecal.questphone.data.quest.CommonQuestInfo
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
 import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.ui.screens.components.NeuralMeshAsymmetrical
 import neth.iecal.questphone.ui.screens.components.NeuralMeshSymmetrical
@@ -105,14 +100,6 @@ import neth.iecal.questphone.ui.screens.quest.DialogState
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.ui.screens.quest.stats.components.HeatMapChart
-import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.getCurrentDate
-import neth.iecal.questphone.core.utils.getCurrentDay
-import neth.iecal.questphone.core.utils.getCurrentTime12Hr
-import neth.iecal.questphone.core.utils.managers.isLockScreenServiceEnabled
-import neth.iecal.questphone.core.utils.managers.isSetToDefaultLauncher
-import neth.iecal.questphone.core.utils.managers.openDefaultLauncherSettings
-import neth.iecal.questphone.core.utils.managers.performLockScreenAction
 
 data class SidePanelItem(
     val icon: Int,
@@ -124,23 +111,21 @@ data class SidePanelItem(
     ExperimentalLayoutApi::class
 )
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, viewModel: LauncherViewModel) {
     val context = LocalContext.current
 
-    val dao = QuestDatabaseProvider.getInstance(context).questDao()
+    val time by viewModel.time
+    val questList = viewModel.questList
+    val meshStyle by viewModel.meshStyle.collectAsState(initial = MeshStyles.SYMMETRICAL)
+    val completedQuests = viewModel.completedQuests
+    val shortcuts = viewModel.shortcuts
+    val tempShortcuts = viewModel.tempShortcuts
+    val successfulDates = viewModel.successfulDates
 
-    val questHelper = QuestHelper(context)
-    val questListUnfiltered by dao.getAllQuests().collectAsState(initial = emptyList())
 
-    var isFirstRender by remember { mutableStateOf(true) }
-    val questList = remember { mutableStateListOf<CommonQuestInfo>() }
-    var time by remember { mutableStateOf(getCurrentTime12Hr()) }
 
-    val completedQuests = remember { SnapshotStateList<String>() }
 
     var isAppSelectorVisible by remember { mutableStateOf(false) }
-    var shortcuts = remember { mutableStateListOf<String>() }
-    var tempShortcuts = remember { mutableStateListOf<String>() } //used by app selector dialog, to store the shortcuts temporarily before saving
 
     val sidePanelItems = listOf<SidePanelItem>(
         SidePanelItem(R.drawable.profile_d,{navController.navigate(Screen.UserInfo.route)},"Profile"),
@@ -163,7 +148,6 @@ fun HomeScreen(navController: NavController) {
         label = "offsetY"
     )
 
-    var meshStyle by remember { mutableStateOf(MeshStyles.ASYMMETRICAL) }
 
     val hapticFeedback = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -174,41 +158,6 @@ fun HomeScreen(navController: NavController) {
     }
 
     BackHandler { }
-    val successfulDates = remember { mutableStateMapOf<LocalDate, List<String>>() }
-
-    LaunchedEffect (meshStyle) {
-        if(meshStyle == MeshStyles.USER_STATS_HEATMAP){
-            val dao = StatsDatabaseProvider.getInstance(context).statsDao()
-
-            var stats = dao.getAllStatsForUser().first()
-
-            stats = stats.toMutableList()
-            stats.addAll(dao.getAllUnSyncedStats().first())
-
-            stats.forEach {
-                val prevList = (successfulDates[it.date]?: emptyList()).toMutableList()
-                prevList.add(it.quest_id)
-                successfulDates[it.date] = prevList
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        val meshStylesp = context.getSharedPreferences("mesh_style",MODE_PRIVATE)
-        val meshStyleOrd = meshStylesp.getInt("mesh_style",meshStyle.ordinal)
-        meshStyle = MeshStyles.entries.toTypedArray()[meshStyleOrd]
-
-        val shortcutsSp = context.getSharedPreferences("shortcuts", MODE_PRIVATE)
-        val tshortcuts =  shortcutsSp.getStringSet("shortcuts", setOf())?.toList<String>() ?: listOf()
-        shortcuts.addAll(tshortcuts)
-        tempShortcuts.addAll(tshortcuts)
-        while (true) {
-            time = getCurrentTime12Hr()
-            val delayMillis =
-                60_000 - (System.currentTimeMillis() % 60_000) // Delay until next minute
-            delay(delayMillis)
-        }
-    }
 
 
 
@@ -226,53 +175,9 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
-    LaunchedEffect(questListUnfiltered) {
-        if (isFirstRender) {
-            isFirstRender = false // Ignore the first emission (initial = emptyList())
-        } else {
-            val todayDay = getCurrentDay()
-
-            var list = questListUnfiltered.filter {
-                !it.is_destroyed && it.selected_days.contains(todayDay)
-            }
-
-
-            list.forEach { item ->
-                if (item.last_completed_on == getCurrentDate()) {
-                    completedQuests.add(item.id)
-                }
-                if (questHelper.isQuestRunning(item.title)) {
-                    navController.navigate(item.integration_id.name + item.id)
-                }
-            }
-
-            val data = context.getSharedPreferences("onboard", MODE_PRIVATE)
-            if (User.userInfo.streak.currentStreak != 0) {
-                streakFailResultHandler(User.checkIfStreakFailed())
-            }
-            if (completedQuests.size == list.size && data.getBoolean("onboard", false)) {
-                if (User.continueStreak()) {
-                    RewardDialogInfo.currentDialog = DialogState.STREAK_UP
-                    RewardDialogInfo.isRewardDialogVisible = true
-                }
-            }
-
-            // Separate uncompleted and completed quests
-            val uncompleted = list.filter { it.id !in completedQuests }
-            val completed = list.filter { it.id in completedQuests }
-
-            // Merge and sort, prioritizing uncompleted first
-            val merged = (uncompleted + completed).sortedBy { QuestHelper.isInTimeRange(it) }
-
-            // Take up to 4 items from the merged list
-            list = if (merged.size >= 4) merged.take(4) else merged
-
-            questList.clear()
-            questList.addAll(list)
-
-
-
-
+    LaunchedEffect(Unit) {
+        if (User.userInfo.streak.currentStreak != 0) {
+            streakFailResultHandler(User.checkIfStreakFailed())
         }
     }
 
@@ -367,10 +272,7 @@ fun HomeScreen(navController: NavController) {
                 Modifier.padding(8.dp)
             ) {
                 Box(Modifier.size(200.dp).combinedClickable(onClick = {},onLongClick = {
-                    val meshStylesp = context.getSharedPreferences("mesh_style",MODE_PRIVATE)
-                    val options = MeshStyles.entries.filter { it != meshStyle }
-                    meshStyle = options.random()
-                    meshStylesp.edit(commit = true) { putInt("mesh_style", meshStyle.ordinal) }
+                    viewModel.toggleMeshStyle()
 
                 })){
                     when(meshStyle){
@@ -415,7 +317,7 @@ fun HomeScreen(navController: NavController) {
                     ) {
                     items(questList.size) { index ->
                         val baseQuest = questList[index]
-                        val isFailed = questHelper.isOver(baseQuest)
+                        val isFailed = QuestHelper.isOver(baseQuest)
 
                         val isCompleted = completedQuests.contains(baseQuest.id)
                         Text(

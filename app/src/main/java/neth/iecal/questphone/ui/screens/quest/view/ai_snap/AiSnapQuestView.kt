@@ -16,6 +16,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import neth.iecal.questphone.core.utils.formatHour
+import neth.iecal.questphone.core.utils.getCurrentDate
+import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.core.utils.managers.json
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.getUserInfo
 import neth.iecal.questphone.data.game.xpToRewardForQuest
@@ -27,10 +31,6 @@ import neth.iecal.questphone.data.quest.stats.StatsInfo
 import neth.iecal.questphone.ui.screens.quest.checkForRewards
 import neth.iecal.questphone.ui.screens.quest.view.BaseQuestView
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
-import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.formatHour
-import neth.iecal.questphone.core.utils.getCurrentDate
-import neth.iecal.questphone.core.utils.managers.json
 import java.util.UUID
 
 @Composable
@@ -54,7 +54,7 @@ fun AiSnapQuestView(
     val scope = rememberCoroutineScope()
 
     val isInTimeRange = remember { mutableStateOf(QuestHelper.Companion.isInTimeRange(commonQuestInfo)) }
-    val isFailed = remember { mutableStateOf(questHelper.isOver(commonQuestInfo)) }
+    val isFailed = remember { mutableStateOf(QuestHelper.isOver(commonQuestInfo)) }
     var progress = remember {
         mutableFloatStateOf(if (isQuestComplete.value || isFailed.value ) 1f else 0f)
     }

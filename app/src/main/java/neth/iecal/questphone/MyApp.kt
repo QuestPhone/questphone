@@ -3,13 +3,16 @@ package neth.iecal.questphone
 import android.app.Application
 import android.net.ConnectivityManager
 import android.net.Network
-import neth.iecal.questphone.data.game.User
+import dagger.hilt.android.HiltAndroidApp
 import neth.iecal.questphone.core.services.reloadServiceInfo
 import neth.iecal.questphone.core.utils.VibrationHelper
 import neth.iecal.questphone.core.utils.isOnline
 import neth.iecal.questphone.core.utils.triggerQuestSync
 import neth.iecal.questphone.core.utils.triggerStatsSync
+import neth.iecal.questphone.data.game.User
 
+
+@HiltAndroidApp(Application::class)
 class MyApp : Application() {
 
     private lateinit var connectivityManager: ConnectivityManager

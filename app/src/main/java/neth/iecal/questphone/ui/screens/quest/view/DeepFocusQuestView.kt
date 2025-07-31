@@ -38,6 +38,15 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import neth.iecal.questphone.core.services.AppBlockerService
+import neth.iecal.questphone.core.services.AppBlockerServiceInfo
+import neth.iecal.questphone.core.services.INTENT_ACTION_START_DEEP_FOCUS
+import neth.iecal.questphone.core.services.INTENT_ACTION_STOP_DEEP_FOCUS
+import neth.iecal.questphone.core.utils.formatHour
+import neth.iecal.questphone.core.utils.getCurrentDate
+import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.core.utils.managers.sendRefreshRequest
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.getUserInfo
 import neth.iecal.questphone.data.game.xpToRewardForQuest
@@ -46,17 +55,8 @@ import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.focus.DeepFocus
 import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsInfo
-import neth.iecal.questphone.core.services.AppBlockerService
-import neth.iecal.questphone.core.services.INTENT_ACTION_START_DEEP_FOCUS
-import neth.iecal.questphone.core.services.INTENT_ACTION_STOP_DEEP_FOCUS
-import neth.iecal.questphone.core.services.AppBlockerServiceInfo
 import neth.iecal.questphone.ui.screens.quest.checkForRewards
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
-import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.formatHour
-import neth.iecal.questphone.core.utils.getCurrentDate
-import neth.iecal.questphone.core.utils.managers.json
-import neth.iecal.questphone.core.utils.managers.sendRefreshRequest
 import java.util.UUID
 
 private const val PREF_NAME = "deep_focus_prefs"
@@ -96,7 +96,7 @@ fun DeepFocusQuestView(
     val lifecycleOwner = LocalLifecycleOwner.current
     var isAppInForeground by remember { mutableStateOf(true) }
 
-    val isFailed = remember { mutableStateOf(questHelper.isOver(commonQuestInfo)) }
+    val isFailed = remember { mutableStateOf(QuestHelper.isOver(commonQuestInfo)) }
 
     val dao = QuestDatabaseProvider.getInstance(context).questDao()
     val scope = rememberCoroutineScope()

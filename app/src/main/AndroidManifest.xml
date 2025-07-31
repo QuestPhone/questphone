@@ -117,13 +117,13 @@
         <!-- android:resource="@xml/app_blocker_service_config" /> -->
         <!-- </service> -->
         <service
-            android:name=".services.AppBlockerService"
+            android:name=".core.services.AppBlockerService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
         <service
-            android:name=".services.LockScreenService"
+            android:name=".core.services.LockScreenService"
             android:exported="false"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
@@ -136,12 +136,12 @@
         </service>
 
         <receiver
-            android:name=".utils.reminder.ReminderBroadcastReceiver"
+            android:name=".core.utils.reminder.ReminderBroadcastReceiver"
             android:enabled="true"
             android:exported="false" />
 
         <receiver
-            android:name=".utils.reminder.BootReceiver"
+            android:name=".core.utils.reminder.BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

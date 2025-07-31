@@ -13,6 +13,11 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import androidx.room.Update
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
@@ -26,6 +31,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import javax.inject.Singleton
 
 @Entity
 @Serializable
@@ -123,5 +129,25 @@ object StatsDatabaseProvider {
             INSTANCE = instance
             instance
         }
+    }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object StatsDatabaseModule {
+
+    @Provides
+    @Singleton
+    fun provideStatsDatabase(@ApplicationContext context: Context): StatsDatabase {
+        return Room.databaseBuilder(
+            context,
+            StatsDatabase::class.java,
+            "stats_info_database"
+        ).build()
+    }
+
+    @Provides
+    fun provideStatsInfoDao(db: StatsDatabase): StatsInfoDao {
+        return db.statsDao()
     }
 }

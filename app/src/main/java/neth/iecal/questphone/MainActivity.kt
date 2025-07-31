@@ -13,6 +13,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,11 +24,16 @@ import androidx.navigation.navArgument
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import dagger.hilt.android.AndroidEntryPoint
+import neth.iecal.questphone.core.services.AppBlockerService
+import neth.iecal.questphone.core.utils.isOnline
+import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
+import neth.iecal.questphone.core.utils.triggerQuestSync
+import neth.iecal.questphone.core.utils.worker.FileDownloadWorker
 import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
-import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.ui.navigation.Navigator
 import neth.iecal.questphone.ui.navigation.Screen
 import neth.iecal.questphone.ui.navigation.SetupQuestScreen
@@ -35,6 +41,7 @@ import neth.iecal.questphone.ui.screens.account.UserInfoScreen
 import neth.iecal.questphone.ui.screens.game.StoreScreen
 import neth.iecal.questphone.ui.screens.launcher.AppList
 import neth.iecal.questphone.ui.screens.launcher.HomeScreen
+import neth.iecal.questphone.ui.screens.launcher.LauncherViewModel
 import neth.iecal.questphone.ui.screens.onboard.SelectApps
 import neth.iecal.questphone.ui.screens.onboard.SelectAppsModes
 import neth.iecal.questphone.ui.screens.onboard.SetCoinRewardRatio
@@ -47,13 +54,10 @@ import neth.iecal.questphone.ui.screens.quest.stats.specific.BaseQuestStatsView
 import neth.iecal.questphone.ui.screens.quest.templates.SelectFromTemplates
 import neth.iecal.questphone.ui.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.ui.theme.LauncherTheme
-import neth.iecal.questphone.core.utils.isOnline
-import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
-import neth.iecal.questphone.core.utils.triggerQuestSync
-import neth.iecal.questphone.core.utils.worker.FileDownloadWorker
 import java.io.File
 
 
+@AndroidEntryPoint(ComponentActivity::class)
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -149,7 +153,8 @@ class MainActivity : ComponentActivity() {
                             SelectApps(SelectAppsModes.entries[mode!!])
                         }
                         composable(Screen.HomeScreen.route) {
-                            HomeScreen(navController)
+                            val launcherViewModel : LauncherViewModel = hiltViewModel()
+                            HomeScreen(navController,launcherViewModel)
                         }
 
                         composable(Screen.Store.route) {

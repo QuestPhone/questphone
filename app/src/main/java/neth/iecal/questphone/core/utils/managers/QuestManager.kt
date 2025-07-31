@@ -30,10 +30,6 @@ class QuestHelper(val context: Context) {
         sharedPreferences.edit { putBoolean(QUEST_IS_RUNNING_SUFFIX + title, isRunning) }
     }
 
-    fun isOver(baseData: CommonQuestInfo): Boolean {
-        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        return currentHour > baseData.time_range[1]
-    }
 
     companion object {
         private const val PREF_NAME = "all_quest_preferences"
@@ -51,6 +47,11 @@ class QuestHelper(val context: Context) {
             val today = LocalDate.now()
             val autoDestruct = LocalDate.parse(baseData.auto_destruct, formatter)
             return today >= autoDestruct
+        }
+
+        fun isOver(baseData: CommonQuestInfo): Boolean {
+            val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+            return currentHour > baseData.time_range[1]
         }
     }
 }

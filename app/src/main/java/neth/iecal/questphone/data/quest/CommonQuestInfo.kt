@@ -18,14 +18,21 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import neth.iecal.questphone.data.DayOfWeek
-import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.core.utils.getCurrentDate
 import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.data.DayOfWeek
+import neth.iecal.questphone.data.IntegrationId
+import neth.iecal.questphone.data.repositories.QuestRepository
 import java.util.UUID
+import javax.inject.Singleton
 
 /**
  * Stores information about quests which are common to all integration types
@@ -179,7 +186,6 @@ abstract class QuestDatabase : RoomDatabase() {
     abstract fun questDao(): QuestDao
 }
 
-
 object QuestDatabaseProvider {
     @Volatile
     private var INSTANCE: QuestDatabase? = null
@@ -196,4 +202,27 @@ object QuestDatabaseProvider {
         }
     }
 }
+@Module
+@InstallIn(SingletonComponent::class)
+object QuestModule {
 
+    @Provides
+    @Singleton
+    fun provideQuestDatabase(@ApplicationContext context: Context): QuestDatabase {
+        return Room.databaseBuilder(
+            context,
+            QuestDatabase::class.java,
+            "quest_database"
+        ).build()
+    }
+
+    @Provides
+    fun provideQuestDao(db: QuestDatabase): QuestDao {
+        return db.questDao()
+    }
+
+    @Provides
+    fun provideQuestRepository(dao: QuestDao): QuestRepository {
+        return QuestRepository(dao)
+    }
+}
