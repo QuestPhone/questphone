@@ -14,8 +14,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import neth.iecal.questphone.MainActivity
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.getCurrentDate
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
+import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.data.quest.QuestDatabaseProvider
 
 /**
  * A BroadcastReceiver that receives intents from AlarmManager when a scheduled reminder fires.

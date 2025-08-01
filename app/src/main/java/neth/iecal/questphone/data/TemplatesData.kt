@@ -1,11 +1,12 @@
 package neth.iecal.questphone.data
 
 import kotlinx.serialization.Serializable
-import neth.iecal.questphone.data.quest.CommonQuestInfo
-import neth.iecal.questphone.data.quest.ai.snap.AiSnap
-import neth.iecal.questphone.data.quest.focus.DeepFocus
-import neth.iecal.questphone.data.quest.health.HealthQuest
 import neth.iecal.questphone.core.utils.managers.json
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.data.DayOfWeek
+import nethical.questphone.data.quest.ai.snap.AiSnap
+import nethical.questphone.data.quest.focus.DeepFocus
+import nethical.questphone.data.quest.health.HealthQuest
 
 @Serializable
 enum class VariableType{

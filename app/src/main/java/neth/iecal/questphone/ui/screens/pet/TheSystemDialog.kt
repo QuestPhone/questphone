@@ -48,8 +48,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.edit
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.delay
-import neth.iecal.questphone.data.game.StoryNode
-import neth.iecal.questphone.data.game.introductionStory
+import nethical.questphone.data.game.StoryNode
+import nethical.questphone.data.game.introductionStory
 import neth.iecal.questphone.ui.screens.components.NeuralMeshSymmetrical
 import neth.iecal.questphone.ui.theme.JetBrainMono
 import kotlin.random.Random

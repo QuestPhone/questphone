@@ -1,6 +1,4 @@
 
-import java.io.FileInputStream
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -11,12 +9,6 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 
-}
-
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
 }
 
 android {
@@ -31,9 +23,6 @@ android {
         versionName = "1.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "SUPABASE_URL", "\"${localProperties["SUPABASE_URL"]}\"")
-        buildConfigField("String", "SUPABASE_API_KEY", "\"${localProperties["SUPABASE_API_KEY"]}\"")
-        buildConfigField("String", "API_URL", "\"${localProperties["API_URL"]}\"")
     }
 
     flavorDimensions += "distribution"
@@ -50,14 +39,6 @@ android {
             buildConfigField("Boolean", "IS_FDROID", "false")
         }
 
-    }
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            isUniversalApk = true
-        }
     }
     buildTypes {
         release {
@@ -78,16 +59,8 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-    sourceSets["main"].jniLibs.srcDirs("src/main/jniLibs")
 
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-        }
     }
-
-    ndkVersion = "29.0.13599879 rc2"
 }
 
 dependencies {
@@ -143,9 +116,13 @@ dependencies {
 
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
-
     ksp(libs.hilt.android.compiler)
+
     ksp(libs.androidx.room.compiler)
     implementation (libs.androidx.ui.text.google.fonts)
 
+    implementation(project(":data"))
+    implementation(project(":core"))
+    implementation(project(":backend"))
+    implementation(project(":ai"))
 }

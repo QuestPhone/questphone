@@ -18,15 +18,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
-import neth.iecal.questphone.core.utils.getCurrentDate
-import neth.iecal.questphone.core.utils.getCurrentDay
-import neth.iecal.questphone.core.utils.getCurrentTime12Hr
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.data.MeshStyles
-import neth.iecal.questphone.data.quest.CommonQuestInfo
-import neth.iecal.questphone.data.quest.stats.StatsInfo
-import neth.iecal.questphone.data.repositories.QuestRepository
-import neth.iecal.questphone.data.repositories.StatsRepository
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.backend.StatsInfo
+import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.StatsRepository
+import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.core.core.utils.getCurrentDay
+import nethical.questphone.core.core.utils.getCurrentTime12Hr
+import nethical.questphone.data.MeshStyles
 import javax.inject.Inject
 
 @HiltViewModel
@@ -103,7 +103,7 @@ class HomeScreenViewModel @Inject constructor(
                 .stateIn(
                     viewModelScope,
                     SharingStarted.WhileSubscribed(5000),
-                    emptyList()
+                    emptyList<StatsInfo>()
                 ).first()
 
 

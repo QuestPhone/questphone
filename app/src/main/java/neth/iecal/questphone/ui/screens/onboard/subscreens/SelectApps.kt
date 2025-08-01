@@ -43,11 +43,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.core.services.AppBlockerServiceInfo
-import neth.iecal.questphone.core.services.INTENT_ACTION_REFRESH_APP_BLOCKER
-import neth.iecal.questphone.core.utils.managers.reloadApps
-import neth.iecal.questphone.core.utils.managers.sendRefreshRequest
-import neth.iecal.questphone.data.AppInfo
+import nethical.questphone.core.core.services.AppBlockerServiceInfo
+import nethical.questphone.core.core.services.INTENT_ACTION_REFRESH_APP_BLOCKER
+import nethical.questphone.core.core.utils.managers.reloadApps
+import nethical.questphone.core.core.utils.managers.sendRefreshRequest
+import nethical.questphone.data.AppInfo
 
 enum class SelectAppsModes{
     ALLOW_ADD, // only allow adding one app, block removing any apps

@@ -39,18 +39,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import neth.iecal.questphone.R
-import neth.iecal.questphone.data.game.InventoryItem
-import neth.iecal.questphone.data.game.StreakCheckReturn
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.game.addCoins
-import neth.iecal.questphone.data.game.addLevelUpRewards
-import neth.iecal.questphone.data.game.addXp
-import neth.iecal.questphone.data.game.xpFromStreak
-import neth.iecal.questphone.data.game.xpToRewardForQuest
-import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.ui.screens.game.StreakFailedDialog
 import neth.iecal.questphone.ui.screens.game.StreakUpDialog
-import neth.iecal.questphone.core.utils.VibrationHelper
+import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo.currentCommonQuestInfo
+import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo.isRewardDialogVisible
+import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo.streakData
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.core.core.utils.VibrationHelper
+import neth.iecal.questphone.data.InventoryItem
+import nethical.questphone.data.game.StreakCheckReturn
+import nethical.questphone.data.game.User
+import nethical.questphone.data.game.addCoins
+import nethical.questphone.data.game.addLevelUpRewards
+import nethical.questphone.data.game.addXp
+import nethical.questphone.data.game.xpFromStreak
+import nethical.questphone.data.game.xpToRewardForQuest
 
 enum class DialogState { COINS, LEVEL_UP, STREAK_UP, STREAK_FAILED, NONE }
 

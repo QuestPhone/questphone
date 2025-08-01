@@ -37,9 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.flow.first
-import neth.iecal.questphone.data.quest.CommonQuestInfo
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.ui.navigation.RootRoute
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.backend.QuestDatabaseProvider
 
 @Composable
 fun ListAllQuests(navHostController: NavHostController) {

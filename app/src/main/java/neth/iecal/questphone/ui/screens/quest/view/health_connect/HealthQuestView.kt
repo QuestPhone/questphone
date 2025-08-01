@@ -21,23 +21,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.health.connect.client.PermissionController
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.core.utils.getCurrentDate
 import neth.iecal.questphone.core.utils.managers.HealthConnectManager
 import neth.iecal.questphone.core.utils.managers.HealthConnectManager.Companion.requiredPermissions
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.core.utils.managers.json
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.game.getUserInfo
-import neth.iecal.questphone.data.game.xpToRewardForQuest
-import neth.iecal.questphone.data.quest.CommonQuestInfo
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.data.quest.health.HealthQuest
-import neth.iecal.questphone.data.quest.health.HealthTaskType
-import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
-import neth.iecal.questphone.data.quest.stats.StatsInfo
 import neth.iecal.questphone.ui.screens.quest.checkForRewards
 import neth.iecal.questphone.ui.screens.quest.view.BaseQuestView
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.data.game.User
+import nethical.questphone.data.game.getUserInfo
+import nethical.questphone.data.game.xpToRewardForQuest
+import nethical.questphone.data.quest.health.HealthQuest
+import nethical.questphone.data.quest.health.HealthTaskType
+import nethical.questphone.data.quest.stats.StatsDatabaseProvider
+import nethical.questphone.data.quest.stats.StatsInfo
 import java.util.UUID
 
 @SuppressLint("DefaultLocale")

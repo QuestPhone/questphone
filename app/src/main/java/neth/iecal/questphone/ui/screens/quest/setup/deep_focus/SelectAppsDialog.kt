@@ -26,8 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import neth.iecal.questphone.data.AppInfo
-import neth.iecal.questphone.core.utils.managers.reloadApps
+import nethical.questphone.core.core.utils.managers.reloadApps
+import nethical.questphone.data.AppInfo
 
 @Composable
 fun SelectAppsDialog(

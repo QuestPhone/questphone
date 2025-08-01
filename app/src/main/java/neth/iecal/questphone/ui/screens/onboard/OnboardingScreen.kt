@@ -20,9 +20,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import neth.iecal.questphone.MainActivity
-import neth.iecal.questphone.core.services.AppBlockerService
-import neth.iecal.questphone.core.utils.managers.checkNotificationPermission
-import neth.iecal.questphone.core.utils.managers.checkUsagePermission
 import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
 import neth.iecal.questphone.ui.screens.account.SetupProfileScreen
 import neth.iecal.questphone.ui.screens.onboard.subscreens.LoginOnboard
@@ -32,6 +29,9 @@ import neth.iecal.questphone.ui.screens.onboard.subscreens.ScheduleExactAlarmPer
 import neth.iecal.questphone.ui.screens.onboard.subscreens.SelectApps
 import neth.iecal.questphone.ui.screens.onboard.subscreens.TermsScreen
 import neth.iecal.questphone.ui.screens.onboard.subscreens.UsageAccessPerm
+import nethical.questphone.core.core.services.AppBlockerService
+import nethical.questphone.core.core.utils.managers.checkNotificationPermission
+import nethical.questphone.core.core.utils.managers.checkUsagePermission
 
 @Composable
 fun OnBoarderView(navController: NavHostController) {

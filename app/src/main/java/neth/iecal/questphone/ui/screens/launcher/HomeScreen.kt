@@ -78,17 +78,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.services.LockScreenService
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.managers.isLockScreenServiceEnabled
-import neth.iecal.questphone.core.utils.managers.isSetToDefaultLauncher
-import neth.iecal.questphone.core.utils.managers.openAccessibilityServiceScreen
-import neth.iecal.questphone.core.utils.managers.openDefaultLauncherSettings
-import neth.iecal.questphone.core.utils.managers.performLockScreenAction
-import neth.iecal.questphone.data.MeshStyles
-import neth.iecal.questphone.data.game.StreakCheckReturn
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.game.checkIfStreakFailed
+import neth.iecal.questphone.data.User
 import neth.iecal.questphone.ui.navigation.LauncherDialogRoutes
 import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.ui.screens.components.NeuralMeshAsymmetrical
@@ -99,6 +90,15 @@ import neth.iecal.questphone.ui.screens.quest.DialogState
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.ui.screens.quest.stats.components.HeatMapChart
+import nethical.questphone.core.core.services.LockScreenService
+import nethical.questphone.core.core.utils.managers.isLockScreenServiceEnabled
+import nethical.questphone.core.core.utils.managers.isSetToDefaultLauncher
+import nethical.questphone.core.core.utils.managers.openAccessibilityServiceScreen
+import nethical.questphone.core.core.utils.managers.openDefaultLauncherSettings
+import nethical.questphone.core.core.utils.managers.performLockScreenAction
+import nethical.questphone.data.MeshStyles
+import nethical.questphone.data.game.StreakCheckReturn
+import nethical.questphone.data.game.checkIfStreakFailed
 
 data class SidePanelItem(
     val icon: Int,

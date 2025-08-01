@@ -42,12 +42,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import neth.iecal.questphone.R
-import neth.iecal.questphone.data.game.InventoryItem
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.game.getInventoryItemCount
-import neth.iecal.questphone.data.game.useInventoryItem
 import neth.iecal.questphone.ui.screens.components.TopBarActions
-import neth.iecal.questphone.core.utils.VibrationHelper
+import nethical.questphone.core.core.utils.VibrationHelper
+import neth.iecal.questphone.data.InventoryItem
+import nethical.questphone.data.game.User
+import nethical.questphone.data.game.getInventoryItemCount
+import nethical.questphone.data.game.useInventoryItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

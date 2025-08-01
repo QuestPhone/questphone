@@ -24,10 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.data.quest.CommonQuestInfo
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.data.toAdv
+import neth.iecal.questphone.ui.navigation.RootRoute
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.backend.QuestDatabaseProvider
 
 @Composable
 fun ViewQuest(
@@ -55,7 +56,7 @@ fun ViewQuest(
             if (QuestHelper.Companion.isNeedAutoDestruction(commonQuestInfo!!)) {
                 showDestroyQuestDialog.value = true
             } else {
-                commonQuestInfo!!.integration_id.viewScreen.invoke(commonQuestInfo!!)
+                commonQuestInfo!!.integration_id.toAdv().viewScreen.invoke(commonQuestInfo!!)
             }
             if (showDestroyQuestDialog.value)
                 DestroyQuestDialog {

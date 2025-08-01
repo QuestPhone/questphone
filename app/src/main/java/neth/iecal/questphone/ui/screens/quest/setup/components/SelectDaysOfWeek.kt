@@ -33,8 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import neth.iecal.questphone.data.DayOfWeek
-import neth.iecal.questphone.data.quest.QuestInfoState
+import neth.iecal.questphone.data.QuestInfoState
+import nethical.questphone.data.DayOfWeek
 
 @Composable
 fun SelectDaysOfWeek(

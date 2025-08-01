@@ -17,14 +17,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.first
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.data.quest.QuestInfoState
+import neth.iecal.questphone.data.QuestInfoState
 import neth.iecal.questphone.ui.screens.quest.setup.components.AutoDestruct
 import neth.iecal.questphone.ui.screens.quest.setup.components.SelectDaysOfWeek
 import neth.iecal.questphone.ui.screens.quest.setup.components.SetTimeRange
-import neth.iecal.questphone.core.utils.getCurrentDate
-import neth.iecal.questphone.core.utils.getCurrentDay
+import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.core.core.utils.getCurrentDay
+import nethical.questphone.data.game.User
 
 @Composable
 fun SetBaseQuest(questInfoState: QuestInfoState, isTimeRangeSupported: Boolean = true) {

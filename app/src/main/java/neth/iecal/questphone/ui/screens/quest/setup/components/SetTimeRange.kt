@@ -40,8 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.data.quest.QuestInfoState
-import neth.iecal.questphone.core.utils.formatHour
+import neth.iecal.questphone.data.QuestInfoState
 
 @Composable
 fun SetTimeRange(initialTimeRange: QuestInfoState) {

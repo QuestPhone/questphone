@@ -11,7 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import dev.jeziellago.compose.markdowntext.MarkdownText
-import neth.iecal.questphone.core.utils.fetchUrlContent
+import nethical.questphone.backend.fetchUrlContent
 
 @Composable
 fun QuestTutorial(url: String){

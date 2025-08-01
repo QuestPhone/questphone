@@ -50,8 +50,8 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.R
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.game.saveUserInfo
+import nethical.questphone.data.game.User
+import nethical.questphone.data.game.saveUserInfo
 
 enum class SignUpStep {
     FORM,

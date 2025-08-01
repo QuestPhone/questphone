@@ -15,7 +15,7 @@ import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import neth.iecal.questphone.data.quest.health.HealthTaskType
+import nethical.questphone.data.quest.health.HealthTaskType
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneId

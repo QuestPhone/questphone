@@ -41,7 +41,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
+import nethical.questphone.backend.QuestDatabaseProvider
 
 // --- Data class to hold daily quest information ---
 data class DailyQuestInfo(

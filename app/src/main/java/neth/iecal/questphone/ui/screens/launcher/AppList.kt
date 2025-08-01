@@ -37,7 +37,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import neth.iecal.questphone.data.game.User
+import neth.iecal.questphone.data.User
 import neth.iecal.questphone.ui.navigation.LauncherDialogRoutes
 import neth.iecal.questphone.ui.screens.launcher.dialogs.LauncherDialog
 

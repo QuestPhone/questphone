@@ -19,7 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import neth.iecal.questphone.R
-import neth.iecal.questphone.data.game.User
+import nethical.questphone.data.game.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

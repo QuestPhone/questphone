@@ -10,7 +10,7 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.core.utils.managers.Supabase
+import nethical.questphone.backend.Supabase
 import neth.iecal.questphone.ui.screens.account.ForgotPasswordStep
 
 class LoginViewModel : ViewModel() {

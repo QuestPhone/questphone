@@ -60,12 +60,12 @@ import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import neth.iecal.questphone.R
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.data.quest.ai.snap.AiSnap
-import neth.iecal.questphone.core.utils.ai.padTokenIds
-import neth.iecal.questphone.core.utils.ai.preprocessBitmapToFloatBuffer
-import neth.iecal.questphone.core.utils.ai.tokenizeText
 import neth.iecal.questphone.core.utils.managers.json
+import nethical.questphone.ai.padTokenIds
+import nethical.questphone.ai.preprocessBitmapToFloatBuffer
+import nethical.questphone.ai.tokenizeText
+import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.data.quest.ai.snap.AiSnap
 import java.io.File
 import java.nio.LongBuffer
 

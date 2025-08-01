@@ -73,24 +73,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import neth.iecal.questphone.R
-import neth.iecal.questphone.data.DayOfWeek
-import neth.iecal.questphone.data.IntegrationId
+import neth.iecal.questphone.core.utils.managers.json
 import neth.iecal.questphone.data.TemplateData
 import neth.iecal.questphone.data.TemplateVariable
 import neth.iecal.questphone.data.VariableName
 import neth.iecal.questphone.data.VariableType
 import neth.iecal.questphone.data.convertToTemplate
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
+import neth.iecal.questphone.data.toAdv
 import neth.iecal.questphone.ui.screens.quest.setup.ai_snap.model.ModelDownloadDialog
 import neth.iecal.questphone.ui.screens.quest.setup.components.DateSelector
 import neth.iecal.questphone.ui.screens.quest.setup.components.TimeRangeDialog
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
-import neth.iecal.questphone.core.utils.fetchUrlContent
-import neth.iecal.questphone.core.utils.managers.formatAppList
-import neth.iecal.questphone.core.utils.getCurrentDate
-import neth.iecal.questphone.core.utils.managers.json
-import neth.iecal.questphone.core.utils.readableTimeRange
+import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.fetchUrlContent
+import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.core.core.utils.managers.formatAppList
+import nethical.questphone.core.core.utils.readableTimeRange
+import nethical.questphone.data.BaseIntegrationId
+import nethical.questphone.data.DayOfWeek
+import nethical.questphone.data.game.User
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
@@ -180,7 +181,7 @@ fun SetupTemplate(id: String,controller: NavController) {
             }
         }
     ) { padding ->
-        if(templateData?.basicQuest?.integration_id == IntegrationId.AI_SNAP){
+        if(templateData?.basicQuest?.integration_id == BaseIntegrationId.AI_SNAP){
             ModelDownloadDialog(modelDownloadDialogVisible = isModelDownloadDialogVisible)
         }
         if (isLoading) {
@@ -317,7 +318,7 @@ fun SetupTemplate(id: String,controller: NavController) {
                         templateExtra = it.setter(templateExtra,variableValues,it.name)
                     }
                     Log.d("FInal data",templateExtra.toString())
-                    it.basicQuest.quest_json = templateExtra.getQuestJson(it.basicQuest.integration_id)
+                    it.basicQuest.quest_json = templateExtra.getQuestJson(it.basicQuest.integration_id.toAdv())
                     Log.d("Final Data",it.basicQuest.toString())
                     scope.launch {
                         val questDao = QuestDatabaseProvider.getInstance(context).questDao()

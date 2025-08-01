@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import kotlinx.serialization.json.Json
-import neth.iecal.questphone.data.quest.CommonQuestInfo
+import nethical.questphone.data.quest.CommonQuestInfo
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Calendar

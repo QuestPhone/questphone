@@ -39,12 +39,12 @@ import androidx.core.content.edit
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
-import neth.iecal.questphone.core.services.AppBlockerService
-import neth.iecal.questphone.core.services.AppBlockerServiceInfo
-import neth.iecal.questphone.core.services.INTENT_ACTION_UNLOCK_APP
-import neth.iecal.questphone.core.utils.ScreenUsageStatsHelper
-import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.ui.screens.launcher.launchApp
+import nethical.questphone.core.core.services.AppBlockerService
+import nethical.questphone.core.core.services.AppBlockerServiceInfo
+import nethical.questphone.core.core.services.INTENT_ACTION_UNLOCK_APP
+import nethical.questphone.core.core.utils.ScreenUsageStatsHelper
+import nethical.questphone.data.game.User
 import java.time.LocalDate
 import kotlin.math.roundToInt
 

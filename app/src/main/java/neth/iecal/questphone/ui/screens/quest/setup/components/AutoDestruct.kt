@@ -46,7 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
-import neth.iecal.questphone.data.quest.QuestInfoState
+import neth.iecal.questphone.data.QuestInfoState
 import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

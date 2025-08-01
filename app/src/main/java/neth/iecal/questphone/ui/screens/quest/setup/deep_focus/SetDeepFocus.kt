@@ -36,16 +36,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.data.IntegrationId
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.data.quest.QuestInfoState
-import neth.iecal.questphone.data.quest.focus.DeepFocus
-import neth.iecal.questphone.data.quest.focus.FocusTimeConfig
+import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.data.QuestInfoState
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
 import neth.iecal.questphone.ui.screens.quest.setup.components.SetFocusTimeUI
-import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.managers.json
+import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.data.BaseIntegrationId
+import nethical.questphone.data.quest.focus.DeepFocus
+import nethical.questphone.data.quest.focus.FocusTimeConfig
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
@@ -55,7 +55,7 @@ fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController) {
     val haptic = LocalHapticFeedback.current
     val showDialog = remember { mutableStateOf(false) }
     var selectedApps = remember { mutableStateListOf<String>() }
-    val questInfoState = remember { QuestInfoState(initialIntegrationId = IntegrationId.DEEP_FOCUS) }
+    val questInfoState = remember { QuestInfoState(initialIntegrationId = BaseIntegrationId.DEEP_FOCUS) }
     val focusTimeConfig = remember { mutableStateOf(FocusTimeConfig()) }
 
     val scrollState = rememberScrollState()

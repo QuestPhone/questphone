@@ -62,12 +62,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import neth.iecal.questphone.R
-import neth.iecal.questphone.data.game.Category
-import neth.iecal.questphone.data.game.InventoryItem
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.game.addItemsToInventory
-import neth.iecal.questphone.data.game.getInventoryItemCount
-import neth.iecal.questphone.data.game.useCoins
+import neth.iecal.questphone.data.Category
+import neth.iecal.questphone.data.InventoryItem
+import nethical.questphone.data.game.User
+import nethical.questphone.data.game.addItemsToInventory
+import nethical.questphone.data.game.getInventoryItemCount
+import nethical.questphone.data.game.useCoins
 
 
 // View model for the store

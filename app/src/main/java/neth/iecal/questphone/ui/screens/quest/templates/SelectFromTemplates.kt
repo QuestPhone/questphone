@@ -59,11 +59,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
 import kotlinx.serialization.Serializable
-import neth.iecal.questphone.data.IntegrationId
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.ui.navigation.RootRoute
-import neth.iecal.questphone.core.utils.fetchUrlContent
 import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.data.IntegrationId
+import neth.iecal.questphone.ui.navigation.RootRoute
+import nethical.questphone.backend.fetchUrlContent
+import nethical.questphone.data.game.User
 
 @Serializable
 data class Activity(

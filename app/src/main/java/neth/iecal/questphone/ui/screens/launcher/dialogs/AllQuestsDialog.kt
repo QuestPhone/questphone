@@ -54,13 +54,13 @@ import androidx.navigation.NavController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.core.utils.formatHour
-import neth.iecal.questphone.core.utils.getCurrentDate
-import neth.iecal.questphone.core.utils.getCurrentDay
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.data.quest.CommonQuestInfo
-import neth.iecal.questphone.data.repositories.QuestRepository
 import neth.iecal.questphone.ui.navigation.RootRoute
+import nethical.questphone.core.core.utils.formatHour
+import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.core.core.utils.getCurrentDay
+import nethical.questphone.data.quest.CommonQuestInfo
+import nethical.questphone.backend.repositories.QuestRepository
 import javax.inject.Inject
 
 @HiltViewModel

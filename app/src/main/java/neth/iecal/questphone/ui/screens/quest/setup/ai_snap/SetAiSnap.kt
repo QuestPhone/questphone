@@ -47,14 +47,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.data.IntegrationId
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.data.quest.QuestInfoState
-import neth.iecal.questphone.data.quest.ai.snap.AiSnap
+import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.data.QuestInfoState
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
 import neth.iecal.questphone.ui.screens.quest.setup.ai_snap.model.ModelDownloadDialog
-import neth.iecal.questphone.core.utils.managers.json
+import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.data.BaseIntegrationId
+import nethical.questphone.data.quest.ai.snap.AiSnap
 
 
 @SuppressLint("UnrememberedMutableState")
@@ -64,7 +64,7 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController) {
     val scrollState = rememberScrollState()
 
     // State for the quest
-    val questInfoState = remember { QuestInfoState(initialIntegrationId = IntegrationId.AI_SNAP) }
+    val questInfoState = remember { QuestInfoState(initialIntegrationId = BaseIntegrationId.AI_SNAP) }
     val taskDescription = remember { mutableStateOf("") }
     var features = remember { mutableStateListOf<String>() }
 

@@ -4,12 +4,12 @@ import android.app.Application
 import android.net.ConnectivityManager
 import android.net.Network
 import dagger.hilt.android.HiltAndroidApp
-import neth.iecal.questphone.core.services.reloadServiceInfo
-import neth.iecal.questphone.core.utils.VibrationHelper
-import neth.iecal.questphone.core.utils.isOnline
-import neth.iecal.questphone.core.utils.triggerQuestSync
-import neth.iecal.questphone.core.utils.triggerStatsSync
-import neth.iecal.questphone.data.game.User
+import nethical.questphone.backend.isOnline
+import nethical.questphone.backend.triggerQuestSync
+import nethical.questphone.backend.triggerStatsSync
+import nethical.questphone.core.core.services.reloadServiceInfo
+import nethical.questphone.core.core.utils.VibrationHelper
+import nethical.questphone.data.game.User
 
 
 @HiltAndroidApp(Application::class)

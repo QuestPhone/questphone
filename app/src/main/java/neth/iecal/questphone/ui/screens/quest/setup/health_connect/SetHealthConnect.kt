@@ -42,21 +42,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.data.IntegrationId
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.data.quest.QuestInfoState
-import neth.iecal.questphone.data.quest.health.HealthQuest
-import neth.iecal.questphone.data.quest.health.HealthTaskType
+import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.data.QuestInfoState
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
-import neth.iecal.questphone.core.utils.managers.json
+import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.data.BaseIntegrationId
+import nethical.questphone.data.quest.health.HealthQuest
+import nethical.questphone.data.quest.health.HealthTaskType
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController) {
     val scrollState = rememberScrollState()
     val haptic = LocalHapticFeedback.current
-    val questInfoState = remember { QuestInfoState(initialIntegrationId = IntegrationId.HEALTH_CONNECT) }
+    val questInfoState = remember { QuestInfoState(initialIntegrationId = BaseIntegrationId.HEALTH_CONNECT) }
     val healthQuest = remember { mutableStateOf(HealthQuest()) }
     val isReviewDialogVisible = remember { mutableStateOf(false) }
 

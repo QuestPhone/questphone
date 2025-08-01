@@ -32,12 +32,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.data.IntegrationId
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.data.quest.QuestInfoState
+import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.data.QuestInfoState
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
-import neth.iecal.questphone.core.utils.managers.QuestHelper
+import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.data.BaseIntegrationId
 
 
 @SuppressLint("UnrememberedMutableState")
@@ -47,7 +47,7 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController) {
     val questInfoState =
         remember {
             QuestInfoState(
-                initialIntegrationId = IntegrationId.SWIFT_MARK,
+                initialIntegrationId = BaseIntegrationId.SWIFT_MARK,
                 initialReward = 1
             )
         }

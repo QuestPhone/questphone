@@ -24,4 +24,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "launcher"
 include(":app")
-include(":Launcher")
+include(":core")
+include(":data")
+include(":ai")
+include(":backend")

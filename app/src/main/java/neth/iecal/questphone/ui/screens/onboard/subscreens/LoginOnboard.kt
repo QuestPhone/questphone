@@ -15,17 +15,17 @@ import androidx.navigation.NavHostController
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.collectLatest
-import neth.iecal.questphone.core.utils.isOnline
-import neth.iecal.questphone.core.utils.managers.Supabase
-import neth.iecal.questphone.core.utils.triggerProfileSync
-import neth.iecal.questphone.core.utils.triggerQuestSync
-import neth.iecal.questphone.core.utils.triggerStatsSync
+import nethical.questphone.backend.Supabase
 import neth.iecal.questphone.ui.screens.account.ForgotPasswordScreen
 import neth.iecal.questphone.ui.screens.account.login.AuthStep
 import neth.iecal.questphone.ui.screens.account.login.LoginScreen
 import neth.iecal.questphone.ui.screens.account.login.LoginViewModel
 import neth.iecal.questphone.ui.screens.account.login.SignUpScreen
 import neth.iecal.questphone.ui.screens.onboard.StandardPageContent
+import nethical.questphone.backend.isOnline
+import nethical.questphone.backend.triggerProfileSync
+import nethical.questphone.backend.triggerQuestSync
+import nethical.questphone.backend.triggerStatsSync
 
 @Composable
 fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostController){

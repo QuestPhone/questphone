@@ -69,20 +69,20 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import neth.iecal.questphone.OnboardActivity
 import neth.iecal.questphone.R
-import neth.iecal.questphone.data.game.Category
-import neth.iecal.questphone.data.game.InventoryItem
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.game.UserInfo
-import neth.iecal.questphone.data.game.isBoosterActive
-import neth.iecal.questphone.data.game.saveUserInfo
-import neth.iecal.questphone.data.game.useInventoryItem
-import neth.iecal.questphone.data.game.xpToLevelUp
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
+import nethical.questphone.backend.Supabase
 import neth.iecal.questphone.ui.screens.quest.stats.components.HeatMapChart
-import neth.iecal.questphone.core.utils.managers.Supabase
-import neth.iecal.questphone.core.utils.formatNumber
-import neth.iecal.questphone.core.utils.formatRemainingTime
+import nethical.questphone.core.core.utils.formatNumber
+import nethical.questphone.core.core.utils.formatRemainingTime
+import neth.iecal.questphone.data.Category
+import neth.iecal.questphone.data.InventoryItem
+import nethical.questphone.data.game.User
+import nethical.questphone.data.game.UserInfo
+import nethical.questphone.data.game.isBoosterActive
+import nethical.questphone.data.game.saveUserInfo
+import nethical.questphone.data.game.useInventoryItem
+import nethical.questphone.data.game.xpToLevelUp
+import nethical.questphone.data.quest.QuestDatabaseProvider
+import nethical.questphone.data.quest.stats.StatsDatabaseProvider
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)

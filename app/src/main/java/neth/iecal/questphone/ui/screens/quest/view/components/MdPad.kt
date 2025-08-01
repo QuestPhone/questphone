@@ -28,8 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import dev.jeziellago.compose.markdowntext.MarkdownText
-import neth.iecal.questphone.data.quest.CommonQuestInfo
-import neth.iecal.questphone.core.utils.getCurrentDate
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.core.core.utils.getCurrentDate
 
 @Composable
 fun MdPad(commonQuestInfo: CommonQuestInfo){

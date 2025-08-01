@@ -41,9 +41,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import neth.iecal.questphone.R
 import neth.iecal.questphone.data.IntegrationId
-import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.ui.screens.quest_docs.QuestTutorial
-import neth.iecal.questphone.core.utils.VibrationHelper
+import nethical.questphone.core.core.utils.VibrationHelper
+import nethical.questphone.data.game.User
 
 @OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("UnrememberedMutableState")

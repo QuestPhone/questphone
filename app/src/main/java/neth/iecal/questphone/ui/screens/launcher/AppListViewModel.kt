@@ -16,14 +16,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import neth.iecal.questphone.core.services.AppBlockerService
-import neth.iecal.questphone.core.services.AppBlockerServiceInfo
-import neth.iecal.questphone.core.services.INTENT_ACTION_UNLOCK_APP
-import neth.iecal.questphone.core.utils.managers.getCachedApps
-import neth.iecal.questphone.core.utils.managers.reloadApps
-import neth.iecal.questphone.data.AppInfo
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.game.useCoins
+import neth.iecal.questphone.data.User
+import neth.iecal.questphone.data.useCoins
+import nethical.questphone.core.core.services.AppBlockerService
+import nethical.questphone.core.core.services.AppBlockerServiceInfo
+import nethical.questphone.core.core.services.INTENT_ACTION_UNLOCK_APP
+import nethical.questphone.core.core.utils.managers.getCachedApps
+import nethical.questphone.core.core.utils.managers.reloadApps
+import nethical.questphone.data.AppInfo
 import javax.inject.Inject
 
 @HiltViewModel
