@@ -39,7 +39,7 @@ import androidx.navigation.NavHostController
 import kotlinx.coroutines.flow.first
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.ui.navigation.Screen
+import neth.iecal.questphone.ui.navigation.RootRoute
 
 @Composable
 fun ListAllQuests(navHostController: NavHostController) {
@@ -66,7 +66,7 @@ fun ListAllQuests(navHostController: NavHostController) {
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
             Button(
-                onClick = { navHostController.navigate(Screen.SelectTemplates.route)},
+                onClick = { navHostController.navigate(RootRoute.SelectTemplates.route)},
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.padding(bottom = 32.dp)
             ) {
@@ -122,7 +122,7 @@ fun ListAllQuests(navHostController: NavHostController) {
                     QuestItem(
                         quest = questBase,
                         onClick = {
-                            navHostController.navigate(Screen.QuestStats.route + questBase.id)
+                            navHostController.navigate(RootRoute.QuestStats.route + questBase.id)
                         }
                     )
                 }

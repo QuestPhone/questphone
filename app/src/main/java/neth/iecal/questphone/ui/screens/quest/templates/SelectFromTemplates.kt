@@ -61,7 +61,7 @@ import androidx.navigation.NavController
 import kotlinx.serialization.Serializable
 import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.ui.navigation.Screen
+import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.core.utils.fetchUrlContent
 import neth.iecal.questphone.core.utils.managers.json
 
@@ -180,7 +180,7 @@ fun SelectFromTemplates(
                         // Custom Quest Card
                         CustomQuestCard(
                             onClick = {
-                                navController.navigate(Screen.AddNewQuest.route) {
+                                navController.navigate(RootRoute.AddNewQuest.route) {
                                     popUpTo(navController.currentDestination?.route ?: "") {
                                         inclusive = true
                                     }
@@ -289,7 +289,7 @@ fun SelectFromTemplates(
                             if(activity.integration.isLoginRequired && User.userInfo.isAnonymous){
                                 showLoginRequiredDialog.value = true
                             }else {
-                                navController.navigate(Screen.SetupTemplate.route + activity.id)
+                                navController.navigate(RootRoute.SetupTemplate.route + activity.id)
                             }
                         }
                     )

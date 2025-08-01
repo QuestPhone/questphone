@@ -26,7 +26,7 @@ import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.data.quest.CommonQuestInfo
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.ui.navigation.Screen
+import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 
 @Composable
@@ -65,8 +65,8 @@ fun ViewQuest(
                 scope.launch {
                     dao.upsertQuest(commonQuestInfo!!)
                 }
-                    navController.navigate(Screen.HomeScreen.route) {
-                        popUpTo(Screen.ViewQuest.route) { inclusive = true }
+                    navController.navigate(RootRoute.HomeScreen.route) {
+                        popUpTo(RootRoute.ViewQuest.route) { inclusive = true }
                     }
             }
         }

@@ -89,11 +89,12 @@ import neth.iecal.questphone.data.MeshStyles
 import neth.iecal.questphone.data.game.StreakCheckReturn
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.checkIfStreakFailed
-import neth.iecal.questphone.ui.navigation.Screen
+import neth.iecal.questphone.ui.navigation.LauncherDialogRoutes
+import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.ui.screens.components.NeuralMeshAsymmetrical
 import neth.iecal.questphone.ui.screens.components.NeuralMeshSymmetrical
 import neth.iecal.questphone.ui.screens.components.TopBarActions
-import neth.iecal.questphone.ui.screens.launcher.components.AllQuestsDialog
+import neth.iecal.questphone.ui.screens.launcher.dialogs.LauncherDialog
 import neth.iecal.questphone.ui.screens.quest.DialogState
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
@@ -126,11 +127,11 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
     var isAppSelectorVisible by remember { mutableStateOf(false) }
 
     val sidePanelItems = listOf<SidePanelItem>(
-        SidePanelItem(R.drawable.profile_d,{navController.navigate(Screen.UserInfo.route)},"Profile"),
+        SidePanelItem(R.drawable.profile_d,{navController.navigate(RootRoute.UserInfo.route)},"Profile"),
         SidePanelItem(R.drawable.notification_up,{ Toast.makeText(context,"Coming soon!", Toast.LENGTH_SHORT).show()},"Notifications"),
-        SidePanelItem(R.drawable.store,{navController.navigate(Screen.Store.route)},"Store"),
-        SidePanelItem(R.drawable.quest_analytics,{navController.navigate(Screen.ListAllQuest.route)},"Quest Analytics"),
-        SidePanelItem(R.drawable.quest_adderpng,{navController.navigate(Screen.SelectTemplates.route)},"Add Quest")
+        SidePanelItem(R.drawable.store,{navController.navigate(RootRoute.Store.route)},"Store"),
+        SidePanelItem(R.drawable.quest_analytics,{navController.navigate(RootRoute.ListAllQuest.route)},"Quest Analytics"),
+        SidePanelItem(R.drawable.quest_adderpng,{navController.navigate(RootRoute.SelectTemplates.route)},"Add Quest")
     )
 
     var isAllQuestsDialogVisible by remember { mutableStateOf(false) }
@@ -200,11 +201,11 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
                 })
         }
         if(isAllQuestsDialogVisible){
-            AllQuestsDialog(
-                navController = navController
-            ) {
-                isAllQuestsDialogVisible = false
-            }
+            LauncherDialog(
+                onDismiss = { isAllQuestsDialogVisible = false },
+                rootNavController = navController,
+                startDestination = LauncherDialogRoutes.ShowAllQuest.route
+            )
         }
 
         Box(
@@ -226,7 +227,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
                             // Negative value for swipe-up, adjust threshold as needed
                             val swipeThreshold = -100f // Increased for more deliberate swipe
                             if (verticalDragOffset < swipeThreshold) {
-                                navController.navigate(Screen.AppList.route)
+                                navController.navigate(RootRoute.AppList.route)
                                 hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             }
                         }
@@ -245,8 +246,10 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
                                         duration = SnackbarDuration.Short
                                     ).also { result ->
                                         if (result == SnackbarResult.ActionPerformed) {
-                                            openAccessibilityServiceScreen(context,
-                                                LockScreenService::class.java)
+                                            openAccessibilityServiceScreen(
+                                                context,
+                                                LockScreenService::class.java
+                                            )
                                         }
                                     }
                                 }
@@ -258,10 +261,12 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
             Column(
                 Modifier.padding(8.dp)
             ) {
-                Box(Modifier.size(200.dp).combinedClickable(onClick = {},onLongClick = {
-                    viewModel.toggleMeshStyle()
+                Box(Modifier
+                    .size(200.dp)
+                    .combinedClickable(onClick = {}, onLongClick = {
+                        viewModel.toggleMeshStyle()
 
-                })){
+                    })){
                     when(meshStyle){
                         MeshStyles.SYMMETRICAL -> NeuralMeshSymmetrical(modifier = Modifier.fillMaxSize())
                         MeshStyles.ASYMMETRICAL -> NeuralMeshAsymmetrical(modifier = Modifier.fillMaxSize())
@@ -283,7 +288,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
 
                 if(questList.isEmpty()){
                     TextButton(onClick = {
-                        navController.navigate(Screen.SelectTemplates.route)
+                        navController.navigate(RootRoute.SelectTemplates.route)
                     }) {
                         Row {
                             Icon(imageVector = Icons.Default.Add, contentDescription = "Add Quests")
@@ -314,7 +319,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
                             color = if (isFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
                             textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                             modifier = Modifier.clickable(onClick = {
-                                navController.navigate(Screen.ViewQuest.route + baseQuest.id)
+                                navController.navigate(RootRoute.ViewQuest.route + baseQuest.id)
                             },
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = ripple(bounded = false)
@@ -358,7 +363,8 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(start = 8.dp,
+                    .padding(
+                        start = 8.dp,
                         bottom = WindowInsets.navigationBars.asPaddingValues()
                             .calculateBottomPadding() + 8.dp
                     ),
@@ -402,7 +408,8 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 8.dp,
+                    .padding(
+                        end = 8.dp,
                         bottom = WindowInsets.navigationBars.asPaddingValues()
                             .calculateBottomPadding() + 8.dp
                     ),

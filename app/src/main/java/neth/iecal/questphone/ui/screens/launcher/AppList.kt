@@ -38,8 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.ui.screens.launcher.components.LowCoinsDialog
-import neth.iecal.questphone.ui.screens.launcher.components.UnlockAppDialog
+import neth.iecal.questphone.ui.navigation.LauncherDialogRoutes
+import neth.iecal.questphone.ui.screens.launcher.dialogs.LauncherDialog
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -49,33 +49,30 @@ fun AppList(navController: NavController, viewModel: AppListViewModel) {
     val showDialog by viewModel.showCoinDialog.collectAsState()
     val selectedPackage by viewModel.selectedPackage.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
-    val minutesPer5Coins by viewModel.minutesPerFiveCoins.collectAsState()
 
     val focusRequester = remember { FocusRequester() }
     var textFieldLoaded by remember { mutableStateOf(false) }
-
+    val minutesPer5Coins by viewModel.minutesPerFiveCoins.collectAsState()
 
 
     Scaffold { innerPadding ->
         if (showDialog) {
-            if (User.userInfo.coins >= 5) {
-                UnlockAppDialog(
-                    coins = User.userInfo.coins,
-                    onDismiss = { viewModel.dismissDialog() },
-                    onConfirm = {
-                        viewModel.onConfirmUnlockApp(it)
-                    },
-                    pkgName = selectedPackage,
-                    minutesPer5Coins
-                )
-            } else {
-                LowCoinsDialog(
-                    coins = User.userInfo.coins,
-                    onDismiss = { viewModel.dismissDialog() },
-                    navController = navController,
-                    pkgName = selectedPackage
-                )
-            }
+            LauncherDialog(
+                coins = User.userInfo.coins,
+                onDismiss = {viewModel.dismissDialog()},
+                pkgName = selectedPackage,
+                rootNavController = navController,
+                minutesPerFiveCoins = minutesPer5Coins,
+                unlockApp = {
+                    viewModel.onConfirmUnlockApp(it)
+                },
+                startDestination = if (User.userInfo.coins >= 5) {
+                    LauncherDialogRoutes.UnlockAppDialog.route
+                }else
+                {
+                    LauncherDialogRoutes.LowCoins.route
+                },
+            )
         }
 
         LazyColumn(

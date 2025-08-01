@@ -35,8 +35,7 @@ import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.quest.QuestDatabaseProvider
 import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
 import neth.iecal.questphone.ui.navigation.Navigator
-import neth.iecal.questphone.ui.navigation.Screen
-import neth.iecal.questphone.ui.navigation.SetupQuestScreen
+import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.ui.screens.account.UserInfoScreen
 import neth.iecal.questphone.ui.screens.game.StoreScreen
 import neth.iecal.questphone.ui.screens.launcher.AppList
@@ -140,37 +139,37 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.HomeScreen.route,
+                        startDestination = RootRoute.HomeScreen.route,
                     ) {
 
-                        composable(Screen.UserInfo.route) {
+                        composable(RootRoute.UserInfo.route) {
                             UserInfoScreen()
                         }
                         composable(
-                            route = "${Screen.SelectApps.route}{mode}",
+                            route = "${RootRoute.SelectApps.route}{mode}",
                             arguments = listOf(navArgument("mode") { type = NavType.IntType })
                         ) { backstack ->
                             val mode = backstack.arguments?.getInt("mode")
                             SelectApps(SelectAppsModes.entries[mode!!])
                         }
-                        composable(Screen.HomeScreen.route) {
+                        composable(RootRoute.HomeScreen.route) {
                             val homeScreenViewModel : HomeScreenViewModel = hiltViewModel()
                             HomeScreen(navController,homeScreenViewModel)
                         }
 
-                        composable(Screen.Store.route) {
+                        composable(RootRoute.Store.route) {
                             StoreScreen(navController)
                         }
-                        composable(Screen.AppList.route) {
+                        composable(RootRoute.AppList.route) {
                             val appListViewModel : AppListViewModel = hiltViewModel()
                             AppList(navController,appListViewModel)
                         }
 
-                        composable(Screen.ListAllQuest.route) {
+                        composable(RootRoute.ListAllQuest.route) {
                             ListAllQuests(navController)
                         }
                         composable(
-                            route = "${Screen.ViewQuest.route}{id}",
+                            route = "${RootRoute.ViewQuest.route}{id}",
                             arguments = listOf(navArgument("id") { type = NavType.StringType })
                         ) { backStackEntry ->
                             val id = backStackEntry.arguments?.getString("id")
@@ -179,10 +178,10 @@ class MainActivity : ComponentActivity() {
                         }
 
                         navigation(
-                            startDestination = SetupQuestScreen.Integration.route,
-                            route = Screen.AddNewQuest.route
+                            startDestination = RootRoute.SetIntegration.route,
+                            route = RootRoute.AddNewQuest.route
                         ) {
-                            composable(SetupQuestScreen.Integration.route) {
+                            composable(RootRoute.SetIntegration.route) {
                                 SetIntegration(
                                     navController
                                 )
@@ -202,18 +201,18 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-                        composable("${Screen.QuestStats.route}{id}") { backStackEntry ->
+                        composable("${RootRoute.QuestStats.route}{id}") { backStackEntry ->
                             val id = backStackEntry.arguments?.getString("id")
 
                             BaseQuestStatsView(id!!, navController)
                         }
-                        composable(Screen.SelectTemplates.route) {
+                        composable(RootRoute.SelectTemplates.route) {
                             SelectFromTemplates(navController)
                         }
-                        composable(Screen.SetCoinRewardRatio.route){
+                        composable(RootRoute.SetCoinRewardRatio.route){
                             SetCoinRewardRatio()
                         }
-                        composable("${Screen.SetupTemplate.route}{id}") { backStackEntry ->
+                        composable("${RootRoute.SetupTemplate.route}{id}") { backStackEntry ->
                             val id = backStackEntry.arguments?.getString("id")
                             SetupTemplate(id!!,navController)
                         }

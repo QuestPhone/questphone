@@ -1,10 +1,9 @@
-package neth.iecal.questphone.ui.screens.launcher.components
+package neth.iecal.questphone.ui.screens.launcher.dialogs
 
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,16 +16,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,131 +34,47 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat.startForegroundService
 import androidx.core.content.edit
-import androidx.navigation.NavController
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
-import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.core.services.AppBlockerService
-import neth.iecal.questphone.core.services.INTENT_ACTION_UNLOCK_APP
 import neth.iecal.questphone.core.services.AppBlockerServiceInfo
-import neth.iecal.questphone.ui.screens.launcher.launchApp
+import neth.iecal.questphone.core.services.INTENT_ACTION_UNLOCK_APP
 import neth.iecal.questphone.core.utils.ScreenUsageStatsHelper
+import neth.iecal.questphone.data.game.User
+import neth.iecal.questphone.ui.screens.launcher.launchApp
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
 @Composable
-fun UnlockAnywayDialog(
-    onDismiss: () -> Unit,
+fun FreePassInfo(
+    onShowAllQuests: () -> Unit,
     pkgName: String,
-    navController: NavController
+    onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    val isPerformAQuestDialogVisible = remember { mutableStateOf(false) }
-    val isMakeAChoice = remember { mutableStateOf(true) }
-    val freePassesUsedToday = remember { mutableIntStateOf(0) }
-    var isLoading by remember { mutableStateOf(true) }
+    var remainingFreePassesToday by remember { mutableIntStateOf(0) }
 
-    // Load pass state
     LaunchedEffect(Unit) {
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val today = LocalDate.now().toString()
         val lastUsedDate = prefs.getString("last_freepass_date", null)
 
         if (lastUsedDate == today) {
-            freePassesUsedToday.intValue = prefs.getInt("freepass_count", 0)
+            remainingFreePassesToday = prefs.getInt("freepass_count", 0)
         } else {
             val stats = ScreenUsageStatsHelper(context).getStatsForLast7Days()
             val filteredTimes = stats.filter { it.packageName == pkgName }.map { it.totalTime.toDouble() }
-            freePassesUsedToday.intValue = calculateFreeUnlocks(filteredTimes)
+            remainingFreePassesToday = calculateFreeUnlocks(filteredTimes)
             prefs.edit {
                 putString("last_freepass_date", today)
-                putInt("freepass_count", freePassesUsedToday.intValue)
-            }
-        }
-        isLoading = false
-    }
-
-    // Quest dialog override
-    if (isPerformAQuestDialogVisible.value) {
-        AllQuestsDialog(navController = navController) {
-            isPerformAQuestDialogVisible.value = false
-        }
-        return
-    }
-
-    // Main dialog
-    Dialog(onDismissRequest = onDismiss) {
-        when {
-            isLoading -> {
-                CircularProgressIndicator(Modifier.fillMaxWidth())
-            }
-
-            isMakeAChoice.value -> {
-                MakeAChoice(
-                    onQuestClick = { isPerformAQuestDialogVisible.value = true },
-                    onFreePassClick = { isMakeAChoice.value = false }
-                )
-            }
-
-            else -> {
-                FreePassInfo(
-                    freePassesLeft = freePassesUsedToday,
-                    onQuestClick = { isPerformAQuestDialogVisible.value = true },
-                    onFreePassClick = {
-                        useFreePass(
-                            context = context,
-                            pkgName = pkgName,
-                            freePassesUsedToday = freePassesUsedToday,
-                            onDismiss = onDismiss
-                        )
-                    }
-                )
+                putInt("freepass_count", remainingFreePassesToday)
             }
         }
     }
-}
 
-private fun useFreePass(
-    context: Context,
-    pkgName: String,
-    freePassesUsedToday: MutableIntState,
-    onDismiss: () -> Unit
-) {
-    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val today = LocalDate.now().toString()
-    freePassesUsedToday.intValue--
-
-    prefs.edit {
-        putString("last_freepass_date", today)
-        putInt("freepass_count", freePassesUsedToday.intValue)
-    }
-
-    val cooldownTime = 10 * 60_000
-    context.sendBroadcast(Intent().apply {
-        action = INTENT_ACTION_UNLOCK_APP
-        putExtra("selected_time", cooldownTime)
-        putExtra("package_name", pkgName)
-    })
-
-    if (!AppBlockerServiceInfo.isUsingAccessibilityService && AppBlockerServiceInfo.appBlockerService == null) {
-        startForegroundService(context, Intent(context, AppBlockerService::class.java))
-        AppBlockerServiceInfo.unlockedApps[pkgName] = System.currentTimeMillis() + cooldownTime
-    }
-
-    launchApp(context, pkgName)
-    onDismiss()
-}
-
-@Composable
-fun FreePassInfo(
-    freePassesLeft: MutableIntState,
-    onQuestClick: () -> Unit,
-    onFreePassClick: () -> Unit
-) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -172,7 +84,6 @@ fun FreePassInfo(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
             Text(
                 text = "😤 I THOUGHT YOU DOWNLOADED THIS APP TO FIX YOUR LIFE",
                 fontSize = 16.sp,
@@ -181,7 +92,7 @@ fun FreePassInfo(
             )
 
             Text(
-                text = "You have ${freePassesLeft.intValue} free ${if (freePassesLeft.intValue == 1) "pass" else "passes"} today for this app. Each pass gives 10 minutes of app usage",
+                text = "You have $remainingFreePassesToday free ${if (remainingFreePassesToday == 1) "pass" else "passes"} today for this app. Each pass gives 10 minutes of app usage",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color.White
@@ -199,7 +110,7 @@ fun FreePassInfo(
             Spacer(Modifier.height(24.dp))
 
             Button(
-                onClick = onQuestClick,
+                onClick = onShowAllQuests,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -214,9 +125,11 @@ fun FreePassInfo(
                 )
             }
 
-            if(freePassesLeft.intValue>0){
+            if(remainingFreePassesToday>0){
                 OutlinedButton(
-                    onClick = onFreePassClick,
+                    onClick = {
+                        useFreePass(context, pkgName, onDismiss)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -237,71 +150,86 @@ fun FreePassInfo(
 }
 
 @Composable
-private fun MakeAChoice(
+fun MakeAChoice(
     onQuestClick: () -> Unit,
     onFreePassClick: () -> Unit
 ) {
-    Box(
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
+        // QUEST CARD
+        Card(
+            onClick = onQuestClick,
+            modifier = Modifier
+                .weight(0.65f)
+                .shadow(16.dp, RoundedCornerShape(24.dp)),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF00C853)), // green
+            shape = RoundedCornerShape(24.dp),
+            elevation = CardDefaults.cardElevation(12.dp)
         ) {
-            // QUEST CARD
-            Card(
-                onClick = onQuestClick,
+            Column(
                 modifier = Modifier
-                    .weight(0.65f)
-                    .shadow(16.dp, RoundedCornerShape(24.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF00C853)), // green
-                shape = RoundedCornerShape(24.dp),
-                elevation = CardDefaults.cardElevation(12.dp)
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("🔥\n\nTake the Quest!", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Earn coins + XP + streak boost", fontSize = 14.sp, color = Color.White)
-                    Spacer(Modifier.height(12.dp))
-                    Spacer(Modifier.height(12.dp))
-                    Text("🚀 Only takes a few mins!", fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
-                }
+                Text(
+                    "🔥\n\nTake the Quest!",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text("Earn coins + XP + streak boost", fontSize = 14.sp, color = Color.White)
+                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "🚀 Only takes a few mins!",
+                    fontSize = 12.sp,
+                    color = Color.White.copy(alpha = 0.8f)
+                )
             }
+        }
 
-            Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(16.dp))
 
-            // FREE PASS CARD
-            Card(
-                onClick = onFreePassClick,
+        // FREE PASS CARD
+        Card(
+            onClick = onFreePassClick,
+            modifier = Modifier
+                .weight(0.35f)
+                .shadow(4.dp, RoundedCornerShape(16.dp)),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFB0BEC5)), // dull gray
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(4.dp)
+        ) {
+            Column(
                 modifier = Modifier
-                    .weight(0.35f)
-                    .shadow(4.dp, RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFB0BEC5)), // dull gray
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(4.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.SpaceEvenly,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("😐 Use Free Pass", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color.DarkGray)
-                    Text("No XP. No progress.", fontSize = 12.sp, color = Color.DarkGray.copy(alpha = 0.8f))
-                    Text("Lame route", fontSize = 12.sp, color = Color.Gray)
-                }
+                Text(
+                    "😐 Use Free Pass",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.DarkGray
+                )
+                Text(
+                    "No XP. No progress.",
+                    fontSize = 12.sp,
+                    color = Color.DarkGray.copy(alpha = 0.8f)
+                )
+                Text("Lame route", fontSize = 12.sp, color = Color.Gray)
             }
         }
     }
 }
 
-fun calculateFreeUnlocks(screenTimes: List<Double>): Int {
+private fun calculateFreeUnlocks(screenTimes: List<Double>): Int {
     if (screenTimes.size < 7) return 3 // Fallback for partial data
 
     val now = Clock.System.now()
@@ -335,4 +263,36 @@ fun calculateFreeUnlocks(screenTimes: List<Double>): Int {
     val dynamicMax = (baseCap * trendFactor * generosityDecay).roundToInt().coerceIn(2, 10)
 
     return (baseUnlocks + progressBonus + streakBonus).roundToInt().coerceIn(1, dynamicMax)
+}
+
+
+private fun useFreePass(
+    context: Context,
+    pkgName: String,
+    onDismiss: () -> Unit
+) {
+
+    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    val today = LocalDate.now().toString()
+    val remainingFreePassesToday = prefs.getInt("freepass_count", 0) - 1
+
+    prefs.edit {
+        putString("last_freepass_date", today)
+        putInt("freepass_count", remainingFreePassesToday)
+    }
+
+    val cooldownTime = 10 * 60_000
+    context.sendBroadcast(Intent().apply {
+        action = INTENT_ACTION_UNLOCK_APP
+        putExtra("selected_time", cooldownTime)
+        putExtra("package_name", pkgName)
+    })
+
+    if (!AppBlockerServiceInfo.isUsingAccessibilityService && AppBlockerServiceInfo.appBlockerService == null) {
+        startForegroundService(context, Intent(context, AppBlockerService::class.java))
+        AppBlockerServiceInfo.unlockedApps[pkgName] = System.currentTimeMillis() + cooldownTime
+    }
+
+    launchApp(context, pkgName)
+    onDismiss()
 }

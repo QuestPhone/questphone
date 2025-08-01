@@ -8,4 +8,5 @@ plugins {
 
     id("com.google.dagger.hilt.android") version "2.51" apply false
     id("com.google.devtools.ksp") version "2.1.21-2.0.1" apply false
+    alias(libs.plugins.android.library) apply false
 }

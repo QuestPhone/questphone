@@ -15,7 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.jan.supabase.auth.handleDeeplinks
-import neth.iecal.questphone.ui.navigation.Screen
+import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.ui.screens.account.SetupNewPassword
 import neth.iecal.questphone.ui.screens.onboard.OnBoardScreen
 import neth.iecal.questphone.ui.screens.onboard.TermsScreen
@@ -61,9 +61,9 @@ class OnboardActivity : ComponentActivity() {
                 }
             }
 
-            val startDestination = if (isLoginResetPassword.value) Screen.ResetPass.route
-            else if (!isTosAccepted.value) Screen.TermsScreen.route
-            else Screen.OnBoard.route
+            val startDestination = if (isLoginResetPassword.value) RootRoute.ResetPass.route
+            else if (!isTosAccepted.value) RootRoute.TermsScreen.route
+            else RootRoute.OnBoard.route
 
             LauncherTheme {
                 Surface {
@@ -80,16 +80,16 @@ class OnboardActivity : ComponentActivity() {
                         startDestination = startDestination
                     ) {
 
-                        composable(Screen.OnBoard.route) {
+                        composable(RootRoute.OnBoard.route) {
                             OnBoardScreen(navController)
                         }
                         composable(
-                            Screen.ResetPass.route
+                            RootRoute.ResetPass.route
                         ) {
                             SetupNewPassword(navController)
                         }
 
-                        composable(Screen.TermsScreen.route) {
+                        composable(RootRoute.TermsScreen.route) {
                             TermsScreen(isTosAccepted)
                         }
                     }
