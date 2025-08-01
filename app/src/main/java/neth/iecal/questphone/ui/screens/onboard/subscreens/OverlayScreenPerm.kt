@@ -1,5 +1,7 @@
-package neth.iecal.questphone.ui.screens.onboard
+package neth.iecal.questphone.ui.screens.onboard.subscreens
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,24 +21,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import neth.iecal.questphone.core.utils.managers.isIgnoringBatteryOptimizations
-import neth.iecal.questphone.core.utils.managers.openBatteryOptimizationSettings
 
 @Composable
-fun BackgroundUsagePermission(isFromOnboardingScreen: Boolean = true) {
+fun OverlayScreenPerm(isOnBoardingScreen : Boolean= true) {
     val context = LocalContext.current
+    val hasPermission = remember {
+        mutableStateOf(
+            Settings.canDrawOverlays(context)
+        )
+    }
     val lifecycleOwner = LocalLifecycleOwner.current
-    val isBatteryOptimDisabled = remember { mutableStateOf(false) }
-
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            isBatteryOptimDisabled.value = isIgnoringBatteryOptimizations(context)
+            hasPermission.value = Settings.canDrawOverlays(context)
         }
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -45,18 +48,18 @@ fun BackgroundUsagePermission(isFromOnboardingScreen: Boolean = true) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Allow Unrestricted Background Usage",
-            fontSize = 24.sp,
+            text = "Overlay Permission",
+            fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
         Text(
-            text = if (!isBatteryOptimDisabled.value)
-                "To make sure QuestPhone works reliably in the background, please allow it to ignore battery optimizations. This prevents Android from force-stopping the app or delaying its actions."
+            text = if (!hasPermission.value)
+                "QuestPhone needs permission to draw over other apps for app blocking. "
             else
-                "Unrestricted background usage is enabled. You’re all set!",
+                "Overlay permission granted!",
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -64,13 +67,17 @@ fun BackgroundUsagePermission(isFromOnboardingScreen: Boolean = true) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        if (!isBatteryOptimDisabled.value && !isFromOnboardingScreen) {
+        if (!hasPermission.value && !isOnBoardingScreen) {
             Button(
                 onClick = {
-                    openBatteryOptimizationSettings(context)
-                }
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        "package:${context.packageName}".toUri()
+                    )
+                    context.startActivity(intent)
+                },
             ) {
-                Text(text = "Open Settings")
+                Text(text = "Grant Overlay Permission")
             }
         }
     }

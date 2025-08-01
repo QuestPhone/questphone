@@ -1,6 +1,5 @@
-package neth.iecal.questphone.ui.screens.onboard
+package neth.iecal.questphone.ui.screens.onboard.subscreens
 
-import android.content.Context.MODE_PRIVATE
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,30 +11,21 @@ import androidx.navigation.NavHostController
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.collectLatest
+import neth.iecal.questphone.core.utils.isOnline
+import neth.iecal.questphone.core.utils.managers.Supabase
+import neth.iecal.questphone.core.utils.triggerQuestSync
+import neth.iecal.questphone.core.utils.triggerStatsSync
 import neth.iecal.questphone.ui.screens.account.ForgotPasswordScreen
 import neth.iecal.questphone.ui.screens.account.LoginScreen
 import neth.iecal.questphone.ui.screens.account.LoginStep
 import neth.iecal.questphone.ui.screens.account.SignUpScreen
-import neth.iecal.questphone.core.utils.managers.Supabase
-import neth.iecal.questphone.core.utils.isOnline
-import neth.iecal.questphone.core.utils.triggerQuestSync
-import neth.iecal.questphone.core.utils.triggerStatsSync
+import neth.iecal.questphone.ui.screens.onboard.StandardPageContent
 
 @Composable
 fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostController){
     val context = LocalContext.current
 
-    val data = context.getSharedPreferences("onboard", MODE_PRIVATE)
-
     val loginStep = remember { mutableStateOf(LoginStep.SIGNUP) }
-
-//    LaunchedEffect(Unit ) {
-//        val isUserLoggedIn = Supabase.supabase.auth.currentUserOrNull() != null
-//        isNextEnabled.value = isUserLoggedIn
-//        if (isUserLoggedIn) {
-//            loginStep.value = LoginStep.COMPLETE
-//        }
-//    }
 
     LaunchedEffect(Unit) {
         Supabase.supabase.auth.sessionStatus.collectLatest { authState ->
@@ -69,13 +59,13 @@ fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostCon
             }
         }
         LoginStep.SIGNUP -> {
-            SignUpScreen(loginStep)
+            SignUpScreen(loginStep, {isNextEnabled.value = true})
 
         }
         LoginStep.FORGOT_PASSWORD -> ForgotPasswordScreen(loginStep)
         LoginStep.COMPLETE ->
         {
-            StandardPageContent(isNextEnabled,"A New Journey Begins Here!","Press Next to continue!")
+            StandardPageContent("A New Journey Begins Here!", "Press Next to continue!")
         }
 
     }

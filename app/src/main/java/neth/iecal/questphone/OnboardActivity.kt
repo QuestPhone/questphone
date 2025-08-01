@@ -17,8 +17,8 @@ import androidx.navigation.compose.rememberNavController
 import io.github.jan.supabase.auth.handleDeeplinks
 import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.ui.screens.account.SetupNewPassword
-import neth.iecal.questphone.ui.screens.onboard.OnBoardScreen
-import neth.iecal.questphone.ui.screens.onboard.TermsScreen
+import neth.iecal.questphone.ui.screens.onboard.OnBoarderView
+import neth.iecal.questphone.ui.screens.onboard.subscreens.TermsScreen
 import neth.iecal.questphone.ui.theme.LauncherTheme
 import neth.iecal.questphone.core.utils.managers.Supabase
 
@@ -81,7 +81,7 @@ class OnboardActivity : ComponentActivity() {
                     ) {
 
                         composable(RootRoute.OnBoard.route) {
-                            OnBoardScreen(navController)
+                            OnBoarderView(navController)
                         }
                         composable(
                             RootRoute.ResetPass.route

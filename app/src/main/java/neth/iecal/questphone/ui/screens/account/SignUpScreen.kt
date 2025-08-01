@@ -54,9 +54,9 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.R
+import neth.iecal.questphone.core.utils.managers.Supabase
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.saveUserInfo
-import neth.iecal.questphone.core.utils.managers.Supabase
 
 enum class SignUpStep {
     FORM,
@@ -65,7 +65,7 @@ enum class SignUpStep {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(loginStep: MutableState<LoginStep>) {
+fun SignUpScreen(loginStep: MutableState<LoginStep>, onLogin: () -> Unit) {
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -376,6 +376,7 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>) {
                                 User.userInfo.isAnonymous = true
                                 User.saveUserInfo()
                                 loginStep.value = LoginStep.COMPLETE
+                                onLogin()
                             }) {
                                 Text("Continue Anyway")
                             }

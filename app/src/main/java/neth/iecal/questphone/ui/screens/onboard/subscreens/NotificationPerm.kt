@@ -1,5 +1,9 @@
-package neth.iecal.questphone.ui.screens.onboard
+package neth.iecal.questphone.ui.screens.onboard.subscreens
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,21 +26,31 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import neth.iecal.questphone.core.utils.managers.checkUsagePermission
-import neth.iecal.questphone.core.utils.managers.openBatteryOptimizationSettings
+import neth.iecal.questphone.core.utils.managers.checkNotificationPermission
 
 @Composable
-fun UsageAccessPermission(isFromOnboardingScreen : Boolean = true) {
+fun NotificationPerm(isFromOnboard: Boolean = true) {
     val context = LocalContext.current
+    val hasPermission = remember {
+        mutableStateOf(
+            false
+        )
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
-    val hasUsagePermission = remember { mutableStateOf(false) }
-
-
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            hasUsagePermission.value = checkUsagePermission(context)
+            hasPermission.value = checkNotificationPermission(context)
         }
     }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            hasPermission.value = granted
+        }
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -45,7 +59,7 @@ fun UsageAccessPermission(isFromOnboardingScreen : Boolean = true) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Grant Usage Access",
+            text = "Notification Permission",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -53,10 +67,10 @@ fun UsageAccessPermission(isFromOnboardingScreen : Boolean = true) {
         )
 
         Text(
-            text = if (!hasUsagePermission.value)
-                "Please allow QuestPhone to access app usage data to show you detailed statistics about your screen time usage and help find ways to reduce it. All of this data is processed 100% locally and nothing is sent to our servers."
+            text = if (!hasPermission.value)
+                "To notify you about your progress or challenges, QuestPhone needs permission to send notifications."
             else
-                "Usage access granted. You’re all set!",
+                "Notification permission granted!",
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -64,13 +78,13 @@ fun UsageAccessPermission(isFromOnboardingScreen : Boolean = true) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        if (!hasUsagePermission.value && !isFromOnboardingScreen) {
+        if (!hasPermission.value && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isFromOnboard) {
             Button(
                 onClick = {
-                    openBatteryOptimizationSettings(context)
-                },
+                    launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
             ) {
-                Text(text = "Open Settings")
+                Text(text = "Grant Notification Access")
             }
         }
     }

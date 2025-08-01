@@ -1,4 +1,4 @@
-package neth.iecal.questphone.ui.screens.onboard
+package neth.iecal.questphone.ui.screens.onboard.subscreens
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement

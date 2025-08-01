@@ -1,8 +1,5 @@
-package neth.iecal.questphone.ui.screens.onboard
+package neth.iecal.questphone.ui.screens.onboard.subscreens
 
-import android.content.Intent
-import android.os.Build
-import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,29 +22,19 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
+import neth.iecal.questphone.core.utils.managers.checkUsagePermission
+import neth.iecal.questphone.core.utils.managers.openBatteryOptimizationSettings
 
 @Composable
-fun ScheduleExactAlarmScreen(isOnBoardingScreen : Boolean= true) {
+fun UsageAccessPerm(isFromOnboardingScreen : Boolean = true) {
     val context = LocalContext.current
-    val notificationScheduler = NotificationScheduler(LocalContext.current)
-    val hasPermission = remember {
-        mutableStateOf(
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                notificationScheduler.alarmManager.canScheduleExactAlarms()
-            }else{
-                true
-            }
-        )
-    }
     val lifecycleOwner = LocalLifecycleOwner.current
+    val hasUsagePermission = remember { mutableStateOf(false) }
+
+
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            hasPermission.value = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                notificationScheduler.alarmManager.canScheduleExactAlarms()
-            }else{
-                true
-            }
+            hasUsagePermission.value = checkUsagePermission(context)
         }
     }
     Column(
@@ -58,7 +45,7 @@ fun ScheduleExactAlarmScreen(isOnBoardingScreen : Boolean= true) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Schedule Alarms",
+            text = "Grant Usage Access",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -66,10 +53,10 @@ fun ScheduleExactAlarmScreen(isOnBoardingScreen : Boolean= true) {
         )
 
         Text(
-            text = if (!hasPermission.value)
-                "QuestPhone needs permission to schedule alarms to notify you about your quests. "
+            text = if (!hasUsagePermission.value)
+                "Please allow QuestPhone to access app usage data to show you detailed statistics about your screen time usage and help find ways to reduce it. All of this data is processed 100% locally and nothing is sent to our servers."
             else
-                "Schedule exact alarms permission granted!",
+                "Usage access granted. You’re all set!",
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -77,17 +64,13 @@ fun ScheduleExactAlarmScreen(isOnBoardingScreen : Boolean= true) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        if (!hasPermission.value && !isOnBoardingScreen) {
+        if (!hasUsagePermission.value && !isFromOnboardingScreen) {
             Button(
                 onClick = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                        context.startActivity(intent)
-
-                    }
+                    openBatteryOptimizationSettings(context)
                 },
             ) {
-                Text(text = "Grant Overlay Permission")
+                Text(text = "Open Settings")
             }
         }
     }

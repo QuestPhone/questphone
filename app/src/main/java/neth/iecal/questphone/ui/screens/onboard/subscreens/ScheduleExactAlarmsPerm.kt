@@ -1,6 +1,7 @@
-package neth.iecal.questphone.ui.screens.onboard
+package neth.iecal.questphone.ui.screens.onboard.subscreens
 
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,23 +22,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
 
 @Composable
-fun OverlayPermissionScreen(isOnBoardingScreen : Boolean= true) {
+fun ScheduleExactAlarmPerm(isOnBoardingScreen : Boolean= true) {
     val context = LocalContext.current
+    val notificationScheduler = NotificationScheduler(LocalContext.current)
     val hasPermission = remember {
         mutableStateOf(
-            Settings.canDrawOverlays(context)
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                notificationScheduler.alarmManager.canScheduleExactAlarms()
+            }else{
+                true
+            }
         )
     }
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            hasPermission.value = Settings.canDrawOverlays(context)
+            hasPermission.value = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                notificationScheduler.alarmManager.canScheduleExactAlarms()
+            }else{
+                true
+            }
         }
     }
     Column(
@@ -48,7 +58,7 @@ fun OverlayPermissionScreen(isOnBoardingScreen : Boolean= true) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Overlay Permission",
+            text = "Schedule Alarms",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -57,9 +67,9 @@ fun OverlayPermissionScreen(isOnBoardingScreen : Boolean= true) {
 
         Text(
             text = if (!hasPermission.value)
-                "QuestPhone needs permission to draw over other apps for app blocking. "
+                "QuestPhone needs permission to schedule alarms to notify you about your quests. "
             else
-                "Overlay permission granted!",
+                "Schedule exact alarms permission granted!",
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -70,11 +80,11 @@ fun OverlayPermissionScreen(isOnBoardingScreen : Boolean= true) {
         if (!hasPermission.value && !isOnBoardingScreen) {
             Button(
                 onClick = {
-                    val intent = Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        "package:${context.packageName}".toUri()
-                    )
-                    context.startActivity(intent)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                        context.startActivity(intent)
+
+                    }
                 },
             ) {
                 Text(text = "Grant Overlay Permission")

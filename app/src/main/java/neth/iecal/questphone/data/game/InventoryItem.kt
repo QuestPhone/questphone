@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import neth.iecal.questphone.R
 import neth.iecal.questphone.ui.navigation.Navigator
 import neth.iecal.questphone.ui.navigation.RootRoute
-import neth.iecal.questphone.ui.screens.onboard.SelectAppsModes
+import neth.iecal.questphone.ui.screens.onboard.subscreens.SelectAppsModes
 import neth.iecal.questphone.core.utils.getFullTimeAfter
 
 @Serializable
