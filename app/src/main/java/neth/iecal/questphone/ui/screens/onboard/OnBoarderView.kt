@@ -1,5 +1,7 @@
 package neth.iecal.questphone.ui.screens.onboard
 
+import android.app.Application
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -25,10 +27,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,7 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
+import androidx.core.content.edit
+import androidx.lifecycle.AndroidViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -59,16 +64,33 @@ open class OnboardingContent {
 }
 
 
-class OnboarderViewModel : ViewModel() {
+class OnboarderViewModel(application: Application) : AndroidViewModel(application) {
+
 
     private val _currentPage = MutableStateFlow(0)
     val currentPage: StateFlow<Int> = _currentPage
 
+    private val currentPageSp = application.applicationContext.getSharedPreferences("crnt_pg_onboard",
+        Context.MODE_PRIVATE)
+
+
     private val _isNextEnabled = MutableStateFlow(true)
     val isNextEnabled: StateFlow<Boolean> = _isNextEnabled
 
+
+    init {
+        loadCurrentPage()
+    }
+
     fun setNextEnabled(enabled: Boolean) {
         _isNextEnabled.value = enabled
+    }
+    private fun loadCurrentPage(){
+        _currentPage.value = currentPageSp.getInt("crnt_pg_onboard",0)
+    }
+    fun setCurrentPage(page: Int) {
+        _currentPage.value = page
+        currentPageSp.edit { putInt("crnt_pg_onboard", page) }
     }
 
 }
@@ -82,15 +104,21 @@ fun OnBoarderView(
     pages: List<OnboardingContent>
 ) {
     val haptic = LocalHapticFeedback.current
-    val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
 
-    val currentPage = viewModel.currentPage.collectAsState().value
+    val currentPage = viewModel.currentPage.collectAsState()
     val isNextEnabled = viewModel.isNextEnabled.collectAsState()
 
-    val isFirstPage = currentPage == 0
-    val isLastPage = currentPage == pages.size - 1
+    val isFirstPage = currentPage.value == 0
+    val isLastPage = currentPage.value == pages.size - 1
 
+    val pagerState = rememberPagerState(pageCount = { pages.size }, initialPage = currentPage.value)
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            viewModel.setCurrentPage(page)
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()

@@ -28,12 +28,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
@@ -42,53 +38,28 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import io.github.jan.supabase.auth.auth
-import kotlinx.coroutines.launch
-import neth.iecal.questphone.core.utils.managers.Supabase
+import neth.iecal.questphone.ui.screens.account.login.AuthStep
+import neth.iecal.questphone.ui.screens.account.login.LoginViewModel
 
 enum class ForgotPasswordStep {
-    EMAIL,
+    FORM,
     VERIFICATION
 }
 @Composable
-fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
-    // States
-    var email by remember { mutableStateOf("") }
-    var newPassword by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var forgotPasswordStep by remember { mutableStateOf(ForgotPasswordStep.EMAIL) }
+fun ForgotPasswordScreen(viewModel: LoginViewModel) {
 
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
 
-    val coroutineScope = rememberCoroutineScope()
-    // Email validation
-    val isEmailValid = email.contains("@") && email.contains(".")
-
-    // Function to handle email submission
-    val handleEmailSubmit = {
-        if (email.isBlank()) {
-            errorMessage = "Please enter your email"
-        } else if (!isEmailValid) {
-            errorMessage = "Please enter a valid email"
-        } else {
-            errorMessage = null
-            isLoading = true
-
-            coroutineScope.launch {
-                Supabase.supabase.auth.resetPasswordForEmail(email)
-            }
-
-            forgotPasswordStep = ForgotPasswordStep.VERIFICATION
-            isLoading = false
-        }
-    }
-
+    val email by viewModel.email.collectAsState()
+    val isEmailValid = viewModel.isEmailValid()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val forgetPasswordStep by viewModel.forgetPasswordStep.collectAsState()
+    val authStep = viewModel.authStep
 
     BackHandler {
-        loginStep.value = LoginStep.LOGIN
+        authStep.value = AuthStep.LOGIN
     }
 
     Box(
@@ -100,7 +71,7 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
         // Back button
         IconButton(
             onClick = {
-                loginStep.value = LoginStep.LOGIN
+                authStep.value = AuthStep.LOGIN
 
             },
             modifier = Modifier
@@ -135,8 +106,8 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = when (forgotPasswordStep) {
-                    ForgotPasswordStep.EMAIL -> "Reset Password"
+                text = when (forgetPasswordStep) {
+                    ForgotPasswordStep.FORM -> "Reset Password"
                     ForgotPasswordStep.VERIFICATION -> "Check your email"
                 },
                 style = MaterialTheme.typography.bodyLarge,
@@ -158,9 +129,9 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
                 }
             }
 
-            when (forgotPasswordStep) {
+            when (forgetPasswordStep) {
                 // Email step
-                ForgotPasswordStep.EMAIL -> {
+                ForgotPasswordStep.FORM -> {
                     Text(
                         text = "Enter your email address and we'll send you a link to reset your password.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -171,7 +142,7 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
                     // Email field
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { email = it; errorMessage = null },
+                        onValueChange = { viewModel.onEmailChanged(it) },
                         label = { Text("Email") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -188,7 +159,7 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
                         keyboardActions = KeyboardActions(
                             onDone = {
                                 focusManager.clearFocus()
-                                handleEmailSubmit()
+                                viewModel.forgetPassword()
                             }
                         ),
                         isError = errorMessage != null && (email.isBlank() || !isEmailValid)
@@ -197,7 +168,7 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
 
                     // Submit button
                     Button(
-                        onClick = handleEmailSubmit,
+                        onClick = { viewModel.forgetPassword() },
                         modifier = Modifier
                             .fillMaxWidth(),
                         enabled = !isLoading
@@ -241,7 +212,7 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
 
                     // Back button
                     TextButton(
-                        onClick = { forgotPasswordStep = ForgotPasswordStep.EMAIL },
+                        onClick = { viewModel.forgetPasswordStep.value = ForgotPasswordStep.FORM },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Back to email")
@@ -253,7 +224,7 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
             Spacer(modifier = Modifier.height(32.dp))
 
             // Login option
-            if (forgotPasswordStep == ForgotPasswordStep.EMAIL) {
+            if (forgetPasswordStep == ForgotPasswordStep.FORM) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -266,7 +237,7 @@ fun ForgotPasswordScreen(loginStep: MutableState<LoginStep>) {
                     )
 
                     TextButton(onClick = {
-                        loginStep.value = LoginStep.LOGIN
+                        authStep.value = AuthStep.LOGIN
 
                     }) {
                         Text("Login")

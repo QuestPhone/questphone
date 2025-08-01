@@ -1,4 +1,4 @@
-package neth.iecal.questphone.ui.screens.account
+package neth.iecal.questphone.ui.screens.account.login
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -27,11 +27,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,35 +44,27 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.exception.AuthRestException
-import io.github.jan.supabase.auth.providers.builtin.Email
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.managers.Supabase
 
 
 @Composable
-fun LoginScreen(loginStep : MutableState<LoginStep>, onLoginSucess: ()->Unit) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+fun LoginScreen(viewModel: LoginViewModel = viewModel(), onLoginSucess: ()->Unit) {
+
     var isPasswordVisible by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
 
-    // Email validation
-    val isEmailValid = email.contains("@") && email.contains(".")
-
-
-
+    val email by viewModel.email.collectAsState()
+    val password by viewModel.password.collectAsState()
+    val isEmailValid = viewModel.isEmailValid()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val authStep = viewModel.authStep
 
     BackHandler {
-        loginStep.value = LoginStep.SIGNUP
+        authStep.value = AuthStep.SIGNUP
     }
 
     Box(
@@ -126,7 +117,7 @@ fun LoginScreen(loginStep : MutableState<LoginStep>, onLoginSucess: ()->Unit) {
             // Email field
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it; errorMessage = null },
+                onValueChange = { viewModel.onEmailChanged(it) },
                 label = { Text("Email") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -151,7 +142,7 @@ fun LoginScreen(loginStep : MutableState<LoginStep>, onLoginSucess: ()->Unit) {
             // Password field
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it; errorMessage = null },
+                onValueChange = { viewModel.onPasswordChanged(it) },
                 label = { Text("Password") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -190,7 +181,7 @@ fun LoginScreen(loginStep : MutableState<LoginStep>, onLoginSucess: ()->Unit) {
             // Forgot password
             TextButton(
                 onClick = {
-                    loginStep.value = LoginStep.FORGOT_PASSWORD
+                    authStep.value = AuthStep.FORGOT_PASSWORD
                 },
                 modifier = Modifier.align(Alignment.End)
             ) {
@@ -199,34 +190,11 @@ fun LoginScreen(loginStep : MutableState<LoginStep>, onLoginSucess: ()->Unit) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Login button
             Button(
                 onClick = {
-
-                    if (email.isBlank() || password.isBlank()) {
-                        errorMessage = "Please fill in all fields"
-                    } else if (!isEmailValid) {
-                        errorMessage = "Please enter a valid email"
-                    } else {
-
-                        isLoading = true
-                        errorMessage = null
-
-
-                        coroutineScope.launch(Dispatchers.IO) {
-                            try {
-                                Supabase.supabase.auth.signInWith(Email) {
-                                    this.email = email
-                                    this.password = password
-                                }
-                            } catch (e: AuthRestException) {
-                                errorMessage = e.errorDescription
-                                isLoading = false
-                            }
-                            onLoginSucess()
-                        }
-
-                    }
+                    viewModel.signIn(
+                        onSuccess = onLoginSucess,
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -245,7 +213,6 @@ fun LoginScreen(loginStep : MutableState<LoginStep>, onLoginSucess: ()->Unit) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Sign up option
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -259,7 +226,7 @@ fun LoginScreen(loginStep : MutableState<LoginStep>, onLoginSucess: ()->Unit) {
                 )
 
                 TextButton(onClick = {
-                    loginStep.value = LoginStep.SIGNUP
+                    authStep.value = AuthStep.SIGNUP
                 }) {
                     Text("Sign up")
                 }

@@ -1,38 +1,45 @@
 package neth.iecal.questphone.ui.screens.onboard.subscreens
 
 import android.util.Log
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.collectLatest
 import neth.iecal.questphone.core.utils.isOnline
 import neth.iecal.questphone.core.utils.managers.Supabase
+import neth.iecal.questphone.core.utils.triggerProfileSync
 import neth.iecal.questphone.core.utils.triggerQuestSync
 import neth.iecal.questphone.core.utils.triggerStatsSync
 import neth.iecal.questphone.ui.screens.account.ForgotPasswordScreen
-import neth.iecal.questphone.ui.screens.account.LoginScreen
-import neth.iecal.questphone.ui.screens.account.LoginStep
-import neth.iecal.questphone.ui.screens.account.SignUpScreen
+import neth.iecal.questphone.ui.screens.account.login.AuthStep
+import neth.iecal.questphone.ui.screens.account.login.LoginScreen
+import neth.iecal.questphone.ui.screens.account.login.LoginViewModel
+import neth.iecal.questphone.ui.screens.account.login.SignUpScreen
 import neth.iecal.questphone.ui.screens.onboard.StandardPageContent
 
 @Composable
 fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostController){
     val context = LocalContext.current
 
-    val loginStep = remember { mutableStateOf(LoginStep.SIGNUP) }
+    val viewModel: LoginViewModel = viewModel()
 
+    val authStep = viewModel.authStep
     LaunchedEffect(Unit) {
         Supabase.supabase.auth.sessionStatus.collectLatest { authState ->
             Log.d("authState",authState.toString())
             when (authState) {
                 is SessionStatus.Authenticated -> {
-                    loginStep.value = LoginStep.COMPLETE
+                    authStep.value = AuthStep.COMPLETE
                     isNextEnabled.value = true
                 }
 
@@ -48,25 +55,31 @@ fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostCon
         }
     }
 
-    when(loginStep.value) {
-        LoginStep.LOGIN -> {
-            LoginScreen(loginStep) {
-                if (context.isOnline()) {
-                    triggerQuestSync(context.applicationContext, true)
-                    triggerStatsSync(context, true)
-//                    triggerProfileSync(context)
+    AnimatedContent(targetState = authStep.value, transitionSpec = {
+        (fadeIn(animationSpec = tween(300))
+            .togetherWith(fadeOut(animationSpec = tween(300))))
+    }) { it ->
+
+        when(it) {
+            AuthStep.LOGIN -> {
+                LoginScreen(viewModel) {
+                    if (context.isOnline()) {
+                        triggerQuestSync(context.applicationContext, true)
+                        triggerStatsSync(context, true)
+                        triggerProfileSync(context)
+                    }
                 }
             }
-        }
-        LoginStep.SIGNUP -> {
-            SignUpScreen(loginStep, {isNextEnabled.value = true})
+            AuthStep.SIGNUP -> {
+                SignUpScreen(viewModel, {isNextEnabled.value = true})
+
+            }
+            AuthStep.FORGOT_PASSWORD -> ForgotPasswordScreen(viewModel)
+            AuthStep.COMPLETE ->
+            {
+                StandardPageContent("A New Journey Begins Here!", "Press Next to continue!")
+            }
 
         }
-        LoginStep.FORGOT_PASSWORD -> ForgotPasswordScreen(loginStep)
-        LoginStep.COMPLETE ->
-        {
-            StandardPageContent("A New Journey Begins Here!", "Press Next to continue!")
-        }
-
     }
 }

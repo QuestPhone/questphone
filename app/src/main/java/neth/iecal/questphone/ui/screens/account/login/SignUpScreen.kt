@@ -1,4 +1,4 @@
-package neth.iecal.questphone.ui.screens.account
+package neth.iecal.questphone.ui.screens.account.login
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -29,7 +29,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,14 +47,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import io.github.jan.supabase.auth.OtpType
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.exception.AuthRestException
-import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.managers.Supabase
 import neth.iecal.questphone.data.game.User
 import neth.iecal.questphone.data.game.saveUserInfo
 
@@ -65,23 +60,27 @@ enum class SignUpStep {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(loginStep: MutableState<LoginStep>, onLogin: () -> Unit) {
-
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+fun SignUpScreen(viewModel: LoginViewModel, onAnonymousSignInSuccess: () -> Unit) {
     var isPasswordVisible by remember { mutableStateOf(false) }
-    var isConfirmPasswordVisible by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var signUpStep by remember { mutableStateOf(SignUpStep.FORM) }
 
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
+
+    val email by viewModel.email.collectAsState()
+    val password by viewModel.password.collectAsState()
+    val isEmailValid = viewModel.isEmailValid()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val authStep = viewModel.authStep
+
+    val confirmPassword by viewModel.confirmPassword.collectAsState()
+
+    val isConfirmPasswordVisible by viewModel.isConfirmPasswordVisible.collectAsState()
+    val signUpStep by viewModel.signUpStep.collectAsState()
+
     val scope = rememberCoroutineScope()
 
     // Email and password validation
-    val isEmailValid = email.contains("@") && email.contains(".")
     val isPasswordValid = password.length >= 8
     val doPasswordsMatch = password == confirmPassword
 
@@ -142,7 +141,7 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>, onLogin: () -> Unit) {
                     // Email field
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { email = it; errorMessage = null },
+                        onValueChange = { viewModel.onEmailChanged(it) },
                         label = { Text("Email") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -164,7 +163,7 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>, onLogin: () -> Unit) {
                     // Password field
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { password = it; errorMessage = null },
+                        onValueChange = { viewModel.onPasswordChanged(it) },
                         label = { Text("Password") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -195,7 +194,7 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>, onLogin: () -> Unit) {
                     // Confirm Password field
                     OutlinedTextField(
                         value = confirmPassword,
-                        onValueChange = { confirmPassword = it; errorMessage = null },
+                        onValueChange = { viewModel.onConfirmPasswordChanged(it) },
                         label = { Text("Confirm Password") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -211,7 +210,7 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>, onLogin: () -> Unit) {
                         ),
                         trailingIcon = {
                             IconButton(onClick = {
-                                isConfirmPasswordVisible = !isConfirmPasswordVisible
+                                viewModel.toggleConfirmPasswordVisibility()
                             }) {
                                 Icon(
                                     painter = painterResource(
@@ -230,42 +229,7 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>, onLogin: () -> Unit) {
                     // Sign up button
                     Button(
                         onClick = {
-                            when {
-                                email.isBlank() || password.isBlank() || confirmPassword.isBlank() -> {
-                                    errorMessage = "Please fill in all fields"
-                                }
-
-                                !isEmailValid -> {
-                                    errorMessage = "Please enter a valid email"
-                                }
-
-                                !isPasswordValid -> {
-                                    errorMessage = "Password must be at least 8 characters"
-                                }
-
-                                !doPasswordsMatch -> {
-                                    errorMessage = "Passwords don't match"
-                                }
-
-                                else -> {
-                                    scope.launch {
-                                        isLoading = true
-                                        errorMessage = null
-                                        try {
-                                            Supabase.supabase.auth.signUpWith(Email) {
-                                                this.email = email
-                                                this.password = password
-                                            }
-                                            signUpStep = SignUpStep.VERIFICATION
-                                        } catch (e: AuthRestException) {
-                                            errorMessage = e.message ?: "Sign-up failed"
-                                        } finally {
-                                            isLoading = false
-                                        }
-                                    }
-                                }
-                            }
-
+                           viewModel.signUp()
                         },
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -305,17 +269,7 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>, onLogin: () -> Unit) {
                     TextButton(
                         onClick = {
                             scope.launch {
-                                isLoading = true
-                                try {
-                                    Supabase.supabase.auth.resendEmail(
-                                        email = email,
-                                        type = OtpType.Email.SIGNUP
-                                    )
-                                } catch (e: Exception) {
-                                    errorMessage = "Failed to resend email: ${e.message}"
-                                } finally {
-                                    isLoading = false
-                                }
+                                viewModel.resendVerificationEmail()
                             }
                         },
                         modifier = Modifier.align(Alignment.End),
@@ -328,7 +282,7 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>, onLogin: () -> Unit) {
 
                     // Back button
                     TextButton(
-                        onClick = { signUpStep = SignUpStep.FORM },
+                        onClick = { viewModel.signUpStep.value = SignUpStep.FORM },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Back to sign up")
@@ -351,7 +305,7 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>, onLogin: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     TextButton(onClick = {
-                        loginStep.value = LoginStep.LOGIN
+                        authStep.value = AuthStep.LOGIN
 
                     }) {
                         Text("Login")
@@ -375,8 +329,8 @@ fun SignUpScreen(loginStep: MutableState<LoginStep>, onLogin: () -> Unit) {
                                 isContinueWithoutLoginDialog.value = false
                                 User.userInfo.isAnonymous = true
                                 User.saveUserInfo()
-                                loginStep.value = LoginStep.COMPLETE
-                                onLogin()
+                                authStep.value = AuthStep.COMPLETE
+                                onAnonymousSignInSuccess()
                             }) {
                                 Text("Continue Anyway")
                             }
