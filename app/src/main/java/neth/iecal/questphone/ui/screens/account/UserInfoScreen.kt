@@ -69,27 +69,25 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import neth.iecal.questphone.OnboardActivity
 import neth.iecal.questphone.R
-import nethical.questphone.backend.Supabase
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.ui.screens.quest.stats.components.HeatMapChart
+import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.StatsDatabaseProvider
+import nethical.questphone.backend.Supabase
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatNumber
 import nethical.questphone.core.core.utils.formatRemainingTime
-import neth.iecal.questphone.data.Category
-import neth.iecal.questphone.data.InventoryItem
-import nethical.questphone.data.game.User
+import nethical.questphone.data.game.Category
+import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.UserInfo
-import nethical.questphone.data.game.isBoosterActive
-import nethical.questphone.data.game.saveUserInfo
-import nethical.questphone.data.game.useInventoryItem
 import nethical.questphone.data.game.xpToLevelUp
-import nethical.questphone.data.quest.QuestDatabaseProvider
-import nethical.questphone.data.quest.stats.StatsDatabaseProvider
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserInfoScreen() {
     val context = LocalContext.current
-
+    val User = UserRepository(context)
     val totalXpForNextLevel = xpToLevelUp(User.userInfo.level + 1)
     val totalXpForCurrentLevel = xpToLevelUp(User.userInfo.level)
     val xpProgress = (User.userInfo.xp - totalXpForCurrentLevel).toFloat() /
@@ -362,7 +360,7 @@ private fun Menu() {
                     fontWeight = FontWeight.Bold
                 )
 
-                if (User.userInfo.isAnonymous) {
+                if (User!!.userInfo.isAnonymous) {
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
@@ -389,8 +387,8 @@ private fun Menu() {
                         data.edit { putBoolean("onboard", false) }
                         val questdao = QuestDatabaseProvider.getInstance(context).questDao()
                         val statsdao = StatsDatabaseProvider.getInstance(context).statsDao()
-                        User.userInfo = UserInfo()
-                        User.saveUserInfo()
+                        User!!.userInfo = UserInfo()
+                        User!!.saveUserInfo()
                         CoroutineScope(Dispatchers.IO).launch {
                             Supabase.supabase.auth.signOut()
                             questdao.deleteAll()
@@ -627,11 +625,11 @@ fun InventoryItemInfoDialog(
 
                     if (reward.isDirectlyUsableFromInventory) {
 
-                        if (reward.category == Category.BOOSTERS && !User.isBoosterActive(reward)) {
+                        if (reward.category == Category.BOOSTERS && !User!!.isBoosterActive(reward)) {
                             Button(
                                 onClick = {
                                     reward.onUse()
-                                    User.useInventoryItem(reward)
+                                    User?.useInventoryItem(reward)
                                     onDismissRequest()
                                 }) {
                                 Text("Use")
@@ -643,7 +641,7 @@ fun InventoryItemInfoDialog(
                         Button(
                             onClick = {
                                 reward.onUse()
-                                User.useInventoryItem(reward)
+                                User?.useInventoryItem(reward)
                                 onDismissRequest()
                             }) {
                             Text("Use")

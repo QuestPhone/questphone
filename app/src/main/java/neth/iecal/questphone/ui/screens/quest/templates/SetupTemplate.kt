@@ -73,7 +73,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.data.TemplateData
 import neth.iecal.questphone.data.TemplateVariable
 import neth.iecal.questphone.data.VariableName
@@ -91,7 +91,7 @@ import nethical.questphone.core.core.utils.managers.formatAppList
 import nethical.questphone.core.core.utils.readableTimeRange
 import nethical.questphone.data.BaseIntegrationId
 import nethical.questphone.data.DayOfWeek
-import nethical.questphone.data.game.User
+import nethical.questphone.data.json
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
@@ -231,7 +231,7 @@ fun SetupTemplate(id: String,controller: NavController) {
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = if (getCurrentDate() == User.userInfo.getCreatedOnString())"Click on the highlighted items to change values" else "Fake a quest if you want. It'll sit in your history, reminding you you're a fraud. Real ones can ignore this, you’ve got nothing to hide.",
+                                text = if (getCurrentDate() == User!!.userInfo.getCreatedOnString())"Click on the highlighted items to change values" else "Fake a quest if you want. It'll sit in your history, reminding you you're a fraud. Real ones can ignore this, you’ve got nothing to hide.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium
                             )
@@ -246,7 +246,7 @@ fun SetupTemplate(id: String,controller: NavController) {
                             .padding(bottom = 80.dp) // Space for FAB
                     ) {
                         ClickableTemplateText(
-                            content = data.content.replace("#{userName}", User.userInfo.username),
+                            content = data.content.replace("#{userName}", User!!.userInfo.username),
                             variables = data.variableTypes,
                             variableValues = variableValues,
                             onVariableClick = { variable ->

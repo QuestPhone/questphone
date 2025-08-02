@@ -1,12 +1,7 @@
-package neth.iecal.questphone.data
+package nethical.questphone.data.game
 
-import android.util.Log
 import kotlinx.serialization.Serializable
-import neth.iecal.questphone.R
-import neth.iecal.questphone.ui.navigation.Navigator
-import neth.iecal.questphone.ui.navigation.RootRoute
-import neth.iecal.questphone.ui.screens.onboard.subscreens.SelectAppsModes
-import nethical.questphone.core.core.utils.getFullTimeAfter
+import nethical.questphone.data.R
 
 @Serializable
 enum class Availability(val displayName: String, val rarityValue: Int) {
@@ -33,19 +28,19 @@ enum class InventoryItem(val simpleName: String, val description: String, val ic
     XP_BOOSTER ("XP Booster", description = "Get 2x more xp for the next 5 hours.", isDirectlyUsableFromInventory = true,onUse = ::onUseXpBooster, icon = R.drawable.xp_booster, category = Category.BOOSTERS, price = 10),
     DISTRACTION_ADDER("Distraction Adder", description = "Add an app to the distraction list", isDirectlyUsableFromInventory = true, onUse = ::onUseDistractionAdder,icon = R.drawable.distraction_adder, price = 2),
     DISTRACTION_REMOVER("Distraction Remover", description = "Remove an app from the distractions list", isDirectlyUsableFromInventory = true, onUse = ::onUseDistractionRemover ,icon = R.drawable.distraction_remover, price = 20),
-    REWARD_TIME_EDITOR("Rewarded Screentime Editor", description = "Edit how many minutes of screentime you can buy with 1 coin", isDirectlyUsableFromInventory = true, onUse = { Navigator.currentScreen = RootRoute.SetCoinRewardRatio.route }, icon = R.drawable.screentime_rewarder, price = 0),
+//    REWARD_TIME_EDITOR("Rewarded Screentime Editor", description = "Edit how many minutes of screentime you can buy with 1 coin", isDirectlyUsableFromInventory = true, onUse = { Navigator.currentScreen = RootRoute.SetCoinRewardRatio.route }, icon = R.drawable.screentime_rewarder, price = 0),
 }
 
 fun onUseXpBooster(){
-    User.userInfo.active_boosts.put(InventoryItem.XP_BOOSTER, getFullTimeAfter(5, 0))
-    User.saveUserInfo()
+//    User.userInfo.active_boosts.put(InventoryItem.XP_BOOSTER, getFullTimeAfter(5, 0))
+//    User.saveUserInfo()
 }
 
 fun onUseDistractionAdder(){
-    Log.d("InventoryItem","Used distraction Adder")
-    Navigator.currentScreen = RootRoute.SelectApps.route + SelectAppsModes.ALLOW_ADD.ordinal
+//    Log.d("InventoryItem","Used distraction Adder")
+//    Navigator.currentScreen = RootRoute.SelectApps.route + SelectAppsModes.ALLOW_ADD.ordinal
 }
 fun onUseDistractionRemover(){
-    Log.d("InventoryItem","Used distraction Remover")
-    Navigator.currentScreen = RootRoute.SelectApps.route + SelectAppsModes.ALLOW_REMOVE.ordinal
+//    Log.d("InventoryItem","Used distraction Remover")
+//    Navigator.currentScreen = RootRoute.SelectApps.route + SelectAppsModes.ALLOW_REMOVE.ordinal
 }

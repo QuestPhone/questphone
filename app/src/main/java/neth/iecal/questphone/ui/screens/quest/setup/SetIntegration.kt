@@ -40,10 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import neth.iecal.questphone.R
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.ui.screens.quest_docs.QuestTutorial
 import nethical.questphone.core.core.utils.VibrationHelper
-import nethical.questphone.data.game.User
 
 @OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("UnrememberedMutableState")
@@ -120,8 +120,8 @@ fun SetIntegration(navController: NavHostController) {
 //                                                    inclusive = true
 //                                                }
 //                                            }
-                                            Log.d("anonymous",User.userInfo.isAnonymous.toString())
-                                            if(!item.isLoginRequired || !User.userInfo.isAnonymous){
+                                            Log.d("anonymous", User!!.userInfo.isAnonymous.toString())
+                                            if(!item.isLoginRequired || !User!!.userInfo.isAnonymous){
                                                 navController.navigate("${item.name}/ntg") {
                                                     popUpTo(navController.currentDestination?.route ?: "") {
                                                         inclusive = true

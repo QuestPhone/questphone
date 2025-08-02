@@ -10,18 +10,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.collectLatest
-import nethical.questphone.backend.Supabase
 import neth.iecal.questphone.ui.screens.account.ForgotPasswordScreen
 import neth.iecal.questphone.ui.screens.account.login.AuthStep
 import neth.iecal.questphone.ui.screens.account.login.LoginScreen
 import neth.iecal.questphone.ui.screens.account.login.LoginViewModel
 import neth.iecal.questphone.ui.screens.account.login.SignUpScreen
 import neth.iecal.questphone.ui.screens.onboard.StandardPageContent
+import nethical.questphone.backend.Supabase
 import nethical.questphone.backend.isOnline
 import nethical.questphone.backend.triggerProfileSync
 import nethical.questphone.backend.triggerQuestSync
@@ -31,7 +31,7 @@ import nethical.questphone.backend.triggerStatsSync
 fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostController){
     val context = LocalContext.current
 
-    val viewModel: LoginViewModel = viewModel()
+    val viewModel: LoginViewModel = hiltViewModel()
 
     val authStep = viewModel.authStep
     LaunchedEffect(Unit) {

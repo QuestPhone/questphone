@@ -16,8 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import neth.iecal.questphone.data.User
-import neth.iecal.questphone.data.useCoins
+import neth.iecal.questphone.core.utils.managers.User
 import nethical.questphone.core.core.services.AppBlockerService
 import nethical.questphone.core.core.services.AppBlockerServiceInfo
 import nethical.questphone.core.core.services.INTENT_ACTION_UNLOCK_APP
@@ -136,7 +135,7 @@ class AppListViewModel @Inject constructor(
             AppBlockerServiceInfo.unlockedApps[pkg] = System.currentTimeMillis() + cooldownTime
         }
 
-        User.useCoins(5)
+        User!!.useCoins(5)
         launchApp(context, pkg)
         _showCoinDialog.value = false
     }

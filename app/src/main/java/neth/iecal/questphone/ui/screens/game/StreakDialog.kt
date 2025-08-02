@@ -28,9 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import neth.iecal.questphone.R
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
 import nethical.questphone.core.core.utils.VibrationHelper
-import nethical.questphone.data.game.User
 
 @Composable
 fun StreakUpDialog( onDismiss: () -> Unit) {
@@ -74,7 +74,7 @@ fun StreakUpDialog( onDismiss: () -> Unit) {
                 Spacer(modifier = Modifier.size(8.dp))
 
                 Text(
-                    text = "New Streak: ${User.userInfo.streak.currentStreak} days",
+                    text = "New Streak: ${User!!.userInfo.streak.currentStreak} days",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     fontSize = 16.sp,
@@ -91,7 +91,7 @@ fun StreakUpDialog( onDismiss: () -> Unit) {
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                     Text(
-                        text = "XP: ${User.lastXpEarned}",
+                        text = "XP: ${User!!.lastXpEarned}",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                         fontSize = 16.sp,

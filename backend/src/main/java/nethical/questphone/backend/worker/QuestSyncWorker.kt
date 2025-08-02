@@ -6,32 +6,37 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.first
+import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.Supabase
+import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.core.R
 import nethical.questphone.data.SyncStatus
-import nethical.questphone.data.quest.CommonQuestInfo
-import nethical.questphone.data.quest.QuestDatabaseProvider
 
-class QuestSyncWorker(
-    context: Context,
-    params: WorkerParameters
+@HiltWorker
+class QuestSyncWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val questRepository: QuestRepository
 ) : CoroutineWorker(context, params) {
 
+    val context = context.applicationContext
     override suspend fun doWork(): Result {
         try {
 
-            val dao = QuestDatabaseProvider.getInstance(applicationContext).questDao()
             val userId = Supabase.supabase.auth.currentUserOrNull()?.id ?: return Result.success()
             val isFirstTimeSync = inputData.getBoolean("is_first_time",false)
 
             Log.d("QuestSyncManager", "Starting sync for $userId")
-            showSyncNotification(applicationContext)
-            sendSyncBroadcast(applicationContext, SyncStatus.ONGOING)
+            showSyncNotification(context)
+            sendSyncBroadcast(context, SyncStatus.ONGOING)
 
             if(isFirstTimeSync){
                 val remoteQuests = Supabase.supabase
@@ -45,15 +50,15 @@ class QuestSyncWorker(
                     .decodeList<CommonQuestInfo>()
 
                 remoteQuests.forEach {
-                    dao.upsertQuest(it.copy(synced = true))
+                    questRepository.upsertQuest(it.copy(synced = true))
                 }
                 return Result.success()
             }
 
-            val unSyncedQuests = dao.getUnSyncedQuests().first()
+            val unSyncedQuests = questRepository.getUnSyncedQuests().first()
             unSyncedQuests.forEach {
                 Supabase.supabase.postgrest["quests"].upsert(it)
-                dao.markAsSynced(it.id)
+                questRepository.markAsSynced(it.id)
             }
 
 //
@@ -108,7 +113,7 @@ class QuestSyncWorker(
 
 
         val manager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.cancel(1043)
             return Result.success()
         }catch (e: Exception){

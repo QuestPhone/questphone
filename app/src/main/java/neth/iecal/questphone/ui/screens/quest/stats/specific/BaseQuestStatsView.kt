@@ -73,19 +73,17 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toLocalDateTime
 import neth.iecal.questphone.R
-import neth.iecal.questphone.data.InventoryItem
-import nethical.questphone.data.game.User
-import nethical.questphone.data.game.getInventoryItemCount
-import nethical.questphone.data.game.useInventoryItem
-import nethical.questphone.data.quest.CommonQuestInfo
-import nethical.questphone.data.quest.QuestDatabaseProvider
-import nethical.questphone.data.quest.stats.StatsDatabaseProvider
-import nethical.questphone.data.quest.stats.StatsInfo
-import neth.iecal.questphone.core.utils.daysSince
-import neth.iecal.questphone.core.utils.formatHour
-import neth.iecal.questphone.core.utils.getStartOfWeek
-import neth.iecal.questphone.core.utils.managers.json
-import neth.iecal.questphone.core.utils.toJavaDayOfWeek
+import neth.iecal.questphone.core.utils.managers.User
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.StatsDatabaseProvider
+import nethical.questphone.backend.StatsInfo
+import nethical.questphone.core.core.utils.daysSince
+import nethical.questphone.core.core.utils.formatHour
+import nethical.questphone.core.core.utils.getStartOfWeek
+import nethical.questphone.core.core.utils.toJavaDayOfWeek
+import nethical.questphone.data.game.InventoryItem
+import nethical.questphone.data.json
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -561,7 +559,7 @@ fun QuestDetailsCard(baseData: CommonQuestInfo, isQuestEditorInfoDialogVisible: 
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.quest_editor),
+                            painter = painterResource(nethical.questphone.data.R.drawable.quest_editor),
                             contentDescription = "quest_editor",
                             modifier = Modifier
                                 .size(25.dp)
@@ -588,7 +586,7 @@ fun QuestDetailsCard(baseData: CommonQuestInfo, isQuestEditorInfoDialogVisible: 
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.quest_deletor),
+                            painter = painterResource(nethical.questphone.data.R.drawable.quest_deletor),
                             contentDescription = "quest_editor",
                             modifier = Modifier
                                 .size(25.dp)
@@ -844,7 +842,7 @@ fun UseItemDialog(item: InventoryItem, isDialogVisible: MutableState<Boolean>, o
         Dialog(onDismissRequest = {
             isDialogVisible.value = false
         }) {
-            val doesUserOwnEditor = User.getInventoryItemCount(item)>0
+            val doesUserOwnEditor = User!!.getInventoryItemCount(item)>0
             Surface(
                 shape = MaterialTheme.shapes.medium,
                 tonalElevation = 8.dp,
@@ -880,7 +878,7 @@ fun UseItemDialog(item: InventoryItem, isDialogVisible: MutableState<Boolean>, o
 
                         if(doesUserOwnEditor){
                             Button(onClick = {
-                                User.useInventoryItem(item)
+                                User!!.useInventoryItem(item)
                                 onUse()
                                 isDialogVisible.value = false
                             }) {

@@ -39,12 +39,12 @@ import androidx.core.content.edit
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.ui.screens.launcher.launchApp
 import nethical.questphone.core.core.services.AppBlockerService
 import nethical.questphone.core.core.services.AppBlockerServiceInfo
 import nethical.questphone.core.core.services.INTENT_ACTION_UNLOCK_APP
 import nethical.questphone.core.core.utils.ScreenUsageStatsHelper
-import nethical.questphone.data.game.User
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
@@ -233,10 +233,10 @@ private fun calculateFreeUnlocks(screenTimes: List<Double>): Int {
     if (screenTimes.size < 7) return 3 // Fallback for partial data
 
     val now = Clock.System.now()
-    val questStreak = User.userInfo.streak.currentStreak
-    val daysSinceCreated = User.userInfo.created_on.daysUntil(now, TimeZone.currentSystemDefault())
+    val questStreak = User!!.userInfo.streak.currentStreak
+    val daysSinceCreated = User!!.userInfo.created_on.daysUntil(now, TimeZone.currentSystemDefault())
     val weeksSinceFirstUse = daysSinceCreated / 7.0
-    val userLevel = User.userInfo.level
+    val userLevel = User!!.userInfo.level
 
     val weights = listOf(0.25, 0.2, 0.15, 0.15, 0.1, 0.1, 0.05)
     val weightedAvg = screenTimes.zip(weights).sumOf { (t, w) -> t * w }

@@ -3,6 +3,7 @@ package neth.iecal.questphone.ui.screens.account.login
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.exception.AuthRestException
@@ -10,10 +11,15 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import nethical.questphone.backend.Supabase
 import neth.iecal.questphone.ui.screens.account.ForgotPasswordStep
+import nethical.questphone.backend.Supabase
+import nethical.questphone.backend.repositories.UserRepository
+import javax.inject.Inject
 
-class LoginViewModel : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
 
     val email = MutableStateFlow("")
     val password = MutableStateFlow("")
@@ -166,6 +172,12 @@ class LoginViewModel : ViewModel() {
 
     fun isEmailValid(): Boolean {
         return email.value.contains("@") && email.value.contains(".")
+    }
+
+    fun signInAnonymously() {
+        authStep.value = AuthStep.COMPLETE
+        userRepository.userInfo.isAnonymous = true
+        userRepository.saveUserInfo()
     }
 
 }

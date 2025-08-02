@@ -24,20 +24,19 @@ import kotlinx.coroutines.launch
 import neth.iecal.questphone.core.utils.managers.HealthConnectManager
 import neth.iecal.questphone.core.utils.managers.HealthConnectManager.Companion.requiredPermissions
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.ui.screens.quest.checkForRewards
 import neth.iecal.questphone.ui.screens.quest.view.BaseQuestView
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.StatsDatabaseProvider
+import nethical.questphone.backend.StatsInfo
 import nethical.questphone.core.core.utils.getCurrentDate
-import nethical.questphone.data.game.User
-import nethical.questphone.data.game.getUserInfo
 import nethical.questphone.data.game.xpToRewardForQuest
+import nethical.questphone.data.json
 import nethical.questphone.data.quest.health.HealthQuest
 import nethical.questphone.data.quest.health.HealthTaskType
-import nethical.questphone.data.quest.stats.StatsDatabaseProvider
-import nethical.questphone.data.quest.stats.StatsInfo
 import java.util.UUID
 
 @SuppressLint("DefaultLocale")
@@ -56,7 +55,6 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
     val hasRequiredPermissions = remember { mutableStateOf(false) }
     val currentHealthData = remember { mutableDoubleStateOf(0.0) }
     val progressState = remember { mutableFloatStateOf(if (isQuestComplete.value) 1f else 0f) }
-    val userInfo = getUserInfo(LocalContext.current)
 
     fun onQuestCompleted(){
         healthQuest.incrementGoal()
@@ -71,7 +69,7 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                 StatsInfo(
                     id = UUID.randomUUID().toString(),
                     quest_id = commonQuestInfo.id,
-                    user_id = User.getUserId(),
+                    user_id = User!!.getUserId(),
                     )
             )
         }
@@ -158,7 +156,7 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                 Text(
                     text = (if (isQuestComplete.value) "Next Reward" else "Reward") + ": ${commonQuestInfo.reward} coins + ${
                         xpToRewardForQuest(
-                            userInfo.level
+                            User!!.userInfo.level
                         )
                     } xp",
                     style = MaterialTheme.typography.bodyLarge,

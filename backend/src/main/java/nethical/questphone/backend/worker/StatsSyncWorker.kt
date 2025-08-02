@@ -6,27 +6,32 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import nethical.questphone.backend.QuestDatabaseProvider
 import nethical.questphone.backend.StatsInfo
 import nethical.questphone.backend.Supabase
+import nethical.questphone.backend.repositories.StatsRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.R
 import nethical.questphone.core.core.utils.calculateMonthsPassedAndRoundedStart
 import nethical.questphone.data.SyncStatus
-import nethical.questphone.data.game.User
-import nethical.questphone.data.quest.QuestDatabaseProvider
-import nethical.questphone.data.quest.stats.StatsDatabaseProvider
-import nethical.questphone.data.quest.stats.StatsInfo
 
-class StatsSyncWorker(
-    context: Context,
-    params: WorkerParameters
+@HiltWorker
+class StatsSyncWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val userRepository: UserRepository,
+    private val statRepository: StatsRepository
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -40,13 +45,12 @@ class StatsSyncWorker(
             showSyncNotification(applicationContext)
             sendSyncBroadcast(applicationContext, SyncStatus.ONGOING)
 
-            val statsDao = StatsDatabaseProvider.getInstance(applicationContext).statsDao()
-            val unSyncedStats = statsDao.getAllUnSyncedStats().first()
+            val unSyncedStats = statRepository.getAllUnSyncedStats().first()
 
             if(isFirstTimeSync){
                 val userId = Supabase.supabase.auth.currentUserOrNull()!!.id
                 val today = Clock.System.now().toLocalDateTime(TimeZone.UTC).date
-                val startDate = calculateMonthsPassedAndRoundedStart(User.userInfo.created_on)
+                val startDate = calculateMonthsPassedAndRoundedStart(userRepository.userInfo.created_on)
 
                 val start = startDate.toString()  // e.g., "2023-01-01"
                 val end = today.toString()        // e.g., "2025-06-16"
@@ -62,7 +66,7 @@ class StatsSyncWorker(
                     }
                     .decodeList<StatsInfo>()
                 stats.forEach {
-                    statsDao.upsertStats(it.copy(isSynced = true))
+                    statRepository.upsertStats(it.copy(isSynced = true))
                 }
                 return Result.success()
             }

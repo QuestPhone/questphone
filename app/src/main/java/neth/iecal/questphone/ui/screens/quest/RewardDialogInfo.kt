@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import neth.iecal.questphone.R
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.ui.screens.game.StreakFailedDialog
 import neth.iecal.questphone.ui.screens.game.StreakUpDialog
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo.currentCommonQuestInfo
@@ -46,12 +47,8 @@ import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo.isRewardDialogVis
 import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo.streakData
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.core.core.utils.VibrationHelper
-import neth.iecal.questphone.data.InventoryItem
+import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.StreakCheckReturn
-import nethical.questphone.data.game.User
-import nethical.questphone.data.game.addCoins
-import nethical.questphone.data.game.addLevelUpRewards
-import nethical.questphone.data.game.addXp
 import nethical.questphone.data.game.xpFromStreak
 import nethical.questphone.data.game.xpToRewardForQuest
 
@@ -96,7 +93,7 @@ fun RewardDialogMaker(  ) {
     if (isRewardDialogTriggered) {
 
         // Calculate if user leveled up and the rewards
-        val oldLevel = remember { User.userInfo.level }
+        val oldLevel = remember { User!!.userInfo.level }
         var didUserLevelUp = remember { false }
         var levelUpInventoryItem = remember { hashMapOf<InventoryItem, Int>() }
 
@@ -106,17 +103,17 @@ fun RewardDialogMaker(  ) {
 
         val coinsEarned = RewardDialogInfo.currentCommonQuestInfo?.reward ?: 0
         LaunchedEffect(Unit) {
-            val xp = if(isTriggeredViaQuestCompletion) xpToRewardForQuest(User.userInfo.level) else xpFromStreak(
-                User.userInfo.streak.currentStreak
+            val xp = if(isTriggeredViaQuestCompletion) xpToRewardForQuest(User!!.userInfo.level) else xpFromStreak(
+                User!!.userInfo.streak.currentStreak
             )
-            User.addXp(xp)
-            User.lastXpEarned = xp
-            User.addCoins(coinsEarned)
+            User!!.addXp(xp)
+            User!!.lastXpEarned = xp
+            User!!.addCoins(coinsEarned)
 
-            didUserLevelUp = oldLevel != User.userInfo.level
+            didUserLevelUp = oldLevel != User!!.userInfo.level
 
             if (didUserLevelUp) {
-                levelUpInventoryItem = User.addLevelUpRewards()
+                levelUpInventoryItem = User!!.addLevelUpRewards()
             }
         }
 
@@ -271,7 +268,7 @@ fun LevelUpDialog(oldLevel: Int,onDismiss: () -> Unit,lvUpRew: HashMap<Inventory
             Spacer(modifier = Modifier.size(8.dp))
 
             Text(
-                text = "You advanced from level $oldLevel to level ${User.userInfo.level}",
+                text = "You advanced from level $oldLevel to level ${User!!.userInfo.level}",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 16.dp)

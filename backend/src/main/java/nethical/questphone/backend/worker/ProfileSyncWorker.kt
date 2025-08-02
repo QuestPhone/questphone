@@ -6,21 +6,25 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import nethical.questphone.backend.Supabase
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.R
 import nethical.questphone.data.SyncStatus
-import nethical.questphone.data.game.User
 import nethical.questphone.data.game.UserInfo
-import nethical.questphone.data.game.saveUserInfo
 
-class ProfileSyncWorker(
-    context: Context,
-    params: WorkerParameters
+@HiltWorker
+class ProfileSyncWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted params: WorkerParameters,
+    private val userRepository: UserRepository // this is injected!
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -32,7 +36,7 @@ class ProfileSyncWorker(
             showSyncNotification(applicationContext)
             sendSyncBroadcast(applicationContext, SyncStatus.ONGOING)
 
-            if(User.userInfo.needsSync){
+            if(userRepository.userInfo.needsSync){
                 val profileRemote = Supabase.supabase.from("profiles")
                     .select {
                         filter {
@@ -42,15 +46,15 @@ class ProfileSyncWorker(
                     .decodeSingleOrNull<UserInfo>()
 
                 if (profileRemote != null) {
-                    if (profileRemote.last_updated  > User.userInfo.last_updated){
-                        User.userInfo = profileRemote
+                    if (profileRemote.last_updated  > userRepository.userInfo.last_updated){
+                        userRepository.userInfo = profileRemote
                     }
                 }
                 Supabase.supabase.postgrest["profiles"].upsert(
-                    User.userInfo
+                    userRepository.userInfo
                 )
-                User.userInfo.needsSync = false
-                User.saveUserInfo(false)
+                userRepository.userInfo.needsSync = false
+                userRepository.saveUserInfo(false)
             }
 
 

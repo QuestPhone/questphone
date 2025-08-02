@@ -56,11 +56,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.ui.navigation.RootRoute
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getCurrentDay
-import nethical.questphone.data.quest.CommonQuestInfo
-import nethical.questphone.backend.repositories.QuestRepository
 import javax.inject.Inject
 
 @HiltViewModel

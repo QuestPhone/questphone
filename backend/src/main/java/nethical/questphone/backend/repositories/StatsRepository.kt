@@ -7,9 +7,7 @@ import javax.inject.Inject
 
 class StatsRepository @Inject constructor(
     private val statsInfoDao: StatsInfoDao
-
 ) {
-
     suspend fun upsertStats(statsInfo: StatsInfo) {
         statsInfoDao.upsertStats(statsInfo)
     }

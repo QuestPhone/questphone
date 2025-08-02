@@ -263,13 +263,6 @@ fun unixToReadable(unixTime: Long, inMillis: Boolean = false, pattern: String = 
     val formatter = DateTimeFormatter.ofPattern(pattern)
     return dateTime.format(formatter)
 }
-/**
- * format: yyyy-MM-dd
- */
-fun formatInstantToDate(instant: Instant): String {
-    val localDate = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
-    return localDate.toString() // yyyy-MM-dd
-}
 
 fun readableTimeRange(range: List<Int>): String {
     val (start, end) = range

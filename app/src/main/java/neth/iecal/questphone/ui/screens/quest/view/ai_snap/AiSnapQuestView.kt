@@ -17,20 +17,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.ui.screens.quest.checkForRewards
 import neth.iecal.questphone.ui.screens.quest.view.BaseQuestView
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.StatsDatabaseProvider
+import nethical.questphone.backend.StatsInfo
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.core.core.utils.getCurrentDate
-import nethical.questphone.data.game.User
-import nethical.questphone.data.game.getUserInfo
 import nethical.questphone.data.game.xpToRewardForQuest
+import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap
-import nethical.questphone.data.quest.stats.StatsDatabaseProvider
-import nethical.questphone.data.quest.stats.StatsInfo
 import java.util.UUID
 
 @Composable
@@ -47,7 +47,7 @@ fun AiSnapQuestView(
     }
     var isCameraScreen = remember { mutableStateOf(false) }
     var isAiEvaluating = remember { mutableStateOf(false) }
-    val userInfo = getUserInfo(LocalContext.current)
+    val userInfo = UserRepository(context)
 
 
     val dao = QuestDatabaseProvider.getInstance(context).questDao()
@@ -76,7 +76,7 @@ fun AiSnapQuestView(
                 StatsInfo(
                     id = UUID.randomUUID().toString(),
                     quest_id = commonQuestInfo.id,
-                    user_id = User.getUserId(),
+                    user_id = User!!.getUserId(),
                 )
             )
         }
@@ -120,7 +120,7 @@ fun AiSnapQuestView(
                 Text(
                     text = (if (!isQuestComplete.value) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
                         xpToRewardForQuest(
-                            userInfo.level
+                            User!!.userInfo.level
                         )
                     } xp",
                     style = MaterialTheme.typography.bodyLarge

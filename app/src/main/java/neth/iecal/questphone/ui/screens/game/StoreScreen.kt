@@ -62,17 +62,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import neth.iecal.questphone.R
-import neth.iecal.questphone.data.Category
-import neth.iecal.questphone.data.InventoryItem
-import nethical.questphone.data.game.User
-import nethical.questphone.data.game.addItemsToInventory
-import nethical.questphone.data.game.getInventoryItemCount
-import nethical.questphone.data.game.useCoins
-
+import neth.iecal.questphone.core.utils.managers.User
+import nethical.questphone.data.game.Category
+import nethical.questphone.data.game.InventoryItem
 
 // View model for the store
 class StoreViewModel {
-    var coins by mutableIntStateOf(User.userInfo.coins)
+    var coins by mutableIntStateOf(User!!.userInfo.coins)
     // Currently selected category
     var selectedCategory by mutableStateOf<Category>(Category.BOOSTERS)
         private set
@@ -98,9 +94,9 @@ class StoreViewModel {
     fun purchaseItem(item: InventoryItem): Boolean {
         var itemMap = hashMapOf<InventoryItem, Int>()
         itemMap.put(item,1)
-        User.addItemsToInventory(itemMap)
-        User.useCoins(item.price)
-        coins = User.userInfo.coins
+        User?.addItemsToInventory(itemMap)
+        User?.useCoins(item.price)
+        coins = User?.userInfo!!.coins
         return true
     }
 
@@ -405,7 +401,7 @@ fun PurchaseDialog(
     onDismiss: () -> Unit,
     onPurchase: () -> Unit
 ) {
-    val userCoins = User.userInfo.coins
+    val userCoins = User?.userInfo!!.coins
     val hasEnoughCoins = userCoins >= item.price
 
     Dialog(onDismissRequest = onDismiss) {
@@ -490,7 +486,7 @@ fun PurchaseDialog(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${User.getInventoryItemCount(item)}",
+                        text = "${User?.getInventoryItemCount(item)}",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp

@@ -79,7 +79,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.data.User
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.ui.navigation.LauncherDialogRoutes
 import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.ui.screens.components.NeuralMeshAsymmetrical
@@ -98,7 +98,6 @@ import nethical.questphone.core.core.utils.managers.openDefaultLauncherSettings
 import nethical.questphone.core.core.utils.managers.performLockScreenAction
 import nethical.questphone.data.MeshStyles
 import nethical.questphone.data.game.StreakCheckReturn
-import nethical.questphone.data.game.checkIfStreakFailed
 
 data class SidePanelItem(
     val icon: Int,
@@ -130,8 +129,8 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
         SidePanelItem(R.drawable.profile_d,{navController.navigate(RootRoute.UserInfo.route)},"Profile"),
         SidePanelItem(R.drawable.notification_up,{ Toast.makeText(context,"Coming soon!", Toast.LENGTH_SHORT).show()},"Notifications"),
         SidePanelItem(R.drawable.store,{navController.navigate(RootRoute.Store.route)},"Store"),
-        SidePanelItem(R.drawable.quest_analytics,{navController.navigate(RootRoute.ListAllQuest.route)},"Quest Analytics"),
-        SidePanelItem(R.drawable.quest_adderpng,{navController.navigate(RootRoute.SelectTemplates.route)},"Add Quest")
+        SidePanelItem(nethical.questphone.data.R.drawable.quest_analytics,{navController.navigate(RootRoute.ListAllQuest.route)},"Quest Analytics"),
+        SidePanelItem(nethical.questphone.data.R.drawable.quest_adderpng,{navController.navigate(RootRoute.SelectTemplates.route)},"Add Quest")
     )
 
     var isAllQuestsDialogVisible by remember { mutableStateOf(false) }
@@ -175,8 +174,8 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
     }
 
     LaunchedEffect(Unit) {
-        if (User.userInfo.streak.currentStreak != 0) {
-            streakFailResultHandler(User.checkIfStreakFailed())
+        if (User!!.userInfo.streak.currentStreak != 0) {
+            streakFailResultHandler(User!!.checkIfStreakFailed())
         }
     }
 

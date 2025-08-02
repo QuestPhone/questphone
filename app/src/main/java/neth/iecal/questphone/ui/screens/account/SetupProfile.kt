@@ -33,7 +33,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,10 +44,12 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
@@ -61,15 +62,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
 import nethical.questphone.backend.Supabase
-import nethical.questphone.data.game.User
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.game.UserInfo
-import nethical.questphone.data.game.saveUserInfo
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.util.Base64
+import javax.inject.Inject
 
-class SetupProfileViewModel : ViewModel() {
+@HiltViewModel
+class SetupProfileViewModel @Inject constructor(
+    val userRepository: UserRepository
+) : ViewModel() {
     private val _name = MutableStateFlow("")
     val name: StateFlow<String> = _name.asStateFlow()
 
@@ -93,7 +97,7 @@ class SetupProfileViewModel : ViewModel() {
 
     fun initializeProfile() {
         viewModelScope.launch {
-            if (User.userInfo.isAnonymous) {
+            if (userRepository.userInfo.isAnonymous) {
                 _isLoading.value = false
                 return@launch
             }
@@ -109,18 +113,18 @@ class SetupProfileViewModel : ViewModel() {
                 .decodeSingleOrNull<UserInfo>()
 
             if (profile != null) {
-                User.userInfo = profile
+                userRepository.userInfo = profile
                 if (profile.has_profile) {
                     _profileUrl.value = "https://hplszhlnchhfwngbojnc.supabase.co/storage/v1/object/public/profile/$userId/profile"
                 }
             } else {
-                User.userInfo.username = squashUserIdToUsername(userId)
-                Supabase.supabase.postgrest["profiles"].upsert(User.userInfo)
+                userRepository.userInfo.username = squashUserIdToUsername(userId)
+                Supabase.supabase.postgrest["profiles"].upsert(userRepository.userInfo)
             }
 
-            User.saveUserInfo()
-            _name.value = User.userInfo.full_name
-            _username.value = User.userInfo.username
+            userRepository.saveUserInfo()
+            _name.value = userRepository.userInfo.full_name
+            _username.value = userRepository.userInfo.username
             _isLoading.value = false
         }
     }
@@ -153,8 +157,8 @@ class SetupProfileViewModel : ViewModel() {
 
         _isLoading.value = true
 
-        if (User.userInfo.isAnonymous) {
-            User.userInfo = UserInfo(
+        if (userRepository.userInfo.isAnonymous) {
+            userRepository.userInfo = UserInfo(
                 username = _username.value,
                 full_name = _name.value,
                 has_profile = _profileUri.value != null || _profileUrl.value != null
@@ -162,7 +166,7 @@ class SetupProfileViewModel : ViewModel() {
             if (_profileUri.value != null) {
                 copyFileFromUriToAppStorage(context, _profileUri.value!!)
             }
-            User.saveUserInfo()
+            userRepository.saveUserInfo()
             _isLoading.value = false
             _isProfileSetupDone.value = true
             return
@@ -204,15 +208,15 @@ class SetupProfileViewModel : ViewModel() {
                     null
                 }
 
-                User.userInfo = UserInfo(
+                userRepository.userInfo = UserInfo(
                     username = _username.value,
                     full_name = _name.value,
                     has_profile = _profileUri.value != null || _profileUrl.value != null
                 )
-                User.saveUserInfo()
+                userRepository.saveUserInfo()
 
-                Log.d("SetupProfile", User.userInfo.toString())
-                Supabase.supabase.postgrest["profiles"].upsert(User.userInfo)
+                Log.d("SetupProfile", userRepository.userInfo.toString())
+                Supabase.supabase.postgrest["profiles"].upsert(userRepository.userInfo)
 
                 _isLoading.value = false
                 _isProfileSetupDone.value = true
@@ -227,7 +231,7 @@ class SetupProfileViewModel : ViewModel() {
 @Composable
 fun SetupProfileScreen(
     isNextEnabledSetupProfile: MutableState<Boolean> = mutableStateOf(false),
-    viewModel: SetupProfileViewModel = remember { SetupProfileViewModel() }
+    viewModel: SetupProfileViewModel = hiltViewModel()
 ) {
     val name by viewModel.name.collectAsState()
     val username by viewModel.username.collectAsState()

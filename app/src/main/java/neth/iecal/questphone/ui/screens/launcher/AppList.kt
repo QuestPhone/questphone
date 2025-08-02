@@ -37,7 +37,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import neth.iecal.questphone.data.User
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.ui.navigation.LauncherDialogRoutes
 import neth.iecal.questphone.ui.screens.launcher.dialogs.LauncherDialog
 
@@ -58,7 +58,7 @@ fun AppList(navController: NavController, viewModel: AppListViewModel) {
     Scaffold { innerPadding ->
         if (showDialog) {
             LauncherDialog(
-                coins = User.userInfo.coins,
+                coins = User!!.userInfo.coins,
                 onDismiss = {viewModel.dismissDialog()},
                 pkgName = selectedPackage,
                 rootNavController = navController,
@@ -66,7 +66,7 @@ fun AppList(navController: NavController, viewModel: AppListViewModel) {
                 unlockApp = {
                     viewModel.onConfirmUnlockApp(it)
                 },
-                startDestination = if (User.userInfo.coins >= 5) {
+                startDestination = if (User!!.userInfo.coins >= 5) {
                     LauncherDialogRoutes.UnlockAppDialog.route
                 }else
                 {

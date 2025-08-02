@@ -14,7 +14,6 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import nethical.questphone.backend.worker.ProfileSyncWorker
 import nethical.questphone.backend.worker.QuestSyncWorker
 import nethical.questphone.backend.worker.StatsSyncWorker
 import okhttp3.OkHttpClient
@@ -77,7 +76,7 @@ fun triggerProfileSync(context: Context) {
         .setRequiredNetworkType(NetworkType.CONNECTED)  // run only when internet is available
         .build()
 
-    val syncWorkRequest = OneTimeWorkRequestBuilder<ProfileSyncWorker>()
+    val syncWorkRequest = OneTimeWorkRequestBuilder<QuestSyncWorker>()
         .setConstraints(constraints)
         .build()
 

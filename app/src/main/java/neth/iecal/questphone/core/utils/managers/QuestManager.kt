@@ -3,18 +3,10 @@ package neth.iecal.questphone.core.utils.managers
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import kotlinx.serialization.json.Json
-import nethical.questphone.data.quest.CommonQuestInfo
+import nethical.questphone.backend.CommonQuestInfo
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
-
-val json = Json {
-    ignoreUnknownKeys = true
-    prettyPrint = false
-    encodeDefaults = true
-    explicitNulls = false
-}
 
 class QuestHelper(val context: Context) {
     val sharedPreferences: SharedPreferences = context.getSharedPreferences(

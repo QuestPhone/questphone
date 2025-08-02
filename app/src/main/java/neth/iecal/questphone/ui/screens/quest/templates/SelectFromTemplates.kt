@@ -59,11 +59,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
 import kotlinx.serialization.Serializable
-import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.ui.navigation.RootRoute
 import nethical.questphone.backend.fetchUrlContent
-import nethical.questphone.data.game.User
+import nethical.questphone.data.json
 
 @Serializable
 data class Activity(
@@ -286,7 +286,7 @@ fun SelectFromTemplates(
                         activity = activity,
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {
-                            if(activity.integration.isLoginRequired && User.userInfo.isAnonymous){
+                            if(activity.integration.isLoginRequired && User!!.userInfo.isAnonymous){
                                 showLoginRequiredDialog.value = true
                             }else {
                                 navController.navigate(RootRoute.SetupTemplate.route + activity.id)

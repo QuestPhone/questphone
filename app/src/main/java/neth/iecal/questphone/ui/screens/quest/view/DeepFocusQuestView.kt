@@ -39,11 +39,13 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.managers.json
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.ui.screens.quest.checkForRewards
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.StatsDatabaseProvider
+import nethical.questphone.backend.StatsInfo
 import nethical.questphone.core.core.services.AppBlockerService
 import nethical.questphone.core.core.services.AppBlockerServiceInfo
 import nethical.questphone.core.core.services.INTENT_ACTION_START_DEEP_FOCUS
@@ -51,12 +53,9 @@ import nethical.questphone.core.core.services.INTENT_ACTION_STOP_DEEP_FOCUS
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.managers.sendRefreshRequest
-import nethical.questphone.data.game.User
-import nethical.questphone.data.game.getUserInfo
 import nethical.questphone.data.game.xpToRewardForQuest
+import nethical.questphone.data.json
 import nethical.questphone.data.quest.focus.DeepFocus
-import nethical.questphone.data.quest.stats.StatsDatabaseProvider
-import nethical.questphone.data.quest.stats.StatsInfo
 import java.util.UUID
 
 private const val PREF_NAME = "deep_focus_prefs"
@@ -131,7 +130,6 @@ fun DeepFocusQuestView(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-    val userInfo = getUserInfo(LocalContext.current)
 
     fun onQuestComplete(){
         deepFocus.incrementTime()
@@ -147,7 +145,7 @@ fun DeepFocusQuestView(
                 StatsInfo(
                     id = UUID.randomUUID().toString(),
                     quest_id = commonQuestInfo.id,
-                    user_id = User.getUserId(),
+                    user_id = ""  //User.getUserId(),
                 )
             )
         }
@@ -291,7 +289,7 @@ fun DeepFocusQuestView(
             Text(
                 text = (if(!isQuestComplete.value) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
                     xpToRewardForQuest(
-                        userInfo.level
+                        User!!.userInfo.level
                     )
                 } xp",
                 style = MaterialTheme.typography.bodyLarge

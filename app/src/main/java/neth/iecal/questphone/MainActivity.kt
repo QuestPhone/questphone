@@ -25,6 +25,7 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.AndroidEntryPoint
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
 import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.ui.navigation.Navigator
@@ -48,12 +49,11 @@ import neth.iecal.questphone.ui.screens.quest.templates.SelectFromTemplates
 import neth.iecal.questphone.ui.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.ui.theme.LauncherTheme
 import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.StatsDatabaseProvider
 import nethical.questphone.backend.isOnline
 import nethical.questphone.backend.triggerQuestSync
 import nethical.questphone.backend.worker.FileDownloadWorker
 import nethical.questphone.core.core.services.AppBlockerService
-import nethical.questphone.data.game.User
-import nethical.questphone.data.quest.stats.StatsDatabaseProvider
 import java.io.File
 
 
@@ -119,12 +119,12 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(Unit) {
                         unSyncedQuestItems.collect {
                             notificationScheduler.reloadAllReminders()
-                            if (context.isOnline() && !User.userInfo.isAnonymous) {
+                            if (context.isOnline() && !User!!.userInfo.isAnonymous) {
                                 triggerQuestSync(applicationContext)
                             }
                         }
                         unSyncedStatsItems.collect {
-                            if (context.isOnline() && !User.userInfo.isAnonymous ) {
+                            if (context.isOnline() && !User!!.userInfo.isAnonymous ) {
                                 triggerQuestSync(applicationContext)
                             }
                         }

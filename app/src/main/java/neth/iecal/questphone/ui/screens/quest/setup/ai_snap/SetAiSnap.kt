@@ -47,13 +47,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.core.utils.managers.json
 import neth.iecal.questphone.data.QuestInfoState
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
 import neth.iecal.questphone.ui.screens.quest.setup.ai_snap.model.ModelDownloadDialog
 import nethical.questphone.backend.QuestDatabaseProvider
 import nethical.questphone.data.BaseIntegrationId
+import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap
 
 

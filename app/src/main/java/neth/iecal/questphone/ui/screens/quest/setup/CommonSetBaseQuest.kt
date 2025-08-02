@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.first
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.data.QuestInfoState
 import neth.iecal.questphone.ui.screens.quest.setup.components.AutoDestruct
 import neth.iecal.questphone.ui.screens.quest.setup.components.SelectDaysOfWeek
@@ -24,7 +25,6 @@ import neth.iecal.questphone.ui.screens.quest.setup.components.SetTimeRange
 import nethical.questphone.backend.QuestDatabaseProvider
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getCurrentDay
-import nethical.questphone.data.game.User
 
 @Composable
 fun SetBaseQuest(questInfoState: QuestInfoState, isTimeRangeSupported: Boolean = true) {
@@ -57,7 +57,7 @@ fun SetBaseQuest(questInfoState: QuestInfoState, isTimeRangeSupported: Boolean =
         Text(text = "Title already exists", color = MaterialTheme.colorScheme.error)
     }
 
-    if(questInfoState.selectedDays.contains(getCurrentDay()) && User.userInfo.getCreatedOnString() != getCurrentDate()){
+    if(questInfoState.selectedDays.contains(getCurrentDay()) && User!!.userInfo.getCreatedOnString() != getCurrentDate()){
         Text("Fake a quest if you want. It'll sit in your history, reminding you you're a fraud. Real ones can ignore this, you’ve got nothing to hide.")
     }
     SelectDaysOfWeek(questInfoState)

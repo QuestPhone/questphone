@@ -50,8 +50,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.R
-import nethical.questphone.data.game.User
-import nethical.questphone.data.game.saveUserInfo
 
 enum class SignUpStep {
     FORM,
@@ -327,9 +325,7 @@ fun SignUpScreen(viewModel: LoginViewModel, onAnonymousSignInSuccess: () -> Unit
                         confirmButton = {
                             TextButton(onClick = {
                                 isContinueWithoutLoginDialog.value = false
-                                User.userInfo.isAnonymous = true
-                                User.saveUserInfo()
-                                authStep.value = AuthStep.COMPLETE
+                                viewModel.signInAnonymously()
                                 onAnonymousSignInSuccess()
                             }) {
                                 Text("Continue Anyway")

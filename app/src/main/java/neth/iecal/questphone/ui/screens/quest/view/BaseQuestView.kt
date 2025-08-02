@@ -41,13 +41,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import neth.iecal.questphone.R
+import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.ui.screens.components.TopBarActions
 import nethical.questphone.core.core.utils.VibrationHelper
-import neth.iecal.questphone.data.InventoryItem
-import nethical.questphone.data.game.User
-import nethical.questphone.data.game.getInventoryItemCount
-import nethical.questphone.data.game.useInventoryItem
+import nethical.questphone.data.game.InventoryItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,9 +80,9 @@ fun BaseQuestView(topBar: @Composable () -> Unit = {}, startButtonTitle: String 
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if(!isQuestCompleted.value && User.getInventoryItemCount(InventoryItem.QUEST_SKIPPER) > 0){
+                        if(!isQuestCompleted.value && User!!.getInventoryItemCount(InventoryItem.QUEST_SKIPPER) > 0){
                             Image(
-                                painter = painterResource(R.drawable.quest_skipper),
+                                painter = painterResource(nethical.questphone.data.R.drawable.quest_skipper),
                                 contentDescription = "use quest skipper",
                                 modifier = Modifier.size(50.dp)
                                     .clickable{
@@ -133,7 +130,7 @@ fun BaseQuestView(topBar: @Composable () -> Unit = {}, startButtonTitle: String 
                             )
                             Spacer(modifier = Modifier.size(8.dp))
                             Text(
-                                text = "Available: ${User.getInventoryItemCount(InventoryItem.QUEST_SKIPPER)}",
+                                text = "Available: ${User!!.getInventoryItemCount(InventoryItem.QUEST_SKIPPER)}",
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(bottom = 16.dp)
                             )
@@ -142,7 +139,7 @@ fun BaseQuestView(topBar: @Composable () -> Unit = {}, startButtonTitle: String 
                                 Button(
                                     onClick = {
                                         VibrationHelper.vibrate(200)
-                                        User.useInventoryItem(InventoryItem.QUEST_SKIPPER)
+                                        User!!.useInventoryItem(InventoryItem.QUEST_SKIPPER)
                                         onQuestCompleted()
                                         isUseQuestSkipperDialogVisible.value = false
                                     },

@@ -13,9 +13,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import nethical.questphone.data.ReminderData
-import nethical.questphone.data.ReminderDatabaseProvider
-import nethical.questphone.data.quest.QuestDatabaseProvider
+import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.ReminderData
+import nethical.questphone.backend.ReminderDatabaseProvider
 import java.util.Date
 
 /**
