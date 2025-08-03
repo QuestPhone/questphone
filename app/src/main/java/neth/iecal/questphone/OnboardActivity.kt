@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.jan.supabase.auth.handleDeeplinks
 import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.ui.screens.account.SetupNewPassword
@@ -23,6 +24,7 @@ import neth.iecal.questphone.ui.theme.LauncherTheme
 import nethical.questphone.backend.Supabase
 
 
+@AndroidEntryPoint(ComponentActivity::class)
 class OnboardActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

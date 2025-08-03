@@ -878,7 +878,7 @@ fun UseItemDialog(item: InventoryItem, isDialogVisible: MutableState<Boolean>, o
 
                         if(doesUserOwnEditor){
                             Button(onClick = {
-                                User!!.useInventoryItem(item)
+                                User!!.deductFromInventory(item)
                                 onUse()
                                 isDialogVisible.value = false
                             }) {

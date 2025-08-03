@@ -1,6 +1,7 @@
 package nethical.questphone.backend.repositories
 
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.util.Log
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,43 +22,50 @@ import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
-import kotlin.time.ExperimentalTime
+import javax.inject.Singleton
 
+@Singleton
 class UserRepository @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val statsRepository: StatsRepository,
+    private val questRepository: QuestRepository
 ) {
-    var userInfo: UserInfo = getUserInfoFromSP()
+    var userInfo: UserInfo = loadUserInfo()
 
     var lastXpEarned: Int? = null
     var lastRewards: List<InventoryItem>? = null
 
     fun getUserId(): String {
-        val sp = context.getSharedPreferences("authtoken", Context.MODE_PRIVATE)
-        var id = sp.getString("key", null)
-        if (id != null) return id
-        id = Supabase.supabase.auth.currentUserOrNull()!!.id
-        sp.edit { putString("key", id) }
-        return id
+        return if (userInfo.isAnonymous){
+            ""
+        } else {
+            val sp = context.getSharedPreferences("authtoken", Context.MODE_PRIVATE)
+            var id = sp.getString("key",null)
+            if(id!= null) return id
+            id = Supabase.supabase.auth.currentUserOrNull()!!.id
+            sp.edit { putString("key",id) }
+            Supabase.supabase.auth.currentUserOrNull()!!.id
+        }
     }
 
     fun addXp(xp: Int) {
         removeInactiveBooster()
         val multiplier = if (isBoosterActive(InventoryItem.XP_BOOSTER)) 2 else 1
-        getUserInfoFromSP().xp += xp * multiplier
-        while (getUserInfoFromSP().xp >= xpToLevelUp(getUserInfoFromSP().level + 1)) {
-            getUserInfoFromSP().level++
+        userInfo.xp += xp * multiplier
+        while (userInfo.xp >= xpToLevelUp(userInfo.level + 1)) {
+            userInfo.level++
         }
         saveUserInfo()
     }
 
     fun removeInactiveBooster() {
-        getUserInfoFromSP().active_boosts.entries.removeIf { isTimeOver(it.value) }
+        userInfo.active_boosts.entries.removeIf { isTimeOver(it.value) }
         saveUserInfo()
     }
 
     fun isBoosterActive(reward: InventoryItem): Boolean {
-        if (getUserInfoFromSP().active_boosts.contains(reward)) {
-            val isActive = !isTimeOver(getUserInfoFromSP().active_boosts.getOrDefault(reward, "9999-09-09-09-09"))
+        if (userInfo.active_boosts.contains(reward)) {
+            val isActive = !isTimeOver(userInfo.active_boosts.getOrDefault(reward, "9999-09-09-09-09"))
             if (!isActive) removeInactiveBooster()
             return isActive
         }
@@ -66,48 +74,48 @@ class UserRepository @Inject constructor(
 
     fun addItemsToInventory(items: HashMap<InventoryItem, Int>) {
         items.forEach {
-            getUserInfoFromSP().inventory[it.key] = it.value + getInventoryItemCount(it.key)
+            userInfo.inventory[it.key] = it.value + getInventoryItemCount(it.key)
         }
         saveUserInfo()
     }
 
     fun saveUserInfo(isSetLastUpdated: Boolean = true) {
-        if (isSetLastUpdated && !getUserInfoFromSP().isAnonymous) {
-            getUserInfoFromSP().last_updated = System.currentTimeMillis()
-            getUserInfoFromSP().needsSync = true
+        if (isSetLastUpdated && !userInfo.isAnonymous) {
+            userInfo.last_updated = System.currentTimeMillis()
+            userInfo.needsSync = true
             triggerProfileSync(context)
         }
         context.getSharedPreferences("user_info", Context.MODE_PRIVATE)
-            .edit { putString("user_info", json.encodeToString(getUserInfoFromSP())) }
+            .edit { putString("user_info", json.encodeToString(userInfo)) }
     }
 
     fun getInventoryItemCount(item: InventoryItem): Int {
-        return getUserInfoFromSP().inventory.getOrDefault(item, 0)
+        return userInfo.inventory.getOrDefault(item, 0)
     }
 
-    fun useInventoryItem(item: InventoryItem, count: Int = 1) {
+    fun deductFromInventory(item: InventoryItem, count: Int = 1) {
         if (getInventoryItemCount(item) > 0) {
-            getUserInfoFromSP().inventory[item] = getInventoryItemCount(item) - count
+            userInfo.inventory[item] = getInventoryItemCount(item) - count
             if (getInventoryItemCount(item) == 0) {
-                getUserInfoFromSP().inventory.remove(item)
+                userInfo.inventory.remove(item)
             }
             saveUserInfo()
         }
     }
 
     fun useCoins(coins: Int) {
-        getUserInfoFromSP().coins -= coins
+        userInfo.coins -= coins
         saveUserInfo()
     }
 
     fun addCoins(coins: Int) {
-        getUserInfoFromSP().coins += coins
+        userInfo.coins += coins
         saveUserInfo()
     }
 
     fun checkIfStreakFailed(): StreakCheckReturn? {
         val today = LocalDate.now()
-        val streakData = getUserInfoFromSP().streak
+        val streakData = userInfo.streak
         val lastCompleted = LocalDate.parse(streakData.lastCompletedDate)
         val daysSince = ChronoUnit.DAYS.between(lastCompleted, today)
         Log.d("streak day since", daysSince.toString())
@@ -115,7 +123,7 @@ class UserRepository @Inject constructor(
         if (daysSince >= 2) {
             val requiredFreezers = (daysSince - 1).toInt()
             if (getInventoryItemCount(InventoryItem.STREAK_FREEZER) >= requiredFreezers) {
-                useInventoryItem(InventoryItem.STREAK_FREEZER, requiredFreezers)
+                deductFromInventory(InventoryItem.STREAK_FREEZER, requiredFreezers)
 
                 val oldStreak = streakData.currentStreak
                 streakData.currentStreak += requiredFreezers
@@ -143,7 +151,7 @@ class UserRepository @Inject constructor(
 
     fun continueStreak(): Boolean {
         val today = LocalDate.now()
-        val streakData = getUserInfoFromSP().streak
+        val streakData = userInfo.streak
         val lastCompleted = LocalDate.parse(streakData.lastCompletedDate)
         val daysSince = ChronoUnit.DAYS.between(lastCompleted, today)
 
@@ -161,19 +169,36 @@ class UserRepository @Inject constructor(
     fun addLevelUpRewards(): HashMap<InventoryItem, Int> {
         val rewards = hashMapOf<InventoryItem, Int>()
         rewards[InventoryItem.QUEST_SKIPPER] = 1
-        if (getUserInfoFromSP().level % 2 == 0) rewards[InventoryItem.XP_BOOSTER] = 1
-        if (getUserInfoFromSP().level % 5 == 0) rewards[InventoryItem.STREAK_FREEZER] = 1
+        if (userInfo.level % 2 == 0) rewards[InventoryItem.XP_BOOSTER] = 1
+        if (userInfo.level % 5 == 0) rewards[InventoryItem.STREAK_FREEZER] = 1
 
         addItemsToInventory(rewards)
+        saveUserInfo()
         return rewards
     }
 
-    @OptIn(ExperimentalTime::class)
-    private fun getUserInfoFromSP(): UserInfo {
+    private fun loadUserInfo(): UserInfo {
         val sharedPreferences = context.getSharedPreferences("user_info", Context.MODE_PRIVATE)
         val userInfoJson = sharedPreferences.getString("user_info", null)
         return userInfoJson?.let {
             json.decodeFromString(it)
         } ?: UserInfo()
+    }
+
+    private fun deleteLocalUserInfoCache(){
+        val sharedPreferences = context.getSharedPreferences("user_info", Context.MODE_PRIVATE)
+        sharedPreferences.edit { remove("user_info") }
+    }
+
+    suspend fun signOut() {
+        val sharedPrefs = context.getSharedPreferences("onboard", MODE_PRIVATE)
+        sharedPrefs.edit { putBoolean("onboard", false) }
+        deleteLocalUserInfoCache()
+
+        questRepository.deleteAll()
+        statsRepository.deleteAll()
+
+        Supabase.supabase.auth.signOut()
+
     }
 }

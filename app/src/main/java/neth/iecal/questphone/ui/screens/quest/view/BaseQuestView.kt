@@ -73,7 +73,7 @@ fun BaseQuestView(topBar: @Composable () -> Unit = {}, startButtonTitle: String 
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,
             topBar = {
-                TopAppBar(title = {}, actions = { TopBarActions(true) })
+                TopAppBar(title = {}, actions = { TopBarActions(0,0,true) })
                      },
             floatingActionButton = {
                     Row(
@@ -139,7 +139,7 @@ fun BaseQuestView(topBar: @Composable () -> Unit = {}, startButtonTitle: String 
                                 Button(
                                     onClick = {
                                         VibrationHelper.vibrate(200)
-                                        User!!.useInventoryItem(InventoryItem.QUEST_SKIPPER)
+                                        User!!.deductFromInventory(InventoryItem.QUEST_SKIPPER)
                                         onQuestCompleted()
                                         isUseQuestSkipperDialogVisible.value = false
                                     },

@@ -17,7 +17,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
@@ -25,7 +24,6 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.AndroidEntryPoint
-import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
 import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.ui.navigation.Navigator
@@ -48,17 +46,22 @@ import neth.iecal.questphone.ui.screens.quest.stats.specific.BaseQuestStatsView
 import neth.iecal.questphone.ui.screens.quest.templates.SelectFromTemplates
 import neth.iecal.questphone.ui.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.ui.theme.LauncherTheme
-import nethical.questphone.backend.QuestDatabaseProvider
-import nethical.questphone.backend.StatsDatabaseProvider
 import nethical.questphone.backend.isOnline
+import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.StatsRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.backend.triggerQuestSync
 import nethical.questphone.backend.worker.FileDownloadWorker
 import nethical.questphone.core.core.services.AppBlockerService
 import java.io.File
+import javax.inject.Inject
 
 
 @AndroidEntryPoint(ComponentActivity::class)
 class MainActivity : ComponentActivity() {
+    @Inject lateinit var userRepository: UserRepository
+    @Inject lateinit var questRepository: QuestRepository
+    @Inject lateinit var statRepository: StatsRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,6 +92,7 @@ class MainActivity : ComponentActivity() {
             val isUserOnboarded = remember {mutableStateOf(true)}
             val isPetDialogVisible = remember { mutableStateOf(true) }
 
+
             LaunchedEffect(Unit) {
                 isUserOnboarded.value = data.getBoolean("onboard",false)
                 Log.d("onboard", isUserOnboarded.value.toString())
@@ -103,13 +107,9 @@ class MainActivity : ComponentActivity() {
             LauncherTheme {
                 Surface {
                     val navController = rememberNavController()
-                    val currentRoute = navController.currentBackStackEntryAsState()
 
-                    val questDao = QuestDatabaseProvider.getInstance(applicationContext).questDao()
-                    val statsDao = StatsDatabaseProvider.getInstance(applicationContext).statsDao()
-
-                    val unSyncedQuestItems = remember { questDao.getUnSyncedQuests() }
-                    val unSyncedStatsItems = remember { statsDao.getAllUnSyncedStats() }
+                    val unSyncedQuestItems = remember { questRepository.getUnSyncedQuests() }
+                    val unSyncedStatsItems = remember { statRepository.getAllUnSyncedStats() }
                     val context = LocalContext.current
 
                     val forceCurrentScreen = remember { derivedStateOf { Navigator.currentScreen } }
@@ -119,12 +119,12 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(Unit) {
                         unSyncedQuestItems.collect {
                             notificationScheduler.reloadAllReminders()
-                            if (context.isOnline() && !User!!.userInfo.isAnonymous) {
+                            if (context.isOnline() && !userRepository.userInfo.isAnonymous) {
                                 triggerQuestSync(applicationContext)
                             }
                         }
                         unSyncedStatsItems.collect {
-                            if (context.isOnline() && !User!!.userInfo.isAnonymous ) {
+                            if (context.isOnline() && !userRepository.userInfo.isAnonymous ) {
                                 triggerQuestSync(applicationContext)
                             }
                         }

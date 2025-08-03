@@ -35,6 +35,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -59,44 +61,47 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import kotlinx.coroutines.delay
+import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.R
 import neth.iecal.questphone.core.utils.managers.User
+import neth.iecal.questphone.ui.screens.components.TopBarActions
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.game.Category
 import nethical.questphone.data.game.InventoryItem
+import javax.inject.Inject
 
-// View model for the store
-class StoreViewModel {
+@HiltViewModel
+class StoreViewModel @Inject constructor(
+    private val userRepository: UserRepository
+): ViewModel() {
     var coins by mutableIntStateOf(User!!.userInfo.coins)
-    // Currently selected category
+
     var selectedCategory by mutableStateOf<Category>(Category.BOOSTERS)
         private set
 
-    // Store items - in a real app, this would come from a repository
     private val _items = InventoryItem.entries
 
-    // Public store items getter
     val items: List<InventoryItem>
         get() = _items.toList()
 
-    // Get items by category
     fun getItemsByCategory(category: Category): List<InventoryItem> {
         return items.filter { it.category == category }
     }
 
-    // Select a category
     fun selectCategory(category: Category) {
         selectedCategory = category
     }
 
-    // Purchase an item
-    fun purchaseItem(item: InventoryItem): Boolean {
+    fun makeItemPurchase(item: InventoryItem): Boolean {
         var itemMap = hashMapOf<InventoryItem, Int>()
         itemMap.put(item,1)
-        User?.addItemsToInventory(itemMap)
-        User?.useCoins(item.price)
-        coins = User?.userInfo!!.coins
+
+        userRepository.addItemsToInventory(itemMap)
+        userRepository.useCoins(item.price)
+        coins = userRepository.userInfo.coins
         return true
     }
 
@@ -106,20 +111,23 @@ class StoreViewModel {
 @Composable
 fun StoreScreen(
     navController: NavController,
-    viewModel: StoreViewModel = remember { StoreViewModel() }
+    viewModel: StoreViewModel = hiltViewModel()
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var showPurchaseDialog by remember { mutableStateOf<InventoryItem?>(null) }
+    var selectedItem by remember { mutableStateOf<InventoryItem?>(null) }
     var showSuccessMessage by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // Success snackbar
+    // auto dismiss message
     showSuccessMessage?.let { message ->
         LaunchedEffect(message) {
-            delay(2000)
-            showSuccessMessage = null
+            snackbarHostState
+                .showSnackbar(
+                    message = message,
+                    actionLabel = "Open Inventory",
+                )
         }
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -134,70 +142,44 @@ fun StoreScreen(
                     titleContentColor = Color.White
                 ),
                 actions = {
-                    // Coins display
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .background(
-                                color = Color(0xFF2A2A2A),
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.coin_icon),
-                            contentDescription = "Coins",
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${viewModel.coins}",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                    TopBarActions(viewModel.coins,0,true,false)
+                },
             )
         },
-        containerColor = Color.Black
+        containerColor = Color.Black,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Category selector
             CategorySelector(
                 selectedCategory = viewModel.selectedCategory,
                 onCategorySelected = { viewModel.selectCategory(it) }
             )
 
-            // Store items
             StoreItemsList(
                 items = viewModel.getItemsByCategory(viewModel.selectedCategory),
-                onItemClick = { showPurchaseDialog = it },
-                onEquipClick = { item ->
-//                    if (viewModel.equipItem(item.id)) {
-//                        showSuccessMessage = "${item.name} equipped!"
-//                    }
-                }
+                onItemClick = { selectedItem = it },
             )
 
             // Purchase dialog
-            showPurchaseDialog?.let { item ->
+            selectedItem?.let { item ->
                 PurchaseDialog(
                     item = item,
-                    onDismiss = { showPurchaseDialog = null },
+                    onDismiss = { selectedItem = null },
                     onPurchase = {
-                        if (viewModel.purchaseItem(item)) {
-                            showSuccessMessage = "Successfully purchased ${item.name}!"
-                            showPurchaseDialog = null
+                        if (viewModel.makeItemPurchase(item)) {
+                            showSuccessMessage = "Successfully purchased ${item.simpleName}!"
+                            showSuccessMessage = "${item.name} bought successfully"
                         }
                     }
                 )
             }
 
-            // Success message
             AnimatedVisibility(
                 visible = showSuccessMessage != null,
                 enter = fadeIn() + slideInVertically(),
@@ -240,7 +222,7 @@ fun StoreScreen(
 }
 
 @Composable
-fun CategorySelector(
+private fun CategorySelector(
     selectedCategory: Category,
     onCategorySelected: (Category) -> Unit
 ) {
@@ -264,7 +246,7 @@ fun CategorySelector(
 }
 
 @Composable
-fun CategoryItem(
+private fun CategoryItem(
     category: Category,
     isSelected: Boolean,
     onClick: () -> Unit
@@ -295,10 +277,9 @@ fun CategoryItem(
 }
 
 @Composable
-fun StoreItemsList(
+private fun StoreItemsList(
     items: List<InventoryItem>,
     onItemClick: (InventoryItem) -> Unit,
-    onEquipClick: (InventoryItem) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -309,17 +290,15 @@ fun StoreItemsList(
             StoreItemCard(
                 item = item,
                 onClick = { onItemClick(item) },
-                onEquipClick = { onEquipClick(item) }
             )
         }
     }
 }
 
 @Composable
-fun StoreItemCard(
+private fun StoreItemCard(
     item: InventoryItem,
     onClick: () -> Unit,
-    onEquipClick: () -> Unit
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -396,7 +375,7 @@ fun StoreItemCard(
 }
 
 @Composable
-fun PurchaseDialog(
+private fun PurchaseDialog(
     item: InventoryItem,
     onDismiss: () -> Unit,
     onPurchase: () -> Unit
@@ -522,7 +501,8 @@ fun PurchaseDialog(
                     }
 
                     Button(
-                        onClick = onPurchase,
+                        onClick = { onPurchase()
+                                  onDismiss()},
                         modifier = Modifier.weight(1f),
                         enabled = hasEnoughCoins,
                         colors = ButtonDefaults.buttonColors(

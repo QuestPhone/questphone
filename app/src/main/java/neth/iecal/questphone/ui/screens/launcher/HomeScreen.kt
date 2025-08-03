@@ -109,7 +109,10 @@ data class SidePanelItem(
     ExperimentalLayoutApi::class
 )
 @Composable
-fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
+fun HomeScreen(
+    navController: NavController,
+    viewModel: HomeScreenViewModel,
+) {
     val context = LocalContext.current
 
     val time by viewModel.time
@@ -183,7 +186,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeScreenViewModel) {
         modifier = Modifier.safeDrawingPadding(),
         topBar = {
             TopAppBar({}, actions = {
-                TopBarActions( true, true)
+                TopBarActions(0,0, true, true)
             })
 
         },

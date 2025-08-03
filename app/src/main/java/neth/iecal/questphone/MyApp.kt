@@ -11,6 +11,7 @@ import nethical.questphone.backend.triggerQuestSync
 import nethical.questphone.backend.triggerStatsSync
 import nethical.questphone.core.core.services.reloadServiceInfo
 import nethical.questphone.core.core.utils.VibrationHelper
+import javax.inject.Inject
 
 
 @HiltAndroidApp(Application::class)
@@ -18,11 +19,13 @@ class MyApp : Application() {
 
     private lateinit var connectivityManager: ConnectivityManager
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
+    @Inject lateinit var userRepository: UserRepository
 
     override fun onCreate() {
         super.onCreate()
 
-        User = UserRepository(applicationContext)
+
+        User = userRepository
         VibrationHelper.init(this)
         reloadServiceInfo(this)
         connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager

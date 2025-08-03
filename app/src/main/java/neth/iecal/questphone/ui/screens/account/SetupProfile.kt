@@ -100,29 +100,30 @@ class SetupProfileViewModel @Inject constructor(
             if (userRepository.userInfo.isAnonymous) {
                 _isLoading.value = false
                 return@launch
-            }
+            }else {
 
-            val userId = Supabase.supabase.auth.currentUserOrNull()!!.id
+                val userId = Supabase.supabase.auth.currentUserOrNull()!!.id
 
-            val profile = Supabase.supabase.from("profiles")
-                .select {
-                    filter {
-                        eq("id", userId)
+                val profile = Supabase.supabase.from("profiles")
+                    .select {
+                        filter {
+                            eq("id", userId)
+                        }
                     }
-                }
-                .decodeSingleOrNull<UserInfo>()
+                    .decodeSingleOrNull<UserInfo>()
 
-            if (profile != null) {
-                userRepository.userInfo = profile
-                if (profile.has_profile) {
-                    _profileUrl.value = "https://hplszhlnchhfwngbojnc.supabase.co/storage/v1/object/public/profile/$userId/profile"
+                if (profile != null) {
+                    userRepository.userInfo = profile
+                    if (profile.has_profile) {
+                        _profileUrl.value =
+                            "https://hplszhlnchhfwngbojnc.supabase.co/storage/v1/object/public/profile/$userId/profile"
+                    }
+                } else {
+                    userRepository.userInfo.username = squashUserIdToUsername(userId)
+                    Supabase.supabase.postgrest["profiles"].upsert(userRepository.userInfo)
                 }
-            } else {
-                userRepository.userInfo.username = squashUserIdToUsername(userId)
-                Supabase.supabase.postgrest["profiles"].upsert(userRepository.userInfo)
+                userRepository.saveUserInfo()
             }
-
-            userRepository.saveUserInfo()
             _name.value = userRepository.userInfo.full_name
             _username.value = userRepository.userInfo.username
             _isLoading.value = false

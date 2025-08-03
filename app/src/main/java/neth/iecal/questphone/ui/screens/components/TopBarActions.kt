@@ -19,11 +19,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.managers.User
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarActions(isCoinsVisible: Boolean = false, isStreakVisible: Boolean = false ) {
+fun TopBarActions(coins: Int,streak: Int,isCoinsVisible: Boolean = false, isStreakVisible: Boolean = false ) {
+
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
     ) {
@@ -44,7 +45,7 @@ fun TopBarActions(isCoinsVisible: Boolean = false, isStreakVisible: Boolean = fa
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = User!!.userInfo.coins.toString(),
+                    text = coins.toString(),
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
@@ -69,7 +70,7 @@ fun TopBarActions(isCoinsVisible: Boolean = false, isStreakVisible: Boolean = fa
                 )
                 Spacer(Modifier.size(4.dp))
                 Text(
-                    text = User!!.userInfo.streak.currentStreak.toString(),
+                    text = streak.toString(),
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )

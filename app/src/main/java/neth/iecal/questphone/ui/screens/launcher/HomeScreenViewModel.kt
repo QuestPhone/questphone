@@ -23,6 +23,7 @@ import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.StatsInfo
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getCurrentDay
 import nethical.questphone.core.core.utils.getCurrentTime12Hr
@@ -33,7 +34,8 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor(
     application: Application,
     questRepository: QuestRepository,
-    private val statsRepository: StatsRepository
+    private val statsRepository: StatsRepository,
+    private val userRepository: UserRepository
 ) : AndroidViewModel(application) {
 
     private val rawQuestList: StateFlow<List<CommonQuestInfo>> =
@@ -53,6 +55,7 @@ class HomeScreenViewModel @Inject constructor(
 
     private val _time = mutableStateOf(getCurrentTime12Hr())
     val time = _time
+
 
     private val _meshStyle = MutableStateFlow(MeshStyles.ASYMMETRICAL)
     val meshStyle: StateFlow<MeshStyles> = _meshStyle
@@ -147,4 +150,5 @@ class HomeScreenViewModel @Inject constructor(
         shortcuts.clear()
         shortcuts.addAll(tempShortcuts)
     }
+
 }

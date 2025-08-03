@@ -1,11 +1,10 @@
 package neth.iecal.questphone.ui.screens.account
 
 import android.app.Activity
-import android.content.Context.MODE_PRIVATE
+import android.app.Application
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,14 +17,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -35,13 +32,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,74 +44,103 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.edit
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import io.github.jan.supabase.auth.auth
-import kotlinx.coroutines.CoroutineScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import neth.iecal.questphone.OnboardActivity
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.managers.User
+import neth.iecal.questphone.ui.screens.game.InventoryBox
 import neth.iecal.questphone.ui.screens.quest.stats.components.HeatMapChart
-import nethical.questphone.backend.QuestDatabaseProvider
-import nethical.questphone.backend.StatsDatabaseProvider
-import nethical.questphone.backend.Supabase
+import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatNumber
 import nethical.questphone.core.core.utils.formatRemainingTime
-import nethical.questphone.data.game.Category
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.UserInfo
 import nethical.questphone.data.game.xpToLevelUp
 import java.io.File
+import javax.inject.Inject
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun UserInfoScreen() {
-    val context = LocalContext.current
-    val User = UserRepository(context)
-    val totalXpForNextLevel = xpToLevelUp(User.userInfo.level + 1)
-    val totalXpForCurrentLevel = xpToLevelUp(User.userInfo.level)
-    val xpProgress = (User.userInfo.xp - totalXpForCurrentLevel).toFloat() /
+
+@HiltViewModel
+class UserInfoViewModel @Inject constructor(
+    application: Application,
+    private val userRepository: UserRepository,
+    private val statsRepository: StatsRepository
+) : AndroidViewModel(application) {
+
+    val userInfo: UserInfo = userRepository.userInfo
+    private val _successfulDates = MutableStateFlow<Map<LocalDate, List<String>>>(emptyMap())
+    val successfulDates: StateFlow<Map<LocalDate, List<String>>> = _successfulDates
+
+    val totalXpForCurrentLevel = xpToLevelUp(userInfo.level)
+    val totalXpForNextLevel = xpToLevelUp(userInfo.level + 1)
+
+    val xpProgress = (userInfo.xp - totalXpForCurrentLevel).toFloat() /
             (totalXpForNextLevel - totalXpForCurrentLevel)
 
-    val selectedInventoryItem = remember { mutableStateOf<InventoryItem?>(null) }
+    val profilePicLink = if (userInfo.has_profile){
+        if(userInfo.isAnonymous){
+            val profileFile = File(application.filesDir, "profile")
+            profileFile.absolutePath
+        }else{
+            "${nethical.questphone.backend.BuildConfig.SUPABASE_URL}/storage/v1/object/public/profile/${userRepository.getUserId()}/profile"
+        }
+    } else null
 
-    val successfulDates = remember { mutableStateMapOf<LocalDate, List<String>>() }
 
-    LaunchedEffect (Unit) {
-        val dao = StatsDatabaseProvider.getInstance(context).statsDao()
+        init {
+        loadStats()
+    }
 
-        var stats = dao.getAllStatsForUser().first()
+    fun loadStats() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val allStats = statsRepository.getAllStatsForUser().first().toMutableList()
 
-        stats = stats.toMutableList()
-        stats.addAll(dao.getAllUnSyncedStats().first())
-
-        stats.forEach {
-            val prevList = (successfulDates[it.date]?: emptyList()).toMutableList()
-            prevList.add(it.quest_id)
-            successfulDates[it.date] = prevList
+            val result = mutableMapOf<LocalDate, MutableList<String>>()
+            for (stat in allStats) {
+                val list = result.getOrPut(stat.date) { mutableListOf() }
+                list.add(stat.quest_id)
+            }
+            _successfulDates.value = result
         }
     }
 
-    if(selectedInventoryItem.value!=null){
-        InventoryItemInfoDialog(selectedInventoryItem.value!!, onDismissRequest = {
-            selectedInventoryItem.value = null
-        })
+    fun logOut(onLoggedOut: () -> Unit) {
+        viewModelScope.launch {
+            userRepository.signOut()
+            withContext(Dispatchers.Main) {
+                onLoggedOut()
+            }
+        }
     }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val selectedInventoryItem = remember { mutableStateOf<InventoryItem?>(null) }
+
+    val successfulDates by viewModel.successfulDates.collectAsState()
+
 
     Scaffold { innerPadding ->
         Column(
@@ -138,7 +162,14 @@ fun UserInfoScreen() {
                     fontWeight = FontWeight.Bold,
                 )
                 Spacer(Modifier.weight(1f))
-                Menu()
+
+                Menu(viewModel.userInfo.isAnonymous, {
+                    viewModel.logOut {
+                        val intent = Intent(context, OnboardActivity::class.java)
+                        context.startActivity(intent)
+                        (context as Activity).finish()
+                    }
+                })
             }
 
             // Avatar
@@ -147,40 +178,34 @@ fun UserInfoScreen() {
                     .size(120.dp)
                     .clip(RoundedCornerShape(12.dp))
             ) {
-                val data = if (User.userInfo.has_profile){
-                    if(User.userInfo.isAnonymous){
-                        val profileFile = File(context.filesDir, "profile")
-                        profileFile.absolutePath
-                    }else{
-                        "https://hplszhlnchhfwngbojnc.supabase.co/storage/v1/object/public/profile/${User.getUserId()}/profile"
-                    }
-                } else R.drawable.baseline_person_24
-
                 Image(
                     painter = rememberAsyncImagePainter(
 
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(data)
+                            .data(viewModel.profilePicLink)
                             .crossfade(true)
                             .error(R.drawable.baseline_person_24)
                             .placeholder(R.drawable.baseline_person_24)
                             .build(),
                     ),
                     contentDescription = "Avatar",
-                    Modifier.fillMaxSize()
+                    Modifier.fillMaxSize(),
+                    colorFilter = if (viewModel.profilePicLink==null)
+                        ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                    else
+                        null,
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Username
             Text(
-                "@${User.userInfo.username}",
+                "@${viewModel.userInfo.username}",
                 style = MaterialTheme.typography.bodyMedium
             )
 
             Text(
-                User.userInfo.full_name,
+                viewModel.userInfo.username,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -196,12 +221,12 @@ fun UserInfoScreen() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        "Level ${User.userInfo.level}",
+                        "Level ${viewModel.userInfo.level}",
                         color = MaterialTheme.colorScheme.outline,
                         fontSize = 12.sp
                     )
                     Text(
-                        "XP: ${User.userInfo.xp} / $totalXpForNextLevel",
+                        "XP: ${viewModel.userInfo.xp} / ${viewModel.totalXpForNextLevel}",
                         color = MaterialTheme.colorScheme.outline,
                         fontSize = 12.sp
                     )
@@ -216,7 +241,7 @@ fun UserInfoScreen() {
                         .align(Alignment.CenterHorizontally)
                 ) {
                     LinearProgressIndicator(
-                        progress = { xpProgress.coerceIn(0f, 1f) },
+                        progress = { viewModel.xpProgress.coerceIn(0f, 1f) },
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
@@ -236,17 +261,17 @@ fun UserInfoScreen() {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatItem(
-                        value = formatNumber(User.userInfo.coins),
+                        value = formatNumber(viewModel.userInfo.coins),
                         label = "coins"
                     )
 
                     StatItem(
-                        value = "${formatNumber(User.userInfo.streak.currentStreak)}d",
+                        value = "${formatNumber(viewModel.userInfo.streak.currentStreak)}d",
                         label = "Streak"
                     )
 
                     StatItem(
-                        value = "${formatNumber(User.userInfo.streak.longestStreak)}d",
+                        value = "${formatNumber(viewModel.userInfo.streak.longestStreak)}d",
                         label = "Top Streak"
                     )
                 }
@@ -261,7 +286,7 @@ fun UserInfoScreen() {
                     .padding(16.dp)
             )
 
-            if(User.userInfo.active_boosts.isNotEmpty()) {
+            if(viewModel.userInfo.active_boosts.isNotEmpty()) {
 
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -277,7 +302,7 @@ fun UserInfoScreen() {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        User.userInfo.active_boosts.forEach { it ->
+                        viewModel.userInfo.active_boosts.forEach { it ->
                             ActiveBoostsItem(it.key, formatRemainingTime(it.value))
                         }
                     }
@@ -287,38 +312,16 @@ fun UserInfoScreen() {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Inventory Section
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Inventory",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    User.userInfo.inventory.forEach { it ->
-                        InventoryItemCard(it.key,it.value) { item ->
-                            selectedInventoryItem.value = item
-                        }
-
-                    }
-                }
-
-            }
+            InventoryBox()
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Menu() {
+private fun Menu(isAnonymous: Boolean,onLogout: () -> Unit, ) {
     var expanded by remember { mutableStateOf(false) }
     var isLogoutInfoVisible by remember { mutableStateOf(false) }
-    val context = LocalContext.current
 
     IconButton(onClick = { expanded = true }) {
         Icon(
@@ -360,7 +363,7 @@ private fun Menu() {
                     fontWeight = FontWeight.Bold
                 )
 
-                if (User!!.userInfo.isAnonymous) {
+                if (isAnonymous) {
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
@@ -382,24 +385,7 @@ private fun Menu() {
                         Text("Cancel")
                     }
                     TextButton(onClick = {
-                        isLogoutInfoVisible = false
-                        val data = context.getSharedPreferences("onboard", MODE_PRIVATE)
-                        data.edit { putBoolean("onboard", false) }
-                        val questdao = QuestDatabaseProvider.getInstance(context).questDao()
-                        val statsdao = StatsDatabaseProvider.getInstance(context).statsDao()
-                        User!!.userInfo = UserInfo()
-                        User!!.saveUserInfo()
-                        CoroutineScope(Dispatchers.IO).launch {
-                            Supabase.supabase.auth.signOut()
-                            questdao.deleteAll()
-                            statsdao.deleteAll()
-                            withContext(Dispatchers.Main) {
-                                val intent = Intent(context, OnboardActivity::class.java)
-                                context.startActivity(intent)
-                            }
-                        }
-                        (context as Activity).finish()
-
+                        onLogout()
                     }) {
                         Text("Log Out", color = Color.Red)
                     }
@@ -412,7 +398,7 @@ private fun Menu() {
 
 
 @Composable
-fun StatItem(
+private fun StatItem(
     value: String,
     label: String
 ) {
@@ -432,80 +418,6 @@ fun StatItem(
     }
 }
 
-@Composable
-fun InventoryItemCard(
-    item: InventoryItem,
-    quantity: Int,
-    onClick: (InventoryItem) -> Unit,
-) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick(item) }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Item preview/icon
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF2A2A2A)),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(item.icon),
-                    contentDescription = item.simpleName
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Item details
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = item.simpleName,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-
-                Text(
-                    text = item.description,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.outline,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Price or actions
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.baseline_inventory_24),
-                    contentDescription = "Coins",
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "$quantity",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun ActiveBoostsItem(
@@ -572,83 +484,3 @@ fun ActiveBoostsItem(
     }
 }
 
-@Composable
-fun InventoryItemInfoDialog(
-    reward: InventoryItem,
-    onDismissRequest: () -> Unit = {}
-) {
-    Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(dismissOnClickOutside = true)
-    ) {
-
-        Surface(
-            shape = MaterialTheme.shapes.medium,
-            tonalElevation = 8.dp,
-            modifier = Modifier
-                .padding(24.dp)
-                .wrapContentSize()
-        ) {
-
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-
-
-                Image(
-                    painter = painterResource(reward.icon),
-                    contentDescription = reward.simpleName,
-                    modifier = Modifier.size(60.dp)
-                )
-
-                Text(
-                    text = reward.simpleName,
-                    style = MaterialTheme.typography.headlineSmall
-                )
-
-                Text(
-                    text = reward.description,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onDismissRequest) {
-                        Text("Close")
-
-                    }
-
-                    if (reward.isDirectlyUsableFromInventory) {
-
-                        if (reward.category == Category.BOOSTERS && !User!!.isBoosterActive(reward)) {
-                            Button(
-                                onClick = {
-                                    reward.onUse()
-                                    User?.useInventoryItem(reward)
-                                    onDismissRequest()
-                                }) {
-                                Text("Use")
-                            }
-                        }
-                    }
-
-                    if (reward.category != Category.BOOSTERS) {
-                        Button(
-                            onClick = {
-                                reward.onUse()
-                                User?.useInventoryItem(reward)
-                                onDismissRequest()
-                            }) {
-                            Text("Use")
-                        }
-                    }
-                }
-            }
-        }
-    }
-}

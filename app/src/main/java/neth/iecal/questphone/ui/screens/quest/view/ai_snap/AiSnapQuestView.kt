@@ -47,7 +47,6 @@ fun AiSnapQuestView(
     }
     var isCameraScreen = remember { mutableStateOf(false) }
     var isAiEvaluating = remember { mutableStateOf(false) }
-    val userInfo = UserRepository(context)
 
 
     val dao = QuestDatabaseProvider.getInstance(context).questDao()

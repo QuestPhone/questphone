@@ -1,7 +1,6 @@
 package nethical.questphone.backend
 
 import android.content.Context
-
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Delete
@@ -22,11 +21,11 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.data.BaseIntegrationId
 import nethical.questphone.data.DayOfWeek
 import nethical.questphone.data.json
-import nethical.questphone.backend.repositories.QuestRepository
 import java.util.UUID
 import javax.inject.Singleton
 
@@ -156,6 +155,7 @@ object QuestDatabaseProvider {
         }
     }
 }
+
 @Module
 @InstallIn(SingletonComponent::class)
 object QuestModule {
