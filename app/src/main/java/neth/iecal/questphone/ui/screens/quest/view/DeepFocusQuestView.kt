@@ -40,7 +40,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.ui.screens.quest.checkForRewards
+import neth.iecal.questphone.ui.screens.game.rewardUserForQuestCompl
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.QuestDatabaseProvider
@@ -151,7 +151,7 @@ fun DeepFocusQuestView(
         }
 
         questHelper.setQuestRunning(commonQuestInfo.title, false)
-        checkForRewards(commonQuestInfo)
+        rewardUserForQuestCompl(commonQuestInfo)
         isQuestRunning = false
         timerActive = false
 

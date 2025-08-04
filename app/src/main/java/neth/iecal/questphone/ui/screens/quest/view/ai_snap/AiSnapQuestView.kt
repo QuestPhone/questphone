@@ -18,14 +18,13 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.ui.screens.quest.checkForRewards
+import neth.iecal.questphone.ui.screens.game.rewardUserForQuestCompl
 import neth.iecal.questphone.ui.screens.quest.view.BaseQuestView
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.QuestDatabaseProvider
 import nethical.questphone.backend.StatsDatabaseProvider
 import nethical.questphone.backend.StatsInfo
-import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.data.game.xpToRewardForQuest
@@ -80,7 +79,7 @@ fun AiSnapQuestView(
             )
         }
         isCameraScreen.value = false
-        checkForRewards(commonQuestInfo)
+        rewardUserForQuestCompl(commonQuestInfo)
         isQuestComplete.value = true
     }
 

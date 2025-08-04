@@ -37,6 +37,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -44,7 +45,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -67,6 +67,7 @@ import androidx.navigation.NavController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.R
 import neth.iecal.questphone.core.utils.managers.User
+import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.ui.screens.components.TopBarActions
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.game.Category
@@ -77,7 +78,7 @@ import javax.inject.Inject
 class StoreViewModel @Inject constructor(
     private val userRepository: UserRepository
 ): ViewModel() {
-    var coins by mutableIntStateOf(User!!.userInfo.coins)
+    var coins = userRepository.coins
 
     var selectedCategory by mutableStateOf<Category>(Category.BOOSTERS)
         private set
@@ -121,11 +122,17 @@ fun StoreScreen(
     // auto dismiss message
     showSuccessMessage?.let { message ->
         LaunchedEffect(message) {
-            snackbarHostState
+            val result = snackbarHostState
                 .showSnackbar(
                     message = message,
-                    actionLabel = "Open Inventory",
+                    actionLabel = "Inventory",
                 )
+            when (result) {
+                SnackbarResult.Dismissed -> {}
+                SnackbarResult.ActionPerformed -> {
+                    navController.navigate(RootRoute.Store.route)
+                }
+            }
         }
     }
     Scaffold(
@@ -174,7 +181,6 @@ fun StoreScreen(
                     onPurchase = {
                         if (viewModel.makeItemPurchase(item)) {
                             showSuccessMessage = "Successfully purchased ${item.simpleName}!"
-                            showSuccessMessage = "${item.name} bought successfully"
                         }
                     }
                 )

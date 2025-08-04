@@ -55,7 +55,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,15 +78,12 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.ui.navigation.LauncherDialogRoutes
 import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.ui.screens.components.NeuralMeshAsymmetrical
 import neth.iecal.questphone.ui.screens.components.NeuralMeshSymmetrical
 import neth.iecal.questphone.ui.screens.components.TopBarActions
 import neth.iecal.questphone.ui.screens.launcher.dialogs.LauncherDialog
-import neth.iecal.questphone.ui.screens.quest.DialogState
-import neth.iecal.questphone.ui.screens.quest.RewardDialogInfo
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.ui.screens.quest.stats.components.HeatMapChart
 import nethical.questphone.core.core.services.LockScreenService
@@ -97,7 +93,6 @@ import nethical.questphone.core.core.utils.managers.openAccessibilityServiceScre
 import nethical.questphone.core.core.utils.managers.openDefaultLauncherSettings
 import nethical.questphone.core.core.utils.managers.performLockScreenAction
 import nethical.questphone.data.MeshStyles
-import nethical.questphone.data.game.StreakCheckReturn
 
 data class SidePanelItem(
     val icon: Int,
@@ -122,9 +117,6 @@ fun HomeScreen(
     val shortcuts = viewModel.shortcuts
     val tempShortcuts = viewModel.tempShortcuts
     val successfulDates = viewModel.successfulDates
-
-
-
 
     var isAppSelectorVisible by remember { mutableStateOf(false) }
 
@@ -154,39 +146,17 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val isServiceEnabled = remember(context) {
+    val isDoubleTapToSleepEnabled = remember(context) {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isLockScreenServiceEnabled(context)
     }
 
     BackHandler { }
 
-
-
-    fun streakFailResultHandler(streakCheckReturn: StreakCheckReturn?) {
-        if (streakCheckReturn != null) {
-            RewardDialogInfo.streakData = streakCheckReturn
-            if (streakCheckReturn.streakFreezersUsed != null) {
-                RewardDialogInfo.currentDialog = DialogState.STREAK_UP
-            }
-            if (streakCheckReturn.streakDaysLost != null) {
-                RewardDialogInfo.currentDialog = DialogState.STREAK_FAILED
-            }
-            RewardDialogInfo.isRewardDialogVisible = true
-
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (User!!.userInfo.streak.currentStreak != 0) {
-            streakFailResultHandler(User!!.checkIfStreakFailed())
-        }
-    }
-
     Scaffold(
         modifier = Modifier.safeDrawingPadding(),
         topBar = {
             TopAppBar({}, actions = {
-                TopBarActions(0,0, true, true)
+                TopBarActions(viewModel.coins,viewModel.currentStreak, true, true)
             })
 
         },
@@ -238,7 +208,7 @@ fun HomeScreen(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isServiceEnabled) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isDoubleTapToSleepEnabled) {
                                 performLockScreenAction()
                             } else {
                                 scope.launch {

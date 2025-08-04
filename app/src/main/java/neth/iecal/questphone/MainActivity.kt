@@ -29,6 +29,7 @@ import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.ui.navigation.Navigator
 import neth.iecal.questphone.ui.navigation.RootRoute
 import neth.iecal.questphone.ui.screens.account.UserInfoScreen
+import neth.iecal.questphone.ui.screens.game.RewardDialogMaker
 import neth.iecal.questphone.ui.screens.game.StoreScreen
 import neth.iecal.questphone.ui.screens.launcher.AppList
 import neth.iecal.questphone.ui.screens.launcher.AppListViewModel
@@ -39,7 +40,6 @@ import neth.iecal.questphone.ui.screens.onboard.subscreens.SelectAppsModes
 import neth.iecal.questphone.ui.screens.onboard.subscreens.SetCoinRewardRatio
 import neth.iecal.questphone.ui.screens.pet.TheSystemDialog
 import neth.iecal.questphone.ui.screens.quest.ListAllQuests
-import neth.iecal.questphone.ui.screens.quest.RewardDialogMaker
 import neth.iecal.questphone.ui.screens.quest.ViewQuest
 import neth.iecal.questphone.ui.screens.quest.setup.SetIntegration
 import neth.iecal.questphone.ui.screens.quest.stats.specific.BaseQuestStatsView
@@ -90,8 +90,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}
-            val isPetDialogVisible = remember { mutableStateOf(true) }
-
 
             LaunchedEffect(Unit) {
                 isUserOnboarded.value = data.getBoolean("onboard",false)
@@ -113,7 +111,7 @@ class MainActivity : ComponentActivity() {
                     val context = LocalContext.current
 
                     val forceCurrentScreen = remember { derivedStateOf { Navigator.currentScreen } }
-                    RewardDialogMaker()
+                    RewardDialogMaker(userRepository)
 
                     TheSystemDialog()
                     LaunchedEffect(Unit) {

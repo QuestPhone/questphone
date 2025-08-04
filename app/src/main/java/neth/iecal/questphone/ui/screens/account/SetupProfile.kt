@@ -99,9 +99,7 @@ class SetupProfileViewModel @Inject constructor(
         viewModelScope.launch {
             if (userRepository.userInfo.isAnonymous) {
                 _isLoading.value = false
-                return@launch
             }else {
-
                 val userId = Supabase.supabase.auth.currentUserOrNull()!!.id
 
                 val profile = Supabase.supabase.from("profiles")
@@ -123,10 +121,11 @@ class SetupProfileViewModel @Inject constructor(
                     Supabase.supabase.postgrest["profiles"].upsert(userRepository.userInfo)
                 }
                 userRepository.saveUserInfo()
+
+                _name.value = userRepository.userInfo.full_name
+                _username.value = userRepository.userInfo.username
+                _isLoading.value = false
             }
-            _name.value = userRepository.userInfo.full_name
-            _username.value = userRepository.userInfo.username
-            _isLoading.value = false
         }
     }
 

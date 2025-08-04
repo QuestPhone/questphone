@@ -25,7 +25,7 @@ import neth.iecal.questphone.core.utils.managers.HealthConnectManager
 import neth.iecal.questphone.core.utils.managers.HealthConnectManager.Companion.requiredPermissions
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.ui.screens.quest.checkForRewards
+import neth.iecal.questphone.ui.screens.game.rewardUserForQuestCompl
 import neth.iecal.questphone.ui.screens.quest.view.BaseQuestView
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
@@ -73,7 +73,7 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                     )
             )
         }
-        checkForRewards(commonQuestInfo)
+        rewardUserForQuestCompl(commonQuestInfo)
         isQuestComplete.value = true
     }
 

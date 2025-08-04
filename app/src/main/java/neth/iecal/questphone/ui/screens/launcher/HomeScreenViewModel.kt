@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.ui.screens.game.rewardUserForStreak
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.StatsInfo
 import nethical.questphone.backend.repositories.QuestRepository
@@ -35,8 +36,8 @@ class HomeScreenViewModel @Inject constructor(
     application: Application,
     questRepository: QuestRepository,
     private val statsRepository: StatsRepository,
-    private val userRepository: UserRepository
-) : AndroidViewModel(application) {
+    private val userRepository: UserRepository,
+) : AndroidViewModel(application){
 
     private val rawQuestList: StateFlow<List<CommonQuestInfo>> =
         questRepository.getAllQuests()
@@ -45,6 +46,8 @@ class HomeScreenViewModel @Inject constructor(
                 SharingStarted.WhileSubscribed(5000),
                 emptyList()
             )
+    val coins = userRepository.coins
+    val currentStreak = userRepository.currentStreak
 
     private val _questList = mutableStateListOf<CommonQuestInfo>()
     val questList: List<CommonQuestInfo> = _questList
@@ -68,6 +71,10 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            if (userRepository.userInfo.streak.currentStreak != 0) {
+                rewardUserForStreak(userRepository.checkIfStreakFailed())
+            }
+
             rawQuestList.collect {
                 filterQuests()
             }
@@ -77,7 +84,6 @@ class HomeScreenViewModel @Inject constructor(
                 }
             }
             loadSavedConfigs()
-
             // Keep updating time every minute
             while (true) {
                 _time.value = getCurrentTime12Hr()

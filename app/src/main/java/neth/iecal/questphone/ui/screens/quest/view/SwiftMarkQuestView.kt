@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.ui.screens.quest.checkForRewards
+import neth.iecal.questphone.ui.screens.game.rewardUserForQuestCompl
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.QuestDatabaseProvider
@@ -67,7 +67,7 @@ fun SwiftMarkQuestView(
                     )
             )
         }
-        checkForRewards(commonQuestInfo)
+        rewardUserForQuestCompl(commonQuestInfo)
         isQuestComplete.value = true
     }
 

@@ -3,6 +3,9 @@ package nethical.questphone.backend.repositories
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.auth.auth
@@ -12,17 +15,14 @@ import nethical.questphone.core.core.utils.isTimeOver
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.StreakCheckReturn
 import nethical.questphone.data.game.UserInfo
-import nethical.questphone.data.game.xpFromStreak
 import nethical.questphone.data.game.xpToLevelUp
 import nethical.questphone.data.json
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
+
 
 @Singleton
 class UserRepository @Inject constructor(
@@ -31,10 +31,11 @@ class UserRepository @Inject constructor(
     private val questRepository: QuestRepository
 ) {
     var userInfo: UserInfo = loadUserInfo()
+    var coins by mutableIntStateOf(userInfo.coins)
+    var currentStreak by mutableIntStateOf(userInfo.streak.currentStreak)
 
-    var lastXpEarned: Int? = null
-    var lastRewards: List<InventoryItem>? = null
-
+    // the below variables act as a trigger for launching the reward dialog declared in the MainActivity from a
+    // different SubScreen.
     fun getUserId(): String {
         return if (userInfo.isAnonymous){
             ""
@@ -103,8 +104,9 @@ class UserRepository @Inject constructor(
         }
     }
 
-    fun useCoins(coins: Int) {
-        userInfo.coins -= coins
+    fun useCoins(number: Int) {
+        userInfo.coins -= number
+        coins -= number
         saveUserInfo()
     }
 
@@ -117,65 +119,44 @@ class UserRepository @Inject constructor(
         val today = LocalDate.now()
         val streakData = userInfo.streak
         val lastCompleted = LocalDate.parse(streakData.lastCompletedDate)
-        val daysSince = ChronoUnit.DAYS.between(lastCompleted, today)
+        val daysSince = ChronoUnit.DAYS.between(lastCompleted, today) - 1
         Log.d("streak day since", daysSince.toString())
 
-        if (daysSince >= 2) {
-            val requiredFreezers = (daysSince - 1).toInt()
+        if (daysSince >= 1) {
+            val requiredFreezers = (daysSince).toInt()
             if (getInventoryItemCount(InventoryItem.STREAK_FREEZER) >= requiredFreezers) {
                 deductFromInventory(InventoryItem.STREAK_FREEZER, requiredFreezers)
 
                 val oldStreak = streakData.currentStreak
                 streakData.currentStreak += requiredFreezers
                 streakData.lastCompletedDate = today.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-
-                lastXpEarned = (oldStreak until streakData.currentStreak).sumOf { day ->
-                    val xp = xpFromStreak(day)
-                    addXp(xp)
-                    xp
-                }
-
                 saveUserInfo()
-                return StreakCheckReturn(streakFreezersUsed = requiredFreezers)
+                return StreakCheckReturn(isOngoing = true,streakFreezersUsed = requiredFreezers, lastStreak = oldStreak)
             } else {
+                // User failed streak
                 val oldStreak = streakData.currentStreak
                 streakData.longestStreak = maxOf(streakData.currentStreak, streakData.longestStreak)
                 streakData.currentStreak = 0
                 saveUserInfo()
-                return StreakCheckReturn(streakDaysLost = oldStreak)
+                return StreakCheckReturn(isOngoing = false,streakDaysLost = oldStreak)
             }
         }
-
+        // day not passed, no action
         return null
     }
 
-    fun continueStreak(): Boolean {
-        val today = LocalDate.now()
-        val streakData = userInfo.streak
-        val lastCompleted = LocalDate.parse(streakData.lastCompletedDate)
-        val daysSince = ChronoUnit.DAYS.between(lastCompleted, today)
 
-        Log.d("daysSince", daysSince.toString())
-        if (daysSince != 0L) {
-            streakData.currentStreak += 1
-            streakData.longestStreak = maxOf(streakData.currentStreak, streakData.longestStreak)
-            streakData.lastCompletedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            saveUserInfo()
-            return true
-        }
-        return false
-    }
-
-    fun addLevelUpRewards(): HashMap<InventoryItem, Int> {
+    fun calculateLevelUpInvRewards(): HashMap<InventoryItem, Int> {
         val rewards = hashMapOf<InventoryItem, Int>()
         rewards[InventoryItem.QUEST_SKIPPER] = 1
         if (userInfo.level % 2 == 0) rewards[InventoryItem.XP_BOOSTER] = 1
         if (userInfo.level % 5 == 0) rewards[InventoryItem.STREAK_FREEZER] = 1
-
-        addItemsToInventory(rewards)
-        saveUserInfo()
         return rewards
     }
+    fun calculateLevelUpCoinsRewards(): Int {
+        return maxOf(userInfo.level.times(userInfo.level),50)
+    }
+
 
     private fun loadUserInfo(): UserInfo {
         val sharedPreferences = context.getSharedPreferences("user_info", Context.MODE_PRIVATE)
