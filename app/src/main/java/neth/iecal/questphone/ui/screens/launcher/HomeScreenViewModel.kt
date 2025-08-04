@@ -19,7 +19,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.ui.screens.game.rewardUserForStreak
+import neth.iecal.questphone.ui.screens.game.handleStreakFreezers
+import neth.iecal.questphone.ui.screens.game.showStreakUpDialog
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.StatsInfo
 import nethical.questphone.backend.repositories.QuestRepository
@@ -39,18 +40,11 @@ class HomeScreenViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : AndroidViewModel(application){
 
-    private val rawQuestList: StateFlow<List<CommonQuestInfo>> =
-        questRepository.getAllQuests()
-            .stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
-                emptyList()
-            )
     val coins = userRepository.coins
     val currentStreak = userRepository.currentStreak
 
-    private val _questList = mutableStateListOf<CommonQuestInfo>()
-    val questList: List<CommonQuestInfo> = _questList
+
+    val questList = mutableStateListOf<CommonQuestInfo>()
 
     val completedQuests = SnapshotStateList<String>()
     val shortcuts = mutableStateListOf<String>()
@@ -72,11 +66,34 @@ class HomeScreenViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             if (userRepository.userInfo.streak.currentStreak != 0) {
-                rewardUserForStreak(userRepository.checkIfStreakFailed())
+                val daysSince = userRepository.checkIfStreakFailed()
+                if(daysSince!=null){
+                    handleStreakFreezers(userRepository.tryUsingStreakFreezers(daysSince))
+                }
             }
 
-            rawQuestList.collect {
-                filterQuests()
+            questRepository.getAllQuests().collect { rawQuestList ->
+                val today = getCurrentDay()
+                val filtered = rawQuestList.filter { !it.is_destroyed && it.selected_days.contains(today) }
+                // Mark completed
+                filtered.forEach {
+                    if (it.last_completed_on == getCurrentDate()) {
+                        completedQuests.add(it.id)
+                    }
+                }
+
+                val uncompleted = filtered.filter { it.id !in completedQuests }
+                val completed = filtered.filter { it.id in completedQuests }
+
+                val merged = (uncompleted + completed).sortedBy { QuestHelper.isInTimeRange(it) }
+
+                if(completed.size==rawQuestList.size){
+                    if(userRepository.continueStreak()){
+                        showStreakUpDialog()
+                    }
+                }
+                questList.clear()
+                questList.addAll(if (merged.size >= 4) merged.take(4) else merged)
             }
             meshStyle.collect {
                 if(it== MeshStyles.USER_STATS_HEATMAP){
@@ -121,26 +138,6 @@ class HomeScreenViewModel @Inject constructor(
             prevList.add(it.quest_id)
             successfulDates[it.date] = prevList
         }
-    }
-
-    fun filterQuests() {
-        val today = getCurrentDay()
-        val filtered = rawQuestList.value.filter { !it.is_destroyed && it.selected_days.contains(today) }
-
-        // Mark completed
-        filtered.forEach {
-            if (it.last_completed_on == getCurrentDate()) {
-                completedQuests.add(it.id)
-            }
-        }
-
-        val uncompleted = filtered.filter { it.id !in completedQuests }
-        val completed = filtered.filter { it.id in completedQuests }
-
-        val merged = (uncompleted + completed).sortedBy { QuestHelper.isInTimeRange(it) }
-
-        _questList.clear()
-        _questList.addAll(if (merged.size >= 4) merged.take(4) else merged)
     }
 
     fun toggleMeshStyle() {

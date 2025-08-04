@@ -11,9 +11,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.auth.auth
 import nethical.questphone.backend.Supabase
 import nethical.questphone.backend.triggerProfileSync
+import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.isTimeOver
 import nethical.questphone.data.game.InventoryItem
-import nethical.questphone.data.game.StreakCheckReturn
+import nethical.questphone.data.game.StreakFreezerReturn
 import nethical.questphone.data.game.UserInfo
 import nethical.questphone.data.game.xpToLevelUp
 import nethical.questphone.data.json
@@ -43,7 +44,7 @@ class UserRepository @Inject constructor(
             val sp = context.getSharedPreferences("authtoken", Context.MODE_PRIVATE)
             var id = sp.getString("key",null)
             if(id!= null) return id
-            id = Supabase.supabase.auth.currentUserOrNull()!!.id
+            id = Supabase.supabase.auth.currentUserOrNull()?.id ?: return ""
             sp.edit { putString("key",id) }
             Supabase.supabase.auth.currentUserOrNull()!!.id
         }
@@ -110,39 +111,70 @@ class UserRepository @Inject constructor(
         saveUserInfo()
     }
 
-    fun addCoins(coins: Int) {
-        userInfo.coins += coins
+    fun addCoins(addedCoins: Int) {
+        userInfo.coins += addedCoins
+        coins+=addedCoins
         saveUserInfo()
     }
 
-    fun checkIfStreakFailed(): StreakCheckReturn? {
+    /**
+     * @return failing for how many days or null if not failing
+     */
+    fun checkIfStreakFailed(): Int? {
         val today = LocalDate.now()
         val streakData = userInfo.streak
         val lastCompleted = LocalDate.parse(streakData.lastCompletedDate)
         val daysSince = ChronoUnit.DAYS.between(lastCompleted, today) - 1
         Log.d("streak day since", daysSince.toString())
 
-        if (daysSince >= 1) {
-            val requiredFreezers = (daysSince).toInt()
-            if (getInventoryItemCount(InventoryItem.STREAK_FREEZER) >= requiredFreezers) {
-                deductFromInventory(InventoryItem.STREAK_FREEZER, requiredFreezers)
-
-                val oldStreak = streakData.currentStreak
-                streakData.currentStreak += requiredFreezers
-                streakData.lastCompletedDate = today.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                saveUserInfo()
-                return StreakCheckReturn(isOngoing = true,streakFreezersUsed = requiredFreezers, lastStreak = oldStreak)
-            } else {
-                // User failed streak
-                val oldStreak = streakData.currentStreak
-                streakData.longestStreak = maxOf(streakData.currentStreak, streakData.longestStreak)
-                streakData.currentStreak = 0
-                saveUserInfo()
-                return StreakCheckReturn(isOngoing = false,streakDaysLost = oldStreak)
-            }
+        if (daysSince > 0) {
+            daysSince.toInt()
         }
-        // day not passed, no action
-        return null
+            return null
+
+    }
+
+
+
+    fun tryUsingStreakFreezers(daysSince:Int): StreakFreezerReturn {
+        val requiredFreezers = (daysSince).toInt()
+        val streakData = userInfo.streak
+        val today = LocalDate.now()
+        if (getInventoryItemCount(InventoryItem.STREAK_FREEZER) >= requiredFreezers) {
+            deductFromInventory(InventoryItem.STREAK_FREEZER, requiredFreezers)
+
+            val oldStreak = streakData.currentStreak
+            streakData.currentStreak += requiredFreezers
+            streakData.lastCompletedDate = today.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            saveUserInfo()
+            return StreakFreezerReturn(isOngoing = true,streakFreezersUsed = requiredFreezers, lastStreak = oldStreak)
+        } else {
+            // User failed streak
+            val oldStreak = streakData.currentStreak
+            streakData.longestStreak = maxOf(streakData.currentStreak, streakData.longestStreak)
+            streakData.currentStreak = 0
+            saveUserInfo()
+            return StreakFreezerReturn(isOngoing = false,streakDaysLost = oldStreak)
+        }
+    }
+
+
+    fun continueStreak(): Boolean {
+        val today = LocalDate.now()
+        val streakData = userInfo.streak
+        val lastCompleted = LocalDate.parse(streakData.lastCompletedDate)
+        val daysSince = ChronoUnit.DAYS.between(lastCompleted, today)
+
+        Log.d("daysSince",daysSince.toString())
+        if(daysSince!=0L){
+            streakData.currentStreak += 1
+            streakData.longestStreak = maxOf(streakData.currentStreak, streakData.longestStreak)
+            streakData.lastCompletedDate = getCurrentDate()
+
+            saveUserInfo()
+            return true
+        }
+        return false
     }
 
 

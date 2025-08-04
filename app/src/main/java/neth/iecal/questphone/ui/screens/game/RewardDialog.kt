@@ -10,19 +10,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import neth.iecal.questphone.ui.screens.game.RewardDialogInfo.coinsEarned
 import neth.iecal.questphone.ui.screens.game.RewardDialogInfo.currentDialog
-import neth.iecal.questphone.ui.screens.game.RewardDialogInfo.streakCheckReturn
+import neth.iecal.questphone.ui.screens.game.RewardDialogInfo.streakFreezerReturn
 import neth.iecal.questphone.ui.screens.game.dialogs.LevelUpDialog
 import neth.iecal.questphone.ui.screens.game.dialogs.QuestCompletionDialog
 import neth.iecal.questphone.ui.screens.game.dialogs.StreakFailedDialog
+import neth.iecal.questphone.ui.screens.game.dialogs.StreakFreezersUsedDialog
 import neth.iecal.questphone.ui.screens.game.dialogs.StreakUpDialog
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.game.InventoryItem
-import nethical.questphone.data.game.StreakCheckReturn
+import nethical.questphone.data.game.StreakFreezerReturn
 import nethical.questphone.data.game.xpFromStreak
 import nethical.questphone.data.game.xpToRewardForQuest
 
-enum class DialogState { QUEST_COMPLETED, LEVEL_UP, STREAK_UP, STREAK_FAILED, NONE }
+enum class DialogState { QUEST_COMPLETED, LEVEL_UP, STREAK_UP,STREAK_FREEZER_USED, STREAK_FAILED, NONE }
 
 /**
  * This values in here must be set to true in order to show the dialog [RewardDialogMaker]
@@ -31,7 +32,7 @@ enum class DialogState { QUEST_COMPLETED, LEVEL_UP, STREAK_UP, STREAK_FAILED, NO
 object RewardDialogInfo{
     var currentDialog by mutableStateOf<DialogState>(DialogState.NONE)
     var coinsEarned : Int = 0
-    var streakCheckReturn : StreakCheckReturn? = null
+    var streakFreezerReturn : StreakFreezerReturn? = null
 }
 
 /**
@@ -64,18 +65,21 @@ fun RewardDialogMaker(userRepository: UserRepository) {
                 userRepository.addItemsToInventory(levelledUpUserRewards)
             }
 
-            DialogState.STREAK_UP -> {
-                xpEarned.intValue = (streakCheckReturn!!.lastStreak until userRepository.currentStreak).sumOf { day ->
+            DialogState.STREAK_FREEZER_USED -> {
+                xpEarned.intValue = (streakFreezerReturn!!.lastStreak until userRepository.currentStreak).sumOf { day ->
                     val xp = xpFromStreak(day)
                     userRepository.addXp(xp)
                     xp
                 }
+            }
+            DialogState.STREAK_UP -> {
+                xpEarned.intValue = xpFromStreak(userRepository.currentStreak) + xpFromStreak(userRepository.currentStreak -1)
+                userRepository.addXp(xpEarned.intValue)
 
             }
-
             DialogState.STREAK_FAILED -> {}
             DialogState.NONE -> {
-                streakCheckReturn = null
+                streakFreezerReturn = null
                 coinsEarned = 0
                 xpEarned.intValue = 0
                 levelledUpUserRewards.clear()
@@ -94,7 +98,7 @@ fun RewardDialogMaker(userRepository: UserRepository) {
         DialogState.QUEST_COMPLETED -> {
             QuestCompletionDialog(
                 coinReward = coinsEarned,
-                xpReward = xpEarned.value,
+                xpReward = xpEarned.intValue,
                 onDismiss = {
                     // If user leveled up, show level up dialog next, otherwise end
                     RewardDialogInfo.currentDialog = if (didUserLevelUp()) {
@@ -119,7 +123,6 @@ fun RewardDialogMaker(userRepository: UserRepository) {
 
         DialogState.STREAK_UP -> {
             StreakUpDialog(
-                streakCheckReturn = streakCheckReturn!!,
                 streakData = userRepository.userInfo.streak,
                 xpEarned = xpEarned.intValue
             ) {
@@ -127,17 +130,19 @@ fun RewardDialogMaker(userRepository: UserRepository) {
                     if (didUserLevelUp()) DialogState.LEVEL_UP else DialogState.NONE
             }
         }
+        DialogState.STREAK_FREEZER_USED -> {
+            StreakFreezersUsedDialog(streakFreezerReturn!!.streakFreezersUsed!!,userRepository.userInfo.streak,xpEarned.intValue) { }
+        }
 
         DialogState.STREAK_FAILED -> {
             StreakFailedDialog(
-                streakCheckReturn = streakCheckReturn!!
+                streakFreezerReturn = streakFreezerReturn!!
             ) {
                 RewardDialogInfo.currentDialog = DialogState.NONE
             }
         }
 
         DialogState.NONE -> {}
-
     }
 }
 
@@ -150,16 +155,18 @@ fun rewardUserForQuestCompl(commonQuestInfo: CommonQuestInfo){
     currentDialog = DialogState.QUEST_COMPLETED
 }
 
-/**
- * rewards user for streak completion and or trigger dialog for streak success/ streak failure
- */
-fun rewardUserForStreak(streakReturn: StreakCheckReturn?){
+
+fun handleStreakFreezers(streakReturn: StreakFreezerReturn?){
     if(streakReturn!=null){
-        streakCheckReturn = streakReturn
-        if (streakCheckReturn!!.isOngoing) {
-            currentDialog = DialogState.STREAK_UP
+        streakFreezerReturn = streakReturn
+        currentDialog = if (streakFreezerReturn!!.isOngoing) {
+            DialogState.STREAK_FREEZER_USED
         }else{
-            currentDialog = DialogState.STREAK_FAILED
+            DialogState.STREAK_FAILED
         }
     }
+}
+
+fun showStreakUpDialog(){
+    currentDialog = DialogState.STREAK_UP
 }

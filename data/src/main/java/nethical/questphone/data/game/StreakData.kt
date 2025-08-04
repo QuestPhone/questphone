@@ -15,7 +15,7 @@ data class StreakData(
  * @property streakFreezersUsed null if no streak freezers used
  * @property streakDaysLost null if user didn't lose a streak
  */
-data class StreakCheckReturn(
+data class StreakFreezerReturn(
     val isOngoing: Boolean = false,
     val streakFreezersUsed: Int? = null,
     val streakDaysLost: Int? = null,

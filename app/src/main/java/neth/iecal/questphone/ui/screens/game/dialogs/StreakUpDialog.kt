@@ -29,12 +29,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import neth.iecal.questphone.R
 import nethical.questphone.core.core.utils.VibrationHelper
-import nethical.questphone.data.game.StreakCheckReturn
 import nethical.questphone.data.game.StreakData
 
 @Composable
-fun StreakUpDialog( streakCheckReturn: StreakCheckReturn, streakData: StreakData, xpEarned: Int,onDismiss: () -> Unit,) {
-    val streakFreezersUsed = streakCheckReturn.streakFreezersUsed ?: 0
+fun StreakUpDialog( streakData: StreakData, xpEarned: Int,onDismiss: () -> Unit,) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(Modifier
             .clip(RoundedCornerShape(11.dp))) {
@@ -64,7 +62,7 @@ fun StreakUpDialog( streakCheckReturn: StreakCheckReturn, streakData: StreakData
                 Spacer(modifier = Modifier.size(16.dp))
 
                 Text(
-                    text = if (streakFreezersUsed == 0) "All Quests Completed for today!" else "$streakFreezersUsed streak freezers were used to save your streak!",
+                    text = "All Quests Completed for today!",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     fontSize = 28.sp,
@@ -82,22 +80,20 @@ fun StreakUpDialog( streakCheckReturn: StreakCheckReturn, streakData: StreakData
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                if (streakFreezersUsed == 0) {
-                    Text(
-                        text = "Rewards",
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    Text(
-                        text = "XP: $xpEarned",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        fontSize = 16.sp,
-                    )
-                }
+                Text(
+                    text = "Rewards",
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                Text(
+                    text = "XP: $xpEarned",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp,
+                )
 
                 Spacer(Modifier.size(16.dp))
 
