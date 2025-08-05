@@ -55,6 +55,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -111,9 +112,10 @@ fun HomeScreen(
     val context = LocalContext.current
 
     val time by viewModel.time
-    val questList = viewModel.questList
+    val questList by viewModel.questList.collectAsState()
     val meshStyle by viewModel.meshStyle.collectAsState(initial = MeshStyles.SYMMETRICAL)
-    val completedQuests = viewModel.completedQuests
+
+    val completedQuests by viewModel.completedQuests.collectAsState()
     val shortcuts = viewModel.shortcuts
     val tempShortcuts = viewModel.tempShortcuts
     val successfulDates = viewModel.successfulDates
@@ -148,6 +150,12 @@ fun HomeScreen(
 
     val isDoubleTapToSleepEnabled = remember(context) {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isLockScreenServiceEnabled(context)
+    }
+
+    // somehow the list doesn't update without it
+    val rawQuestList by viewModel.rawQuestList.collectAsState()
+    LaunchedEffect(rawQuestList) {
+        viewModel.filterQuests()
     }
 
     BackHandler { }

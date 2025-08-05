@@ -170,12 +170,14 @@ object QuestModule {
         ).build()
     }
 
+    @Singleton
     @Provides
     fun provideQuestDao(db: QuestDatabase): QuestDao {
         return db.questDao()
     }
 
     @Provides
+    @Singleton
     fun provideQuestRepository(dao: QuestDao): QuestRepository {
         return QuestRepository(dao)
     }

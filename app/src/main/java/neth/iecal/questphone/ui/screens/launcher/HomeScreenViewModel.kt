@@ -2,10 +2,10 @@ package neth.iecal.questphone.ui.screens.launcher
 
 import android.app.Application
 import android.content.Context.MODE_PRIVATE
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -43,10 +45,13 @@ class HomeScreenViewModel @Inject constructor(
     val coins = userRepository.coins
     val currentStreak = userRepository.currentStreak
 
+    val rawQuestList = questRepository.getAllQuests()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
 
-    val questList = mutableStateListOf<CommonQuestInfo>()
 
-    val completedQuests = SnapshotStateList<String>()
+    val questList = MutableStateFlow<List<CommonQuestInfo>>(emptyList())
+    val completedQuests = MutableStateFlow<List<String>>(emptyList())
+
     val shortcuts = mutableStateListOf<String>()
     val tempShortcuts = mutableStateListOf<String>()
 
@@ -64,37 +69,22 @@ class HomeScreenViewModel @Inject constructor(
 
 
     init {
+
         viewModelScope.launch {
             if (userRepository.userInfo.streak.currentStreak != 0) {
                 val daysSince = userRepository.checkIfStreakFailed()
                 if(daysSince!=null){
                     handleStreakFreezers(userRepository.tryUsingStreakFreezers(daysSince))
                 }
+
             }
 
-            questRepository.getAllQuests().collect { rawQuestList ->
-                val today = getCurrentDay()
-                val filtered = rawQuestList.filter { !it.is_destroyed && it.selected_days.contains(today) }
-                // Mark completed
-                filtered.forEach {
-                    if (it.last_completed_on == getCurrentDate()) {
-                        completedQuests.add(it.id)
-                    }
+            questRepository.getAllQuests()
+                .onEach { rawQuestList ->
+                   filterQuests()
                 }
+                .launchIn(viewModelScope)
 
-                val uncompleted = filtered.filter { it.id !in completedQuests }
-                val completed = filtered.filter { it.id in completedQuests }
-
-                val merged = (uncompleted + completed).sortedBy { QuestHelper.isInTimeRange(it) }
-
-                if(completed.size==rawQuestList.size){
-                    if(userRepository.continueStreak()){
-                        showStreakUpDialog()
-                    }
-                }
-                questList.clear()
-                questList.addAll(if (merged.size >= 4) merged.take(4) else merged)
-            }
             meshStyle.collect {
                 if(it== MeshStyles.USER_STATS_HEATMAP){
                     loadStats()
@@ -121,6 +111,34 @@ class HomeScreenViewModel @Inject constructor(
 
     }
 
+    fun filterQuests(){
+        Log.d("HomeScreenViewModel", "quest list state changed")
+        val today = getCurrentDay()
+        val filtered = rawQuestList.value.filter {
+            !it.is_destroyed && it.selected_days.contains(today)
+        }
+        // Mark completed
+        val tempCompletedList = mutableListOf<String>()
+        filtered.forEach {
+            if (it.last_completed_on == getCurrentDate()) {
+                tempCompletedList.add(it.id)
+            }
+        }
+
+        val uncompleted = filtered.filter { it.id !in tempCompletedList }
+        val completed = filtered.filter { it.id in tempCompletedList }
+
+        val merged =
+            (uncompleted + completed).sortedBy { QuestHelper.isInTimeRange(it) }
+
+        if (completed.size == rawQuestList.value.size) {
+            if (userRepository.continueStreak()) {
+                showStreakUpDialog()
+            }
+        }
+        questList.value = if (merged.size >= 4) merged.take(4) else merged
+        completedQuests.value = tempCompletedList.toList()
+    }
 
     private suspend fun loadStats() {
 
