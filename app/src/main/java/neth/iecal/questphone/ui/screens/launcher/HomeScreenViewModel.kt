@@ -69,7 +69,6 @@ class HomeScreenViewModel @Inject constructor(
 
 
     init {
-
         viewModelScope.launch {
             if (userRepository.userInfo.streak.currentStreak != 0) {
                 val daysSince = userRepository.checkIfStreakFailed()

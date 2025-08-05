@@ -23,44 +23,67 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import neth.iecal.questphone.ui.navigation.RootRoute
 import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.repositories.QuestRepository
+import javax.inject.Inject
 
-@Composable
-fun ListAllQuests(navHostController: NavHostController) {
-    var questList by remember { mutableStateOf<List<CommonQuestInfo>>(emptyList()) }
-    val dao = QuestDatabaseProvider.getInstance(LocalContext.current).questDao()
+@HiltViewModel
+class ListAllQuestsViewModel @Inject constructor(
+    private val questRepository: QuestRepository
+) : ViewModel() {
 
-    var searchQuery by remember { mutableStateOf("") }
-    val filteredQuestList = remember(questList, searchQuery) {
-        if (searchQuery.isBlank()) {
-            questList
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+
+    private val _questList = MutableStateFlow<List<CommonQuestInfo>>(emptyList())
+    var questList: MutableStateFlow<List<CommonQuestInfo>> = MutableStateFlow<List<CommonQuestInfo>>(emptyList())
+
+
+    init {
+        viewModelScope.launch {
+            _questList.value = questRepository.getAllQuests().first()
+            questList.value = _questList.value
+        }
+    }
+
+    fun onSearchQueryChange(newQuery: String) {
+        _searchQuery.value = newQuery
+
+        if (_searchQuery.value.isBlank()) {
+            questList.value =  _questList.value
         } else {
-            questList.filter { item ->
-                item.title.contains(searchQuery, ignoreCase = true) ||
-                        item.instructions.contains(searchQuery, ignoreCase = true)
+           questList.value =  _questList.value.filter { item ->
+                item.title.contains(searchQuery.value, ignoreCase = true) ||
+                        item.instructions.contains(searchQuery.value, ignoreCase = true)
             }
         }
     }
-    LaunchedEffect(Unit) {
-        questList = dao.getAllQuests().first()
-    }
 
+}
+
+@Composable
+fun ListAllQuests(navHostController: NavHostController, viewModel: ListAllQuestsViewModel = hiltViewModel()) {
+
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val questList by viewModel.questList.collectAsState()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -93,7 +116,7 @@ fun ListAllQuests(navHostController: NavHostController) {
                 item {
                     OutlinedTextField(
                         value = searchQuery,
-                        onValueChange = { searchQuery = it },
+                        onValueChange = { viewModel.onSearchQueryChange(it) },
                         label = { Text("Search Quests") },
                         placeholder = { Text("Type Quest Title...") },
                         leadingIcon = {
@@ -104,7 +127,7 @@ fun ListAllQuests(navHostController: NavHostController) {
                         },
                         trailingIcon = {
                             if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { searchQuery = "" }) {
+                                IconButton(onClick = { viewModel.onSearchQueryChange("")}) {
                                     Icon(
                                         imageVector = Icons.Default.Clear,
                                         contentDescription = "Clear search"
@@ -118,7 +141,7 @@ fun ListAllQuests(navHostController: NavHostController) {
                         singleLine = true
                     )
                 }
-                items(filteredQuestList) { questBase: CommonQuestInfo ->
+                items(questList) { questBase: CommonQuestInfo ->
                     QuestItem(
                         quest = questBase,
                         onClick = {
