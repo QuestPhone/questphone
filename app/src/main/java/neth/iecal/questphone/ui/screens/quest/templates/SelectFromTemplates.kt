@@ -1,6 +1,5 @@
 package neth.iecal.questphone.ui.screens.quest.templates
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,12 +41,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,74 +55,27 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
-import kotlinx.serialization.Serializable
 import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.data.IntegrationId
+import neth.iecal.questphone.data.Template
 import neth.iecal.questphone.ui.navigation.RootRoute
-import nethical.questphone.backend.fetchUrlContent
-import nethical.questphone.data.json
 
-@Serializable
-data class Activity(
-    val name: String,
-    val description: String,
-    val requirements: String,
-    val color: String,
-    val integration: IntegrationId,
-    val category: String,
-    val id: String
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectFromTemplates(
-    navController: NavController
+    navController: NavController,
+    viewModel: TemplatesViewModel
 ) {
-    var response by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(true) }
-    var activities by remember { mutableStateOf(emptyList<Activity>()) }
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf<String?>(null) }
+
+    val activities by viewModel.template.collectAsState()
+    val filteredTemplates by viewModel.filteredActivities.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val selectedCategory by viewModel.selectedCategory.collectAsState()
+    val categories by viewModel.categories.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val showLoginRequiredDialog by viewModel.showLoginDialog.collectAsState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    // Get unique categories
-    val categories by remember(activities) {
-        derivedStateOf {
-            activities.map { it.category }.distinct().sorted()
-        }
-    }
-
-    // Filter activities based on search and category
-    val filteredActivities by remember(activities, searchQuery, selectedCategory) {
-        derivedStateOf {
-            activities.filter { activity ->
-                val matchesSearch = searchQuery.isBlank() ||
-                        activity.name.contains(searchQuery, ignoreCase = true) ||
-                        activity.description.contains(searchQuery, ignoreCase = true) ||
-                        activity.category.contains(searchQuery, ignoreCase = true)
-
-                val matchesCategory =
-                    selectedCategory == null || activity.category == selectedCategory
-
-                matchesSearch && matchesCategory
-            }
-        }
-    }
-
-    LaunchedEffect(response) {
-        if(response.isNotEmpty()){
-            activities = parseActivitiesJson(response)
-        }
-        Log.d("response", response)
-    }
-
-    LaunchedEffect(Unit) {
-        response =
-            fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/all.json")
-                ?: ""
-        isLoading = false
-    }
 
     Scaffold(
         topBar = {
@@ -192,7 +142,7 @@ fun SelectFromTemplates(
                         // Search Bar
                         OutlinedTextField(
                             value = searchQuery,
-                            onValueChange = { searchQuery = it },
+                            onValueChange = { viewModel.setSearchQuery(it) },
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = {
                                 Text(
@@ -211,7 +161,7 @@ fun SelectFromTemplates(
                                 if (searchQuery.isNotEmpty()) {
                                     IconButton(
                                         onClick = {
-                                            searchQuery = ""
+                                            viewModel.setSearchQuery("")
                                             keyboardController?.hide()
                                         }
                                     ) {
@@ -243,7 +193,7 @@ fun SelectFromTemplates(
                             ) {
                                 item {
                                     FilterChip(
-                                        onClick = { selectedCategory = null },
+                                        onClick = { viewModel.setSelectedCategory(null) },
                                         label = { Text("All") },
                                         selected = selectedCategory == null,
                                         colors = FilterChipDefaults.filterChipColors(
@@ -256,8 +206,7 @@ fun SelectFromTemplates(
                                 items(categories) { category ->
                                     FilterChip(
                                         onClick = {
-                                            selectedCategory =
-                                                if (selectedCategory == category) null else category
+                                            viewModel.setSelectedCategory(if (selectedCategory == category) null else category)
                                         },
                                         label = { Text(category) },
                                         selected = selectedCategory == category,
@@ -274,28 +223,29 @@ fun SelectFromTemplates(
 
                         // Results count
                         Text(
-                            text = "${filteredActivities.size} templates found",
+                            text = "${filteredTemplates.size} templates found",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
-                items(filteredActivities) { activity ->
+                items(filteredTemplates) { template ->
                     ActivityCard(
-                        activity = activity,
+                        template = template,
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {
-                            if(activity.integration.isLoginRequired && User!!.userInfo.isAnonymous){
+                            if(template.integration.isLoginRequired && User!!.userInfo.isAnonymous){
                                 showLoginRequiredDialog.value = true
                             }else {
-                                navController.navigate(RootRoute.SetupTemplate.route + activity.id)
+                                viewModel.selectTemplate(template)
+                                navController.navigate(RootRoute.SetupTemplate.route)
                             }
                         }
                     )
                 }
 
-                if (filteredActivities.isEmpty() && !isLoading) {
+                if (filteredTemplates.isEmpty() && !isLoading) {
                     item {
                         Box(
                             modifier = Modifier
@@ -395,7 +345,7 @@ private fun CustomQuestCard(
 
 @Composable
 private fun ActivityCard(
-    activity: Activity,
+    template: Template,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -416,7 +366,7 @@ private fun ActivityCard(
                     .size(12.dp)
                     .background(
                         color = try {
-                            Color(activity.color.toColorInt())
+                            Color(template.color.toColorInt())
                         } catch (e: Exception) {
                             MaterialTheme.colorScheme.primary
                         },
@@ -430,7 +380,7 @@ private fun ActivityCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = activity.name,
+                    text = template.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -439,7 +389,7 @@ private fun ActivityCard(
                 )
 
                 Text(
-                    text = activity.description,
+                    text = template.description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),
@@ -447,9 +397,9 @@ private fun ActivityCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                if (activity.requirements != "none" && activity.requirements.isNotBlank()) {
+                if (template.requirements != "none" && template.requirements.isNotBlank()) {
                     Text(
-                        text = "Requirements: ${activity.requirements}",
+                        text = "Requirements: ${template.requirements}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp),
@@ -463,7 +413,7 @@ private fun ActivityCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = activity.category,
+                        text = template.category,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier
@@ -475,7 +425,7 @@ private fun ActivityCard(
                     )
 
                     Text(
-                        text = activity.integration.label,
+                        text = template.integration.label,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
                         modifier = Modifier
@@ -491,11 +441,3 @@ private fun ActivityCard(
     }
 }
 
-private fun parseActivitiesJson(jsonString: String): List<Activity>{
-    return try {
-        json.decodeFromString<List<Activity>>(jsonString)
-    } catch (e: Exception) {
-        Log.e("SelectFromTemplates", "Failed to parse activities JSON", e)
-        emptyList<Activity>()
-    }
-}

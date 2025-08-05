@@ -45,6 +45,7 @@ import neth.iecal.questphone.ui.screens.quest.setup.SetIntegration
 import neth.iecal.questphone.ui.screens.quest.stats.specific.BaseQuestStatsView
 import neth.iecal.questphone.ui.screens.quest.templates.SelectFromTemplates
 import neth.iecal.questphone.ui.screens.quest.templates.SetupTemplate
+import neth.iecal.questphone.ui.screens.quest.templates.TemplatesViewModel
 import neth.iecal.questphone.ui.theme.LauncherTheme
 import nethical.questphone.backend.isOnline
 import nethical.questphone.backend.repositories.QuestRepository
@@ -134,7 +135,8 @@ class MainActivity : ComponentActivity() {
                             Navigator.currentScreen = null
                         }
                     }
-
+                    val homeScreenViewModel : HomeScreenViewModel = hiltViewModel()
+                    val templatesViewModel: TemplatesViewModel = hiltViewModel()
                     NavHost(
                         navController = navController,
                         startDestination = RootRoute.HomeScreen.route,
@@ -151,7 +153,6 @@ class MainActivity : ComponentActivity() {
                             SelectApps(SelectAppsModes.entries[mode!!])
                         }
                         composable(RootRoute.HomeScreen.route) {
-                            val homeScreenViewModel : HomeScreenViewModel = hiltViewModel()
                             HomeScreen(navController,homeScreenViewModel)
                         }
 
@@ -205,14 +206,14 @@ class MainActivity : ComponentActivity() {
                             BaseQuestStatsView(id!!, navController)
                         }
                         composable(RootRoute.SelectTemplates.route) {
-                            SelectFromTemplates(navController)
+                            SelectFromTemplates(navController,templatesViewModel)
                         }
+                        composable(RootRoute.SetupTemplate.route) {
+                            SetupTemplate(navController,templatesViewModel)
+                        }
+
                         composable(RootRoute.SetCoinRewardRatio.route){
                             SetCoinRewardRatio()
-                        }
-                        composable("${RootRoute.SetupTemplate.route}{id}") { backStackEntry ->
-                            val id = backStackEntry.arguments?.getString("id")
-                            SetupTemplate(id!!,navController)
                         }
                     }
                 }

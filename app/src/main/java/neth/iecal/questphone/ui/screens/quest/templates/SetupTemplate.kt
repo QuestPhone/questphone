@@ -46,13 +46,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,23 +67,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import neth.iecal.questphone.R
 import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.data.TemplateData
 import neth.iecal.questphone.data.TemplateVariable
-import neth.iecal.questphone.data.VariableName
 import neth.iecal.questphone.data.VariableType
-import neth.iecal.questphone.data.convertToTemplate
-import neth.iecal.questphone.data.toAdv
 import neth.iecal.questphone.ui.screens.quest.setup.ai_snap.model.ModelDownloadDialog
 import neth.iecal.questphone.ui.screens.quest.setup.components.DateSelector
 import neth.iecal.questphone.ui.screens.quest.setup.components.TimeRangeDialog
 import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SelectAppsDialog
-import nethical.questphone.backend.QuestDatabaseProvider
-import nethical.questphone.backend.fetchUrlContent
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.managers.formatAppList
 import nethical.questphone.core.core.utils.readableTimeRange
@@ -95,53 +84,14 @@ import nethical.questphone.data.json
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
-fun SetupTemplate(id: String,controller: NavController) {
-    var response by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(true) }
-    var templateData by remember { mutableStateOf<TemplateData?>(null) }
-    var variableValues by remember { mutableStateOf(mutableMapOf<String, String>()) }
-    var showDialog by remember { mutableStateOf(false) }
+fun SetupTemplate(controller: NavController,viewModel: TemplatesViewModel) {
+    val isLoading by viewModel.isLoading.collectAsState()
+    val templateContent by viewModel.selectedTemplateContent.collectAsState()
+    val variableValues by viewModel.variableValues.collectAsState()
+
     var showSaveConfirmation by remember { mutableStateOf(false) }
     var currentVariable by remember { mutableStateOf<TemplateVariable?>(null) }
     var isModelDownloadDialogVisible =remember{ mutableStateOf(false)}
-
-    // Check if all required variables are filled
-    val allVariablesFilled by remember {
-        derivedStateOf {
-            templateData?.questExtraVariableDeclaration?.all { variable ->
-                val value = variableValues[variable.name]
-                !value.isNullOrBlank() && value != "Not set"
-            } == true
-        }
-    }
-
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    LaunchedEffect(Unit) {
-        response =
-            fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/templates/${id}.json")
-                ?: ""
-        isLoading = false
-    }
-
-    LaunchedEffect(response) {
-        if (response.isNotEmpty()) {
-            try {
-                val data = json.decodeFromString<TemplateData>(response)
-                templateData = data
-                VariableName.entries.forEach {
-                    templateData!!.variableTypes.add(convertToTemplate(it))
-                    if(templateData!!.content.contains("#{${it.name}}")){
-                        templateData!!.questExtraVariableDeclaration.add(it)
-                    }
-                    variableValues[it.name] = it.default
-                }
-            } catch (e: Exception) {
-                Log.e("TemplateScreen", "Error parsing JSON: ${e.message}")
-            }
-        }
-    }
-
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -161,17 +111,9 @@ fun SetupTemplate(id: String,controller: NavController) {
             )
         },
         floatingActionButton = {
-            if (!isLoading && templateData != null) {
+            if (!isLoading && templateContent != null) {
                 FloatingActionButton(
                     onClick = { showSaveConfirmation = true },
-                    containerColor = if (allVariablesFilled)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.outline,
-                    contentColor = if (allVariablesFilled)
-                        MaterialTheme.colorScheme.onPrimary
-                    else
-                        MaterialTheme.colorScheme.onSurface
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.baseline_check_24),
@@ -181,7 +123,7 @@ fun SetupTemplate(id: String,controller: NavController) {
             }
         }
     ) { padding ->
-        if(templateData?.basicQuest?.integration_id == BaseIntegrationId.AI_SNAP){
+        if(templateContent?.basicQuest?.integration_id == BaseIntegrationId.AI_SNAP){
             ModelDownloadDialog(modelDownloadDialogVisible = isModelDownloadDialogVisible)
         }
         if (isLoading) {
@@ -205,7 +147,7 @@ fun SetupTemplate(id: String,controller: NavController) {
                 }
             }
         } else {
-            templateData?.let { data ->
+            templateContent?.let { data ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -238,7 +180,6 @@ fun SetupTemplate(id: String,controller: NavController) {
                         }
                     }
 
-                    // Template content
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -251,7 +192,6 @@ fun SetupTemplate(id: String,controller: NavController) {
                             variableValues = variableValues,
                             onVariableClick = { variable ->
                                 currentVariable = variable
-                                showDialog = true
                             }
                         )
                     }
@@ -282,14 +222,13 @@ fun SetupTemplate(id: String,controller: NavController) {
     }
 
     // Variable edit dialog
-    if (showDialog && currentVariable != null) {
+    if (currentVariable != null) {
         VariableEditDialog(
             variable = currentVariable!!,
             initialValue = variableValues[currentVariable!!.name] ?: "",
-            onDismiss = { showDialog = false },
+            onDismiss = { currentVariable = null },
             onSave = { name, value ->
-                variableValues = variableValues.toMutableMap().also { it[name] = value }
-                showDialog = false
+                viewModel.setVariable(name,value)
             }
         )
     }
@@ -297,8 +236,8 @@ fun SetupTemplate(id: String,controller: NavController) {
     // Save confirmation dialog
     if (showSaveConfirmation) {
         SaveConfirmationDialog(
-            allVariablesFilled = allVariablesFilled,
-            unfilledCount = templateData?.variableTypes?.count { variable ->
+            allVariablesFilled = viewModel.areAllVariablesFilled(),
+            unfilledCount = templateContent?.questExtraVariableDeclaration?.count { variable ->
                 val value = variableValues[variable.name]
                 value.isNullOrBlank() || value == "Not set"
             } ?: 0,
@@ -306,37 +245,17 @@ fun SetupTemplate(id: String,controller: NavController) {
             onConfirm = {
                 // Handle save logic here
                 showSaveConfirmation = false
-                Log.d("vars",variableValues.toString())
-
-                templateData?.let {
-                    it.basicQuest.auto_destruct = variableValues.getOrDefault("auto_destruct","9999-12-31")
-                    it.basicQuest.selected_days = json.decodeFromString(variableValues["selected_days"].toString())
-
-                    var templateExtra = it.questExtra
-                    Log.d("Declared Variables",it.questExtraVariableDeclaration.toString())
-                    it.questExtraVariableDeclaration.forEach {
-                        templateExtra = it.setter(templateExtra,variableValues,it.name)
-                    }
-                    Log.d("FInal data",templateExtra.toString())
-                    it.basicQuest.quest_json = templateExtra.getQuestJson(it.basicQuest.integration_id.toAdv())
-                    Log.d("Final Data",it.basicQuest.toString())
-                    scope.launch {
-                        val questDao = QuestDatabaseProvider.getInstance(context).questDao()
-                        questDao.upsertQuest(it.basicQuest)
-                        withContext(Dispatchers.Main) {
-                            controller.popBackStack()
-                            showSaveConfirmation = false
-                        }
-                    }
+                viewModel.addToQuests {
+                    controller.popBackStack()
+                    showSaveConfirmation = false
                 }
-
             }
         )
     }
 }
 
 @Composable
-fun ClickableTemplateText(
+private fun ClickableTemplateText(
     content: String,
     variables: List<TemplateVariable>,
     variableValues: Map<String, String>,
@@ -430,7 +349,7 @@ fun ClickableTemplateText(
 }
 
 @Composable
-fun VariableEditDialog(
+private fun VariableEditDialog(
     variable: TemplateVariable,
     initialValue: String,
     onDismiss: () -> Unit,
@@ -549,7 +468,9 @@ fun VariableEditDialog(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Button(
-                        onClick = { onSave(variable.name, textValue.ifBlank { "Not set" }) },
+                        onClick = {
+                            onDismiss()
+                            onSave(variable.name, textValue.ifBlank { "Not set" }) },
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Icon(
@@ -567,7 +488,7 @@ fun VariableEditDialog(
 }
 
 @Composable
-fun DaysOfWeekSelectorDialog(
+private fun DaysOfWeekSelectorDialog(
     initialSelected: Set<DayOfWeek>,
     onSelectionChanged: (Set<DayOfWeek>) -> Unit
 ) {
