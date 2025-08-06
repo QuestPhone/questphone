@@ -1,12 +1,23 @@
-package neth.iecal.questphone.ui.screens.quest.setup.components
+package neth.iecal.questphone.ui.screens.quest.setup.deep_focus
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -18,26 +29,18 @@ import nethical.questphone.data.quest.focus.FocusTimeConfig
 
 @Composable
 fun SetFocusTimeUI(
-    focusTime: MutableState<FocusTimeConfig>
+    focusTime: FocusTimeConfig, onUpdate: (FocusTimeConfig) -> Unit
 ) {
-//
-//    Text(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(top = 16.dp),
-//        text = "Duration",
-//        style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-//    )
     TimeInputRow(
         label = "Initial Focus Time",
         description = "Starting duration for your focus sessions",
-        time = focusTime.value.initialTime,
-        unit = focusTime.value.initialUnit,
+        time = focusTime.initialTime,
+        unit = focusTime.initialUnit,
         onUpdate = { value, unit ->
             val initial = convertToMinutes(value, unit)
-            val goal = convertToMinutes(focusTime.value.finalTime, focusTime.value.finalUnit)
+            val goal = convertToMinutes(focusTime.finalTime, focusTime.finalUnit)
             if (initial in 0..goal) {
-                focusTime.value = focusTime.value.copy(initialTime = value, initialUnit = unit)
+                onUpdate(focusTime.copy(initialTime = value, initialUnit = unit))
             }
         }
     )
@@ -45,24 +48,24 @@ fun SetFocusTimeUI(
     TimeInputRow(
         label = "Increment Daily by",
         description = "How much to increase each day",
-        time = focusTime.value.incrementTime,
-        unit = focusTime.value.incrementUnit,
+        time = focusTime.incrementTime,
+        unit = focusTime.incrementUnit,
         availableUnits = listOf("m"),
         onUpdate = { value, unit ->
-            focusTime.value = focusTime.value.copy(incrementTime = value, incrementUnit = unit)
+            onUpdate(focusTime.copy(incrementTime = value, incrementUnit = unit))
         }
     )
 
     TimeInputRow(
         label = "Goal Focus Time",
         description = "Target duration to build up to",
-        time = focusTime.value.finalTime,
-        unit = focusTime.value.finalUnit,
+        time = focusTime.finalTime,
+        unit = focusTime.finalUnit,
         onUpdate = { value, unit ->
-            val initial = convertToMinutes(focusTime.value.initialTime, focusTime.value.initialUnit)
+            val initial = convertToMinutes(focusTime.initialTime, focusTime.initialUnit)
             val goal = convertToMinutes(value, unit)
             if (goal >= initial) {
-                focusTime.value = focusTime.value.copy(finalTime = value, finalUnit = unit)
+                onUpdate(focusTime.copy(finalTime = value, finalUnit = unit))
             }
         }
     )

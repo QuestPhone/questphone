@@ -96,7 +96,9 @@ fun SelectAppsDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
+            TextButton(onClick = {
+                onConfirm()
+                onDismiss()}) {
                 Text("OK")
             }
         },

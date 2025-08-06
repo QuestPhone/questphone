@@ -11,7 +11,9 @@ import nethical.questphone.data.DayOfWeek
 import nethical.questphone.data.json
 import java.util.UUID
 
-
+/**
+ * Holds [CommonQuestInfo] as a state object
+ */
 @Stable
 class QuestInfoState(
     initialTitle: String = "",

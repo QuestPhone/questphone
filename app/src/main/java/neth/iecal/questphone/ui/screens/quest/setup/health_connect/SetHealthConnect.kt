@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -22,78 +23,100 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import kotlinx.coroutines.launch
-import neth.iecal.questphone.data.QuestInfoState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
-import neth.iecal.questphone.ui.screens.quest.setup.SetBaseQuest
-import nethical.questphone.backend.QuestDatabaseProvider
+import neth.iecal.questphone.ui.screens.quest.setup.CommonSetBaseQuest
+import neth.iecal.questphone.ui.screens.quest.setup.SetupViewModel
+import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.data.BaseIntegrationId
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.health.HealthQuest
 import nethical.questphone.data.quest.health.HealthTaskType
+import javax.inject.Inject
 
+@HiltViewModel
+class SetHealthConnectViewModel @Inject constructor (questRepository: QuestRepository): SetupViewModel(questRepository){
+    val healthQuest = MutableStateFlow(HealthQuest())
+
+    fun saveQuest(onSuccess: ()-> Unit){
+        healthQuest.value.nextGoal = healthQuest.value.healthGoalConfig.initial
+        addQuestToDb { onSuccess() }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController) {
+fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController,viewModel: SetHealthConnectViewModel = hiltViewModel()) {
     val scrollState = rememberScrollState()
     val haptic = LocalHapticFeedback.current
-    val questInfoState = remember { QuestInfoState(initialIntegrationId = BaseIntegrationId.HEALTH_CONNECT) }
-    val healthQuest = remember { mutableStateOf(HealthQuest()) }
-    val isReviewDialogVisible = remember { mutableStateOf(false) }
 
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
+    val questInfoState by viewModel.questInfoState.collectAsState()
+    val healthQuest by viewModel.healthQuest.collectAsState()
+    val isReviewDialogVisible by viewModel.isReviewDialogVisible.collectAsState()
+
 
     LaunchedEffect(Unit) {
-        if(editQuestId!=null){
-            val dao = QuestDatabaseProvider.getInstance(context).questDao()
-            val quest = dao.getQuest(editQuestId)
-            questInfoState.fromBaseQuest(quest!!)
-            healthQuest.value = json.decodeFromString<HealthQuest>(quest.quest_json)
+        viewModel.loadQuestData(editQuestId, BaseIntegrationId.HEALTH_CONNECT) {
+            viewModel.healthQuest.value = json.decodeFromString<HealthQuest>(it.quest_json)
         }
     }
 
-    if (isReviewDialogVisible.value) {
-        healthQuest.value.nextGoal = healthQuest.value.healthGoalConfig.initial
-        val baseQuest = questInfoState.toBaseQuest(healthQuest.value)
+    if (isReviewDialogVisible) {
+        val baseQuest = viewModel.getBaseQuestInfo()
         ReviewDialog(
             items = listOf(
-                baseQuest, healthQuest.value
+                baseQuest, healthQuest
             ),
             onConfirm = {
-                scope.launch {
-                    val dao = QuestDatabaseProvider.getInstance(context).questDao()
-                    dao.upsertQuest(baseQuest)
+                viewModel.saveQuest {
+                    navController.popBackStack()
                 }
-                isReviewDialogVisible.value = false
-                navController.popBackStack()
             },
             onDismiss = {
-                isReviewDialogVisible.value = false
+                viewModel.isReviewDialogVisible.value = false
             }
         )
     }
 
-    Scaffold() { paddingValues ->
+    Scaffold(
+        modifier = Modifier.safeDrawingPadding(),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        text = "Health Connect",
+                        style = MaterialTheme.typography.headlineLarge,
+                    )
+                }
+            )
+        }
+    ) { paddingValues ->
         Box(Modifier.padding(paddingValues)) {
             Column(
                 modifier = Modifier
@@ -103,7 +126,7 @@ fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController
             ) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(24.dp),
-                    modifier = Modifier.padding(top = 32.dp)
+                    modifier = Modifier.padding(top = 32.dp),
                 ) {
                     Text(
                         modifier = Modifier
@@ -113,93 +136,87 @@ fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController
                         style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                     )
 
-                    SetBaseQuest(questInfoState, isTimeRangeSupported = false)
+                    CommonSetBaseQuest(questInfoState, isTimeRangeSupported = false)
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Text(
-                                text = "Health Goal Settings",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
+                    Text(
+                        text = "Health Goal Settings",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                            // Task Type Dropdown
-                            HealthTaskTypeSelector(
-                                selectedType = healthQuest.value.type,
-                                onTypeSelected = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    healthQuest.value = healthQuest.value.copy(type = it) }
-                            )
-
-                            // Goal Config Inputs
-                            GoalConfigInput(
-                                label = "Initial Count",
-                                value = healthQuest.value.healthGoalConfig.initial.toString(),
-                                onValueChange = {
-                                    val newValue = it.toIntOrNull() ?: 0
-                                    healthQuest.value = healthQuest.value.copy(
-                                        healthGoalConfig = healthQuest.value.healthGoalConfig.copy(initial = newValue)
-                                    )
-                                },
-                                unit = healthQuest.value.type.unit
-                            )
-
-                            GoalConfigInput(
-                                label = "Increment Daily By",
-                                value = healthQuest.value.healthGoalConfig.increment.toString(),
-                                onValueChange = {
-                                    val newValue = it.toIntOrNull() ?: 0
-                                    healthQuest.value = healthQuest.value.copy(
-                                        healthGoalConfig = healthQuest.value.healthGoalConfig.copy(increment = newValue)
-                                    )
-                                },
-                                unit = healthQuest.value.type.unit
-                            )
-                            GoalConfigInput(
-                                label = "Final Count",
-                                value = healthQuest.value.healthGoalConfig.final.toString(),
-                                onValueChange = {
-                                    val newValue = it.toIntOrNull() ?: 0
-                                    healthQuest.value = healthQuest.value.copy(
-                                        healthGoalConfig = healthQuest.value.healthGoalConfig.copy(final = newValue)
-                                    )
-                                },
-                                unit = healthQuest.value.type.unit
-                            )
-
-                            }
-
-                    Button(
-                        enabled = questInfoState.selectedDays.isNotEmpty(),
-                        onClick = { isReviewDialogVisible.value = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Done,
-                                contentDescription = "Done"
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if(editQuestId==null) "Create Quest" else "Save Changes",
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                    // Task Type Dropdown
+                    HealthTaskTypeSelector(
+                        selectedType = healthQuest.type,
+                        onTypeSelected = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.healthQuest.value = healthQuest.copy(type = it)
                         }
-                    }
+                    )
 
-                    Spacer(Modifier.size(100.dp))
+                    // Goal Config Inputs
+                    GoalConfigInput(
+                        label = "Initial Count",
+                        value = healthQuest.healthGoalConfig.initial.toString(),
+                        onValueChange = {
+                            val newValue = it.toIntOrNull() ?: 0
+                            viewModel.healthQuest.value = healthQuest.copy(
+                                healthGoalConfig = healthQuest.healthGoalConfig.copy(initial = newValue)
+                            )
+                        },
+                        unit = healthQuest.type.unit
+                    )
+
+                    GoalConfigInput(
+                        label = "Increment Daily By",
+                        value = healthQuest.healthGoalConfig.increment.toString(),
+                        onValueChange = {
+                            val newValue = it.toIntOrNull() ?: 0
+                            viewModel.healthQuest.value = healthQuest.copy(
+                                healthGoalConfig = healthQuest.healthGoalConfig.copy(increment = newValue)
+                            )
+                        },
+                        unit = healthQuest.type.unit
+                    )
+                    GoalConfigInput(
+                        label = "Final Count",
+                        value = healthQuest.healthGoalConfig.final.toString(),
+                        onValueChange = {
+                            val newValue = it.toIntOrNull() ?: 0
+                            viewModel.healthQuest.value = healthQuest.copy(
+                                healthGoalConfig = healthQuest.healthGoalConfig.copy(final = newValue)
+                            )
+                        },
+                        unit = healthQuest.type.unit
+                    )
+
                 }
+
+                Button(
+                    enabled = questInfoState.selectedDays.isNotEmpty(),
+                    onClick = { viewModel.isReviewDialogVisible.value = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Done,
+                            contentDescription = "Done"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (editQuestId == null) "Create Quest" else "Save Changes",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
+
+                Spacer(Modifier.size(100.dp))
             }
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HealthTaskTypeSelector(
+private fun HealthTaskTypeSelector(
     selectedType: HealthTaskType,
     onTypeSelected: (HealthTaskType) -> Unit
 ) {
@@ -223,7 +240,7 @@ fun HealthTaskTypeSelector(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor(),
+                .menuAnchor(MenuAnchorType.PrimaryEditable, true),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 focusedBorderColor = MaterialTheme.colorScheme.primary
@@ -251,7 +268,7 @@ fun HealthTaskTypeSelector(
 }
 
 @Composable
-fun GoalConfigInput(
+private fun GoalConfigInput(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
