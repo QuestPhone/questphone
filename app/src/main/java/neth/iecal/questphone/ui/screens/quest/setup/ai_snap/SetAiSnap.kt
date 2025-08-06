@@ -41,7 +41,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -54,13 +53,16 @@ import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetupViewModel
 import neth.iecal.questphone.ui.screens.quest.setup.ai_snap.model.ModelDownloadDialog
 import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap
 import javax.inject.Inject
 
 @HiltViewModel
-class SetAiSnapViewModel @Inject constructor (questRepository: QuestRepository) : SetupViewModel(questRepository){
+class SetAiSnapViewModel @Inject constructor (questRepository: QuestRepository,
+                                              userRepository: UserRepository
+) : SetupViewModel(questRepository, userRepository){
     val taskDescription = MutableStateFlow("")
     val features : SnapshotStateList<String> = mutableStateListOf()
 
@@ -80,7 +82,6 @@ class SetAiSnapViewModel @Inject constructor (questRepository: QuestRepository) 
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewModel: SetAiSnapViewModel = hiltViewModel()) {
-    val context = LocalContext.current
     val scrollState = rememberScrollState()
 
     val questInfoState by viewModel.questInfoState.collectAsState()
@@ -146,7 +147,7 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewM
                     }
 
                     // Base quest configuration
-                    CommonSetBaseQuest(questInfoState)
+                    CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState)
 
                     // Task description
                     OutlinedTextField(

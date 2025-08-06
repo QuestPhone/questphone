@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.data.QuestInfoState
 import neth.iecal.questphone.ui.screens.quest.setup.components.AutoDestruct
 import neth.iecal.questphone.ui.screens.quest.setup.components.SelectDaysOfWeek
@@ -18,7 +17,7 @@ import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getCurrentDay
 
 @Composable
-fun CommonSetBaseQuest(questInfoState: QuestInfoState, isTimeRangeSupported: Boolean = true) {
+fun CommonSetBaseQuest(createdOnDate:String,questInfoState: QuestInfoState, isTimeRangeSupported: Boolean = true) {
 
     OutlinedTextField(
         value = questInfoState.title,
@@ -32,7 +31,7 @@ fun CommonSetBaseQuest(questInfoState: QuestInfoState, isTimeRangeSupported: Boo
     )
 
 
-    if(questInfoState.selectedDays.contains(getCurrentDay()) && User!!.userInfo.getCreatedOnString() != getCurrentDate()){
+    if(questInfoState.selectedDays.contains(getCurrentDay()) && createdOnDate != getCurrentDate()){
         Text("Fake a quest if you want. It'll sit in your history, reminding you you're a fraud. Real ones can ignore this, you’ve got nothing to hide.")
     }
     SelectDaysOfWeek(questInfoState)

@@ -46,10 +46,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.CommonSetBaseQuest
+import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetupViewModel
 import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.health.HealthQuest
@@ -57,7 +58,9 @@ import nethical.questphone.data.quest.health.HealthTaskType
 import javax.inject.Inject
 
 @HiltViewModel
-class SetHealthConnectViewModel @Inject constructor (questRepository: QuestRepository): SetupViewModel(questRepository){
+class SetHealthConnectViewModel @Inject constructor (questRepository: QuestRepository,
+                                                     userRepository: UserRepository
+): SetupViewModel(questRepository, userRepository){
     val healthQuest = MutableStateFlow(HealthQuest())
 
     fun saveQuest(onSuccess: ()-> Unit){
@@ -136,7 +139,7 @@ fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController
                         style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                     )
 
-                    CommonSetBaseQuest(questInfoState, isTimeRangeSupported = false)
+                    CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState, isTimeRangeSupported = false)
 
                     Text(
                         text = "Health Goal Settings",

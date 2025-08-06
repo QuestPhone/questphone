@@ -7,10 +7,12 @@ import kotlinx.coroutines.launch
 import neth.iecal.questphone.data.QuestInfoState
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
 
 open class SetupViewModel(
-    protected val questRepository: QuestRepository
+    protected val questRepository: QuestRepository,
+    protected val userRepository: UserRepository
 ): ViewModel() {
     val isReviewDialogVisible: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -19,6 +21,8 @@ open class SetupViewModel(
     fun getBaseQuestInfo(): CommonQuestInfo{
         return questInfoState.value.toBaseQuest(null)
     }
+
+    val userCreatedOn = userRepository.userInfo.getCreatedOnString()
 
     suspend fun loadQuestData(id:String?,integrationId: BaseIntegrationId,onQuestLoaded:(CommonQuestInfo) -> Unit = {}){
         val quest = questRepository.getQuestById(id.toString())

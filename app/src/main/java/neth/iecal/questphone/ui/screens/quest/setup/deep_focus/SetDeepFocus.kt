@@ -39,10 +39,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.CommonSetBaseQuest
+import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetupViewModel
 import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.focus.DeepFocus
@@ -51,8 +52,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SetDeepFocusViewModel @Inject constructor(
-    questRepository: QuestRepository
-) : SetupViewModel(questRepository){
+    questRepository: QuestRepository, userRepository: UserRepository
+) : SetupViewModel(questRepository, userRepository){
     var selectedApps :SnapshotStateList<String> = mutableStateListOf()
 
     var focusTimeConfig = MutableStateFlow(FocusTimeConfig())
@@ -147,7 +148,7 @@ fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController, vi
 
             ) {
 
-                CommonSetBaseQuest(questInfoState)
+                CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState)
 
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),

@@ -32,15 +32,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
-import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.CommonSetBaseQuest
+import neth.iecal.questphone.ui.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.ui.screens.quest.setup.SetupViewModel
 import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
 import javax.inject.Inject
 
 @HiltViewModel
-class SetSwiftMarkViewModel @Inject constructor (questRepository: QuestRepository): SetupViewModel(questRepository)
+class SetSwiftMarkViewModel @Inject constructor (questRepository: QuestRepository,
+                                                 userRepository: UserRepository
+): SetupViewModel(questRepository, userRepository)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,7 +101,7 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, vi
                 verticalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
 
-                CommonSetBaseQuest(questInfoState)
+                CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState)
                 Button(
                     enabled = questInfoState.selectedDays.isNotEmpty(),
                     onClick = {
