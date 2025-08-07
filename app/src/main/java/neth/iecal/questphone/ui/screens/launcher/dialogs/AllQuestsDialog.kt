@@ -254,7 +254,7 @@ fun AllQuestsDialog(
                                     val prefix =
                                         if (baseQuest.time_range[0] == 0 && baseQuest.time_range[1] == 24) ""
                                         else timeRange
-                                    val isFailed = QuestHelper.isOver(baseQuest)
+                                    val isFailed = QuestHelper.isTimeOver(baseQuest)
                                     val isCompleted = completedQuests.contains(baseQuest.id)
 
                                     Text(

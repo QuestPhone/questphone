@@ -64,7 +64,7 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, vi
                 baseQuest
             ),
             onConfirm = {
-                viewModel.addQuestToDb {
+                viewModel.addQuestToDb("") {
                     navController.popBackStack()
                 }
             },

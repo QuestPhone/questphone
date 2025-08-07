@@ -1,118 +1,146 @@
 package neth.iecal.questphone.ui.screens.quest.view
 
+import android.app.Application
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.ui.screens.game.rewardUserForQuestCompl
+import androidx.hilt.navigation.compose.hiltViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import neth.iecal.questphone.ui.screens.components.TopBarActions
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.QuestDatabaseProvider
-import nethical.questphone.backend.StatsDatabaseProvider
-import nethical.questphone.backend.StatsInfo
+import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.StatsRepository
+import nethical.questphone.backend.repositories.UserRepository
+import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
-import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.xpToRewardForQuest
-import java.util.UUID
+import javax.inject.Inject
 
+@HiltViewModel
+class SwiftMarkQuestViewVModel @Inject constructor (questRepository: QuestRepository,
+                                                    userRepository: UserRepository, statsRepository: StatsRepository,
+                                                    application: Application
+) : ViewQuestVM(questRepository, userRepository, statsRepository, application)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwiftMarkQuestView(
-    commonQuestInfo: CommonQuestInfo
+    commonQuestInfo: CommonQuestInfo,
+    viewModel: SwiftMarkQuestViewVModel = hiltViewModel()
 ) {
+
     val context = LocalContext.current
-    val questHelper = QuestHelper(context)
-    val isQuestComplete = remember {
-        mutableStateOf(
-            commonQuestInfo.last_completed_on == getCurrentDate()
-        )
-    }
+
+    val isQuestComplete by viewModel.isQuestComplete.collectAsState()
+    val isInTimeRange by viewModel.isInTimeRange.collectAsState()
+    val progress by viewModel.progress.collectAsState()
+
     val scope = rememberCoroutineScope()
     val dao = QuestDatabaseProvider.getInstance(context).questDao()
 
-    val isInTimeRange = remember { mutableStateOf(QuestHelper.Companion.isInTimeRange(commonQuestInfo)) }
-    val isFailed = remember { mutableStateOf(QuestHelper.isOver(commonQuestInfo)) }
+    val hideStartQuestBtn = isQuestComplete || !isInTimeRange
+    val coins by viewModel.coins.collectAsState()
 
-    val progress = remember {
-        mutableFloatStateOf(if (isQuestComplete.value || isFailed.value ) 1f else 0f)
+    LaunchedEffect(Unit) {
+        viewModel.setCommonQuest(commonQuestInfo)
     }
-
-
-    fun onQuestCompleted(){
-        progress.floatValue = 1f
-        commonQuestInfo.last_completed_on = getCurrentDate()
-        commonQuestInfo.synced = false
-        commonQuestInfo.last_updated = System.currentTimeMillis()
-        scope.launch {
-            dao.upsertQuest(commonQuestInfo)
-
-            val statsDao = StatsDatabaseProvider.getInstance(context).statsDao()
-            statsDao.upsertStats(
-                StatsInfo(
-                    id = UUID.randomUUID().toString(),
-                    quest_id = commonQuestInfo.id,
-                    user_id = User?.getUserId() ?: "",
-
-                    )
+    Scaffold(
+        Modifier.safeDrawingPadding(),
+        topBar = {
+            TopAppBar(
+                title = {},
+                actions = {
+                    TopBarActions(coins, 0, isCoinsVisible = true)
+                }
             )
-        }
-        rewardUserForQuestCompl(commonQuestInfo)
-        isQuestComplete.value = true
-    }
+        },
+        floatingActionButton = {
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if(!isQuestComplete && viewModel.getInventoryItemCount(InventoryItem.QUEST_SKIPPER) > 0){
+                    Image(
+                        painter = painterResource(nethical.questphone.data.R.drawable.quest_skipper),
+                        contentDescription = "use quest skipper",
+                        modifier = Modifier.size(30.dp)
+                            .clickable{
+                                VibrationHelper.vibrate(50)
+                                viewModel.isQuestSkippedDialogVisible.value = true
+                            }
+                    )
 
-    BaseQuestView(
-        hideStartQuestBtn = isQuestComplete.value || !isInTimeRange.value || isFailed.value,
-        onQuestStarted = {
-            onQuestCompleted()
-        },
-        progress = progress,
-        loadingAnimationDuration = 400,
-        startButtonTitle = "Mark as complete",
-        isFailed = isFailed,
-        onQuestCompleted = {
-            onQuestCompleted()
-        },
-        isQuestCompleted = isQuestComplete
-    ) {
+                }
+                if(!hideStartQuestBtn) {
+                    Spacer(modifier = Modifier.width(15.dp))
+                    Button(
+                        onClick = {
+                            VibrationHelper.vibrate(100)
+                            viewModel.saveQuestToDb()
+                        }
+                    ) {
+                        Text(text = "Start Quest")
+                    }
+                }
+            }
+        }) { innerPadding ->
+
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(innerPadding)
+                .padding(8.dp)
         ) {
             Text(
                 text = commonQuestInfo.title,
                 style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+                textDecoration = if(hideStartQuestBtn) TextDecoration.LineThrough else TextDecoration.None
             )
 
             Text(
-                text = (if(isQuestComplete.value) "Next Reward" else "Reward") + ": ${commonQuestInfo.reward} coins + ${
+                text = (if (isQuestComplete) "Next Reward" else "Reward") + ": ${commonQuestInfo.reward} coins + ${
                     xpToRewardForQuest(
-                        User!!.userInfo.level
+                        viewModel.level
                     )
                 } xp",
                 style = MaterialTheme.typography.bodyLarge
             )
 
+            Text(
+                text = "Time: ${formatHour(commonQuestInfo.time_range[0])} to ${
+                    formatHour(
+                        commonQuestInfo.time_range[1]
+                    )
+                }",
+                style = MaterialTheme.typography.bodyLarge
+            )
 
-            if(!isInTimeRange.value){
-                Text(
-                    text = "Time: ${formatHour(commonQuestInfo.time_range[0])} to ${
-                        formatHour(
-                            commonQuestInfo.time_range[1]
-                        )
-                    }",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
             MdPad(commonQuestInfo)
         }
     }

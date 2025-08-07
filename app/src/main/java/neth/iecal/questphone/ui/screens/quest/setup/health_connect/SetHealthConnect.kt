@@ -65,7 +65,7 @@ class SetHealthConnectViewModel @Inject constructor (questRepository: QuestRepos
 
     fun saveQuest(onSuccess: ()-> Unit){
         healthQuest.value.nextGoal = healthQuest.value.healthGoalConfig.initial
-        addQuestToDb { onSuccess() }
+        addQuestToDb(json.encodeToString(healthQuest.value)) { onSuccess() }
     }
 }
 
@@ -125,74 +125,68 @@ fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(horizontal = 16.dp)
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(24.dp),
-                    modifier = Modifier.padding(top = 32.dp),
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+
+
                 ) {
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        text = "Health Connect",
-                        style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                    )
 
-                    CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState, isTimeRangeSupported = false)
+                CommonSetBaseQuest(
+                    viewModel.userCreatedOn,
+                    questInfoState,
+                    isTimeRangeSupported = false
+                )
 
-                    Text(
-                        text = "Health Goal Settings",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                Text(
+                    text = "Health Goal Settings",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
 
-                    // Task Type Dropdown
-                    HealthTaskTypeSelector(
-                        selectedType = healthQuest.type,
-                        onTypeSelected = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.healthQuest.value = healthQuest.copy(type = it)
-                        }
-                    )
+                // Task Type Dropdown
+                HealthTaskTypeSelector(
+                    selectedType = healthQuest.type,
+                    onTypeSelected = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.healthQuest.value = healthQuest.copy(type = it)
+                    }
+                )
 
-                    // Goal Config Inputs
-                    GoalConfigInput(
-                        label = "Initial Count",
-                        value = healthQuest.healthGoalConfig.initial.toString(),
-                        onValueChange = {
-                            val newValue = it.toIntOrNull() ?: 0
-                            viewModel.healthQuest.value = healthQuest.copy(
-                                healthGoalConfig = healthQuest.healthGoalConfig.copy(initial = newValue)
-                            )
-                        },
-                        unit = healthQuest.type.unit
-                    )
+                // Goal Config Inputs
+                GoalConfigInput(
+                    label = "Initial Count",
+                    value = healthQuest.healthGoalConfig.initial.toString(),
+                    onValueChange = {
+                        val newValue = it.toIntOrNull() ?: 0
+                        viewModel.healthQuest.value = healthQuest.copy(
+                            healthGoalConfig = healthQuest.healthGoalConfig.copy(initial = newValue)
+                        )
+                    },
+                    unit = healthQuest.type.unit
+                )
 
-                    GoalConfigInput(
-                        label = "Increment Daily By",
-                        value = healthQuest.healthGoalConfig.increment.toString(),
-                        onValueChange = {
-                            val newValue = it.toIntOrNull() ?: 0
-                            viewModel.healthQuest.value = healthQuest.copy(
-                                healthGoalConfig = healthQuest.healthGoalConfig.copy(increment = newValue)
-                            )
-                        },
-                        unit = healthQuest.type.unit
-                    )
-                    GoalConfigInput(
-                        label = "Final Count",
-                        value = healthQuest.healthGoalConfig.final.toString(),
-                        onValueChange = {
-                            val newValue = it.toIntOrNull() ?: 0
-                            viewModel.healthQuest.value = healthQuest.copy(
-                                healthGoalConfig = healthQuest.healthGoalConfig.copy(final = newValue)
-                            )
-                        },
-                        unit = healthQuest.type.unit
-                    )
-
-                }
+                GoalConfigInput(
+                    label = "Increment Daily By",
+                    value = healthQuest.healthGoalConfig.increment.toString(),
+                    onValueChange = {
+                        val newValue = it.toIntOrNull() ?: 0
+                        viewModel.healthQuest.value = healthQuest.copy(
+                            healthGoalConfig = healthQuest.healthGoalConfig.copy(increment = newValue)
+                        )
+                    },
+                    unit = healthQuest.type.unit
+                )
+                GoalConfigInput(
+                    label = "Final Count",
+                    value = healthQuest.healthGoalConfig.final.toString(),
+                    onValueChange = {
+                        val newValue = it.toIntOrNull() ?: 0
+                        viewModel.healthQuest.value = healthQuest.copy(
+                            healthGoalConfig = healthQuest.healthGoalConfig.copy(final = newValue)
+                        )
+                    },
+                    unit = healthQuest.type.unit
+                )
 
                 Button(
                     enabled = questInfoState.selectedDays.isNotEmpty(),
@@ -213,7 +207,9 @@ fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController
                 }
 
                 Spacer(Modifier.size(100.dp))
+
             }
+
         }
     }
 }

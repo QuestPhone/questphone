@@ -44,6 +44,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -102,7 +103,6 @@ class StoreViewModel @Inject constructor(
 
         userRepository.addItemsToInventory(itemMap)
         userRepository.useCoins(item.price)
-        coins = userRepository.userInfo.coins
         return true
     }
 
@@ -118,7 +118,7 @@ fun StoreScreen(
     var selectedItem by remember { mutableStateOf<InventoryItem?>(null) }
     var showSuccessMessage by remember { mutableStateOf<String?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
-
+    val coins by viewModel.coins.collectAsState()
     // auto dismiss message
     showSuccessMessage?.let { message ->
         LaunchedEffect(message) {
@@ -149,7 +149,7 @@ fun StoreScreen(
                     titleContentColor = Color.White
                 ),
                 actions = {
-                    TopBarActions(viewModel.coins,0,true,false)
+                    TopBarActions(coins,0,true,false)
                 },
             )
         },

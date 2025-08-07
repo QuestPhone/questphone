@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.flow.MutableStateFlow
 import nethical.questphone.backend.Supabase
 import nethical.questphone.backend.triggerProfileSync
 import nethical.questphone.core.core.utils.getCurrentDate
@@ -32,7 +33,7 @@ class UserRepository @Inject constructor(
     private val questRepository: QuestRepository
 ) {
     var userInfo: UserInfo = loadUserInfo()
-    var coins by mutableIntStateOf(userInfo.coins)
+    var coins = MutableStateFlow(userInfo.coins)
     var currentStreak by mutableIntStateOf(userInfo.streak.currentStreak)
 
     // the below variables act as a trigger for launching the reward dialog declared in the MainActivity from a
@@ -107,13 +108,13 @@ class UserRepository @Inject constructor(
 
     fun useCoins(number: Int) {
         userInfo.coins -= number
-        coins -= number
+        coins.value -= number
         saveUserInfo()
     }
 
     fun addCoins(addedCoins: Int) {
         userInfo.coins += addedCoins
-        coins+=addedCoins
+        coins.value+=addedCoins
         saveUserInfo()
     }
 

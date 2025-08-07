@@ -67,7 +67,7 @@ class SetDeepFocusViewModel @Inject constructor(
         )
     }
     fun saveQuest(onSuccess:()-> Unit){
-        addQuestToDb { onSuccess() }
+        addQuestToDb(json.encodeToString(getDeepFocusQuest())) { onSuccess() }
 
     }
 }

@@ -41,7 +41,7 @@ class QuestHelper(val context: Context) {
             return today >= autoDestruct
         }
 
-        fun isOver(baseData: CommonQuestInfo): Boolean {
+        fun isTimeOver(baseData: CommonQuestInfo): Boolean {
             val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
             return currentHour > baseData.time_range[1]
         }

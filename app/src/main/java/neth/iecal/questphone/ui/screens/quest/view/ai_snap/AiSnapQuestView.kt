@@ -52,7 +52,7 @@ fun AiSnapQuestView(
     val scope = rememberCoroutineScope()
 
     val isInTimeRange = remember { mutableStateOf(QuestHelper.Companion.isInTimeRange(commonQuestInfo)) }
-    val isFailed = remember { mutableStateOf(QuestHelper.isOver(commonQuestInfo)) }
+    val isFailed = remember { mutableStateOf(QuestHelper.isTimeOver(commonQuestInfo)) }
     var progress = remember {
         mutableFloatStateOf(if (isQuestComplete.value || isFailed.value ) 1f else 0f)
     }

@@ -1,5 +1,6 @@
 package neth.iecal.questphone.ui.screens.quest.setup
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,9 +29,11 @@ open class SetupViewModel(
         val quest = questRepository.getQuestById(id.toString())
         questInfoState.value.fromBaseQuest(quest ?: CommonQuestInfo(integration_id = integrationId))
     }
-    fun addQuestToDb(onSuccess: ()-> Unit){
+    fun addQuestToDb(json: String, onSuccess: ()-> Unit){
         viewModelScope.launch {
             val baseQuest = getBaseQuestInfo()
+            baseQuest.quest_json = json
+            Log.d("Setup Quest","Added quest ${nethical.questphone.data.json.encodeToString(baseQuest)} ")
             questRepository.upsertQuest(baseQuest)
             isReviewDialogVisible.value = false
             onSuccess()

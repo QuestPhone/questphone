@@ -1,62 +1,77 @@
 package neth.iecal.questphone.ui.screens.quest.view
 
 import android.R
+import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.startForegroundService
 import androidx.core.content.edit
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.application
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.ui.screens.game.rewardUserForQuestCompl
+import neth.iecal.questphone.ui.screens.components.TopBarActions
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.QuestDatabaseProvider
-import nethical.questphone.backend.StatsDatabaseProvider
-import nethical.questphone.backend.StatsInfo
+import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.StatsRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.services.AppBlockerService
 import nethical.questphone.core.core.services.AppBlockerServiceInfo
 import nethical.questphone.core.core.services.INTENT_ACTION_START_DEEP_FOCUS
 import nethical.questphone.core.core.services.INTENT_ACTION_STOP_DEEP_FOCUS
+import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
-import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.managers.sendRefreshRequest
+import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.xpToRewardForQuest
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.focus.DeepFocus
-import java.util.UUID
+import javax.inject.Inject
 
 private const val PREF_NAME = "deep_focus_prefs"
 private const val KEY_START_TIME = "start_time_"
@@ -64,60 +79,145 @@ private const val KEY_PAUSED_ELAPSED = "paused_elapsed_"
 private const val NOTIFICATION_CHANNEL_ID = "focus_timer_channel"
 private const val NOTIFICATION_ID = 1001
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun DeepFocusQuestView(
-    commonQuestInfo: CommonQuestInfo
-) {
-    val context = LocalContext.current
-    val questHelper = QuestHelper(context)
-    val deepFocus = json.decodeFromString<DeepFocus>(commonQuestInfo.quest_json)
-    val duration = deepFocus.nextFocusDurationInMillis
-    val isInTimeRange = remember { mutableStateOf(QuestHelper.Companion.isInTimeRange(commonQuestInfo)) }
+@HiltViewModel
+class DeepFocusQuestViewVM @Inject constructor(questRepository: QuestRepository,
+                                               userRepository: UserRepository,
+                                               statsRepository: StatsRepository,
+                                               application: Application
+) : ViewQuestVM(
+    questRepository, userRepository, statsRepository, application
+){
+    val isQuestRunning = MutableStateFlow(false)
+    val isTimerActive = MutableStateFlow(false)
+    val isAppInForeground = MutableStateFlow(false)
+    val questHelper = QuestHelper(application)
 
+    var deepFocus = DeepFocus()
+    val focusDuration = MutableStateFlow(0L)
 
-    LaunchedEffect(Unit) {
-        createNotificationChannel(context)
-    }
-
-
-    var isQuestComplete = remember {
-        mutableStateOf(commonQuestInfo.last_completed_on == getCurrentDate())
-    }
-    var isQuestRunning by remember {
-        mutableStateOf(questHelper.isQuestRunning(commonQuestInfo.title))
-    }
-
-    var timerActive by remember { mutableStateOf(false) }
-
-    val questKey = commonQuestInfo.title.replace(" ", "_").lowercase()
-
-    val lifecycleOwner = LocalLifecycleOwner.current
-    var isAppInForeground by remember { mutableStateOf(true) }
-
-    val isFailed = remember { mutableStateOf(QuestHelper.isOver(commonQuestInfo)) }
-
-    val dao = QuestDatabaseProvider.getInstance(context).questDao()
-    val scope = rememberCoroutineScope()
-    var progress by remember {
-        mutableFloatStateOf(if (isQuestComplete.value || isFailed.value ) 1f else 0f)
-    }
+    var questKey = ""
     val startTimeKey = KEY_START_TIME + questKey
     val pausedElapsedKey = KEY_PAUSED_ELAPSED + questKey
-    val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    val prefs = application.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+    init {
+        createNotificationChannel(application)
+    }
+
+    fun setDeepFocus(){
+        deepFocus = json.decodeFromString<DeepFocus>(commonQuestInfo.quest_json)
+        questKey =  commonQuestInfo.title.replace(" ", "_").lowercase()
+
+        isQuestRunning.value = questHelper.isQuestRunning(commonQuestInfo.id)
+        if (isQuestRunning.value && !isQuestComplete.value) {
+            isTimerActive.value = true
+        }
+        focusDuration.value = deepFocus.nextFocusDurationInMillis
+        Log.d("Deep Focus Length",focusDuration.value.toString())
+    }
+
+    fun encodeToCommonQuest(){
+        commonQuestInfo.quest_json = json.encodeToString(deepFocus)
+    }
+
+    fun startQuest(){
+        questHelper.setQuestRunning(commonQuestInfo.id, true)
+        isQuestRunning.value = true
+        isTimerActive.value = true
+
+        if(!AppBlockerServiceInfo.isUsingAccessibilityService && AppBlockerServiceInfo.appBlockerService==null){
+            startForegroundService(application,Intent(application, AppBlockerService::class.java))
+        }
+        // Clear any existing data and set fresh start time
+        prefs.edit {
+            putLong(KEY_START_TIME + questKey, System.currentTimeMillis())
+                .putLong(KEY_PAUSED_ELAPSED + questKey, 0L)
+        }
+        AppBlockerServiceInfo.deepFocus.isRunning = true
+        AppBlockerServiceInfo.deepFocus.exceptionApps = deepFocus.unrestrictedApps.toHashSet()
+        val intent = Intent(INTENT_ACTION_START_DEEP_FOCUS)
+        intent.putStringArrayListExtra("exception", deepFocus.unrestrictedApps.toCollection(ArrayList()))
+        application.sendBroadcast(intent)
+    }
+
+    fun onDeepFocusComplete(){
+        questHelper.setQuestRunning(commonQuestInfo.id, false)
+        deepFocus.incrementTime()
+        focusDuration.value = deepFocus.nextFocusDurationInMillis
+        encodeToCommonQuest()
+        saveQuestToDb()
+
+        isQuestRunning.value = false
+        isTimerActive.value = false
+
+        progress.value = 1f
+        // Clear saved times
+        prefs.edit {
+            remove(startTimeKey)
+                .remove(pausedElapsedKey)
+        }
+
+        // Cancel notification when complete
+        cancelTimerNotification(application)
+        sendRefreshRequest(application, INTENT_ACTION_STOP_DEEP_FOCUS)
+
+        AppBlockerServiceInfo.deepFocus.isRunning = false
+    }
+
+    fun saveState(){
+        if (isQuestRunning.value) {
+            val prefs = application.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            val startTimeKey = KEY_START_TIME + questKey
+            val savedStartTime = prefs.getLong(startTimeKey, 0L)
+
+            if (savedStartTime > 0) {
+                val pausedElapsedKey = KEY_PAUSED_ELAPSED + questKey
+                val elapsedTime = System.currentTimeMillis() - savedStartTime
+                prefs.edit { putLong(pausedElapsedKey, elapsedTime) }
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun DeepFocusQuestView(
+    commonQuestInfo: CommonQuestInfo,
+    viewModel: DeepFocusQuestViewVM = hiltViewModel()
+) {
+    val context = LocalContext.current
+    val isInTimeRange by viewModel.isInTimeRange.collectAsState()
+
+    val isQuestComplete by viewModel.isQuestComplete.collectAsState()
+    val isQuestRunning by viewModel.isQuestRunning.collectAsState()
+    val timerActive by viewModel.isTimerActive.collectAsState()
+    val isAppInForeground by viewModel.isAppInForeground.collectAsState()
+    val progress by viewModel.progress.collectAsState()
+    val coins by viewModel.coins.collectAsState()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    val questKey = commonQuestInfo.title.replace(" ", "_").lowercase()
+    val startTimeKey = KEY_START_TIME + questKey
+    val pausedElapsedKey = KEY_PAUSED_ELAPSED + questKey
+
+    val duration by viewModel.focusDuration.collectAsState()
+
+    val isHideStartButton =  isQuestComplete || isQuestRunning || !isInTimeRange
 
     // Observe app lifecycle for notification management
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_RESUME -> {
-                    isAppInForeground = true
+                    viewModel.isAppInForeground.value = true
                     cancelTimerNotification(context)
                 }
                 Lifecycle.Event.ON_PAUSE -> {
-                    isAppInForeground = false
+                    viewModel.isAppInForeground.value = false
                     // Show notification if quest is running and app goes to background
-                    if (isQuestRunning && !isQuestComplete.value) {
+                    if (isQuestRunning && !isQuestComplete) {
                         updateTimerNotification(context, commonQuestInfo.title, progress, duration)
                     }
                 }
@@ -131,69 +231,10 @@ fun DeepFocusQuestView(
         }
     }
 
-    fun onQuestComplete(){
-        deepFocus.incrementTime()
-        commonQuestInfo.last_completed_on = getCurrentDate()
-        commonQuestInfo.quest_json = json.encodeToString(deepFocus)
-        commonQuestInfo.synced = false
-        commonQuestInfo.last_updated = System.currentTimeMillis()
-        scope.launch {
-            dao.upsertQuest(commonQuestInfo)
 
-            val statsDao = StatsDatabaseProvider.getInstance(context).statsDao()
-            statsDao.upsertStats(
-                StatsInfo(
-                    id = UUID.randomUUID().toString(),
-                    quest_id = commonQuestInfo.id,
-                    user_id = ""  //User.getUserId(),
-                )
-            )
-        }
-
-        questHelper.setQuestRunning(commonQuestInfo.title, false)
-        rewardUserForQuestCompl(commonQuestInfo)
-        isQuestRunning = false
-        timerActive = false
-
-        progress = 1f
-        // Clear saved times
-        prefs.edit {
-            remove(startTimeKey)
-                .remove(pausedElapsedKey)
-        }
-
-        // Cancel notification when complete
-        cancelTimerNotification(context)
-        sendRefreshRequest(context, INTENT_ACTION_STOP_DEEP_FOCUS)
-
-        AppBlockerServiceInfo.deepFocus.isRunning = false
-        isQuestComplete.value =true
-    }
-    fun startQuest() {
-        questHelper.setQuestRunning(commonQuestInfo.title, true)
-        isQuestRunning = true
-        timerActive = true
-
-        if(!AppBlockerServiceInfo.isUsingAccessibilityService && AppBlockerServiceInfo.appBlockerService==null){
-            startForegroundService(context,Intent(context, AppBlockerService::class.java))
-        }
-        // Clear any existing data and set fresh start time
-        prefs.edit {
-            putLong(KEY_START_TIME + questKey, System.currentTimeMillis())
-                .putLong(KEY_PAUSED_ELAPSED + questKey, 0L)
-        }
-        AppBlockerServiceInfo.deepFocus.isRunning = true
-        AppBlockerServiceInfo.deepFocus.exceptionApps = deepFocus.unrestrictedApps.toHashSet()
-        val intent = Intent(INTENT_ACTION_START_DEEP_FOCUS)
-        intent.putStringArrayListExtra("exception", deepFocus.unrestrictedApps.toCollection(ArrayList()))
-        context.sendBroadcast(intent)
-    }
-
-    // Load initial state
     LaunchedEffect(Unit) {
-        if (isQuestRunning && !isQuestComplete.value) {
-            timerActive = true
-        }
+        viewModel.setCommonQuest(commonQuestInfo)
+        viewModel.setDeepFocus()
     }
 
     // Handle the timer - use timerActive state to trigger/stop
@@ -201,7 +242,6 @@ fun DeepFocusQuestView(
         if (timerActive) {
             // Get the start time from SharedPreferences or use current time if not found
             val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-
 
             // Get saved values or use defaults
             val savedStartTime = prefs.getLong(startTimeKey, 0L)
@@ -218,19 +258,14 @@ fun DeepFocusQuestView(
             }
 
             // Update progress continually
-            while (progress < 1f && timerActive) {
+            while (progress < 1f) {
                 val currentTime = System.currentTimeMillis()
                 val elapsedTime = currentTime - startTime
-                progress = (elapsedTime / duration.toFloat()).coerceIn(0f, 1f)
+                viewModel.progress.value = (elapsedTime / duration.toFloat()).coerceIn(0f, 1f)
 
                 // Update notification if app is in background
                 if (!isAppInForeground && isQuestRunning) {
                     updateTimerNotification(context, commonQuestInfo.title, progress, duration)
-                }
-
-                if (progress >= 1f) {
-                    isQuestRunning = false
-                    onQuestComplete()
                 }
 
                 delay(1000) // Update every second instead of 100ms to reduce battery usage
@@ -239,55 +274,74 @@ fun DeepFocusQuestView(
     }
     LaunchedEffect(progress) {
         if (progress >= 1f && isQuestRunning) {
-            onQuestComplete()
+            viewModel.onDeepFocusComplete()
         }
     }
 
     // Save state when leaving the composition
     DisposableEffect(Unit) {
         onDispose {
-            if (isQuestRunning && progress < 1f) {
-                val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-                val startTimeKey = KEY_START_TIME + questKey
-                val savedStartTime = prefs.getLong(startTimeKey, 0L)
-
-                if (savedStartTime > 0) {
-                    val pausedElapsedKey = KEY_PAUSED_ELAPSED + questKey
-                    val elapsedTime = System.currentTimeMillis() - savedStartTime
-                    prefs.edit { putLong(pausedElapsedKey, elapsedTime) }
-                }
-            }
+            viewModel.saveState()
         }
     }
 
     // Prevent back navigation when quest is running
     BackHandler(isQuestRunning) {}
 
-    // Convert progress state to MutableState<Float> for BaseQuestView
-    val progressState = remember(progress) { mutableFloatStateOf(progress) }
-
-    BaseQuestView(
-        hideStartQuestBtn = isQuestComplete.value || isQuestRunning || isFailed.value || !isInTimeRange.value,
-        progress = progressState,
-        isFailed = isFailed,
-        onQuestStarted = {
-            // Start the quest immediately - this is called when button is pressed
-            startQuest()
+    Scaffold(
+        Modifier.safeDrawingPadding(),
+        topBar = {
+            TopAppBar(
+                title = {},
+                actions = {
+                    TopBarActions(coins, 0, isCoinsVisible = true)
+                }
+            )
         },
-         onQuestCompleted = {onQuestComplete()},
-        isQuestCompleted = isQuestComplete) {
+        floatingActionButton = {
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if(!isQuestComplete && viewModel.getInventoryItemCount(InventoryItem.QUEST_SKIPPER) > 0){
+                    Image(
+                        painter = painterResource(nethical.questphone.data.R.drawable.quest_skipper),
+                        contentDescription = "use quest skipper",
+                        modifier = Modifier.size(30.dp)
+                            .clickable{
+                                VibrationHelper.vibrate(50)
+                                viewModel.isQuestSkippedDialogVisible.value = true
+                            }
+                    )
+
+                }
+                if(!isHideStartButton) {
+                    Spacer(modifier = Modifier.width(15.dp))
+                    Button(
+                        onClick = {
+                            VibrationHelper.vibrate(100)
+                            viewModel.startQuest()
+                        }
+                    ) {
+                        Text(text = "Start Quest")
+                    }
+                }
+            }
+        }) { innerPadding ->
 
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(8.dp)
         ) {
             Text(
                 text =  commonQuestInfo.title,
-                textDecoration = if(isFailed.value) TextDecoration.LineThrough else TextDecoration.None,
+                textDecoration = if(!isInTimeRange) TextDecoration.LineThrough else TextDecoration.None,
                 style = MaterialTheme.typography.headlineLarge.copy(),
             )
 
             Text(
-                text = (if(!isQuestComplete.value) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
+                text = (if(!isQuestComplete) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
                     xpToRewardForQuest(
                         User!!.userInfo.level
                     )
@@ -317,12 +371,12 @@ fun DeepFocusQuestView(
             }
 
             Text(
-                text = if (!isQuestComplete.value) "Duration: ${duration / 60_000}m" else "Next Duration: ${duration / 60_000}m",
+                text = if (!isQuestComplete) "Duration: ${duration / 60_000}m" else "Next Duration: ${duration / 60_000}m",
                 style = MaterialTheme.typography.bodyLarge
             )
 
             val pm = context.packageManager
-            val apps = deepFocus.unrestrictedApps.mapNotNull { packageName ->
+            val apps = viewModel.deepFocus.unrestrictedApps.mapNotNull { packageName ->
                 try {
                     pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString() to packageName
                 } catch (_: PackageManager.NameNotFoundException) {
@@ -346,7 +400,7 @@ fun DeepFocusQuestView(
                         modifier = Modifier
                             .clickable {
                                 // Show notification before launching other app
-                                if (isQuestRunning && !isQuestComplete.value) {
+                                if (isQuestRunning && !isQuestComplete) {
                                     updateTimerNotification(context, commonQuestInfo.title, progress, duration)
                                 }
                                 val intent = pm.getLaunchIntentForPackage(packageName)
@@ -359,6 +413,7 @@ fun DeepFocusQuestView(
 
         }
     }
+
 }
 
 private fun createNotificationChannel(context: Context) {

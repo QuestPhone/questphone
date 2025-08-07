@@ -74,7 +74,7 @@ class SetAiSnapViewModel @Inject constructor (questRepository: QuestRepository,
     }
 
     fun saveQuest(onSuccess:()-> Unit){
-        addQuestToDb { onSuccess() }
+        addQuestToDb(json.encodeToString(getAiQuest())) { onSuccess() }
 
     }
 }

@@ -119,7 +119,7 @@ fun HomeScreen(
     val shortcuts = viewModel.shortcuts
     val tempShortcuts = viewModel.tempShortcuts
     val successfulDates = viewModel.successfulDates
-
+    val coins by viewModel.coins.collectAsState()
     var isAppSelectorVisible by remember { mutableStateOf(false) }
 
     val sidePanelItems = listOf<SidePanelItem>(
@@ -164,7 +164,7 @@ fun HomeScreen(
         modifier = Modifier.safeDrawingPadding(),
         topBar = {
             TopAppBar({}, actions = {
-                TopBarActions(viewModel.coins,viewModel.currentStreak, true, true)
+                TopBarActions(coins,viewModel.currentStreak, true, true)
             })
 
         },
@@ -289,7 +289,7 @@ fun HomeScreen(
                     ) {
                     items(questList.size) { index ->
                         val baseQuest = questList[index]
-                        val isFailed = QuestHelper.isOver(baseQuest)
+                        val isFailed = QuestHelper.isTimeOver(baseQuest)
 
                         val isCompleted = completedQuests.contains(baseQuest.id)
                         Text(

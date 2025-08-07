@@ -1,162 +1,205 @@
 package neth.iecal.questphone.ui.screens.quest.view.health_connect
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.health.connect.client.PermissionController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.core.utils.managers.HealthConnectManager
 import neth.iecal.questphone.core.utils.managers.HealthConnectManager.Companion.requiredPermissions
-import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.ui.screens.game.rewardUserForQuestCompl
-import neth.iecal.questphone.ui.screens.quest.view.BaseQuestView
+import neth.iecal.questphone.ui.screens.components.TopBarActions
+import neth.iecal.questphone.ui.screens.quest.view.ViewQuestVM
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.QuestDatabaseProvider
-import nethical.questphone.backend.StatsDatabaseProvider
-import nethical.questphone.backend.StatsInfo
-import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.StatsRepository
+import nethical.questphone.backend.repositories.UserRepository
+import nethical.questphone.core.core.utils.VibrationHelper
+import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.xpToRewardForQuest
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.health.HealthQuest
 import nethical.questphone.data.quest.health.HealthTaskType
-import java.util.UUID
+import javax.inject.Inject
 
+@HiltViewModel
+class HealthQuestViewVM @Inject constructor (questRepository: QuestRepository,
+                        userRepository: UserRepository, statsRepository: StatsRepository,
+                        application: Application
+): ViewQuestVM(questRepository, userRepository, statsRepository, application){
+    val healthQuest = MutableStateFlow(HealthQuest())
+    val hasRequiredPermissions = MutableStateFlow(false)
+    val currentHealthProgress = MutableStateFlow(0.0)
+
+    val healthManager = HealthConnectManager(application)
+
+    /**
+     * encode Health quest to common quest json
+     */
+    fun encodeToCommonQuest(){
+        commonQuestInfo.quest_json = json.encodeToString(healthQuest)
+    }
+
+    /**
+     * Decodes Health quest from common quest
+     */
+    fun decodeFromCommonQuest(){
+        healthQuest.value = json.decodeFromString<HealthQuest>(commonQuestInfo.quest_json)
+    }
+
+
+    fun onHealthQuestDone(){
+        healthQuest.value.incrementGoal()
+        encodeToCommonQuest()
+        saveQuestToDb()
+    }
+    fun areAllPermissionGranted(granted:Set<String>){
+        hasRequiredPermissions.value = granted.containsAll(requiredPermissions)
+    }
+
+    fun loadCurrentHealthProgress(){
+        if (hasRequiredPermissions.value) {
+            viewModelScope.launch {
+                fetchHealthData(healthManager, healthQuest.value.type) { data ->
+                    currentHealthProgress.value = data
+                    // Update progress based on nextGoal
+                    progress.value =
+                        (data / healthQuest.value.nextGoal).toFloat().coerceIn(0f, 1f)
+                    if(data>=healthQuest.value.nextGoal){
+                        if(!isQuestComplete.value){
+                            onHealthQuestDone()
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("DefaultLocale")
 @Composable
-fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val questHelper = QuestHelper(context)
-    val healthQuest by remember { mutableStateOf(json.decodeFromString<HealthQuest>(commonQuestInfo.quest_json)) }
-    val dao = QuestDatabaseProvider.getInstance(context).questDao()
+fun HealthQuestView(commonQuestInfo: CommonQuestInfo, viewModel: HealthQuestViewVM = hiltViewModel()) {
 
-    val healthManager = HealthConnectManager(context)
+    val healthQuest by viewModel.healthQuest.collectAsState()
 
-    var isQuestComplete =
-        remember { mutableStateOf(commonQuestInfo.last_completed_on == getCurrentDate()) }
-    val hasRequiredPermissions = remember { mutableStateOf(false) }
-    val currentHealthData = remember { mutableDoubleStateOf(0.0) }
-    val progressState = remember { mutableFloatStateOf(if (isQuestComplete.value) 1f else 0f) }
 
-    fun onQuestCompleted(){
-        healthQuest.incrementGoal()
-        commonQuestInfo.quest_json = json.encodeToString(healthQuest)
-        commonQuestInfo.last_completed_on = getCurrentDate()
-        commonQuestInfo.synced = false
-        commonQuestInfo.last_updated = System.currentTimeMillis()
-        scope.launch {
-            dao.upsertQuest(commonQuestInfo)
-            val statsDao = StatsDatabaseProvider.getInstance(context).statsDao()
-            statsDao.upsertStats(
-                StatsInfo(
-                    id = UUID.randomUUID().toString(),
-                    quest_id = commonQuestInfo.id,
-                    user_id = User!!.getUserId(),
-                    )
-            )
-        }
-        rewardUserForQuestCompl(commonQuestInfo)
-        isQuestComplete.value = true
+    val isQuestComplete by viewModel.isQuestComplete.collectAsState()
+    val isInTimeRange by viewModel.isInTimeRange.collectAsState()
+    val hasRequiredPermissions by viewModel.hasRequiredPermissions.collectAsState()
+    val currentHealthData by viewModel.currentHealthProgress.collectAsState()
+    val progressState by viewModel.progress.collectAsState()
+    val coins by viewModel.coins.collectAsState()
+
+
+    LaunchedEffect(Unit) {
+        viewModel.setCommonQuest(commonQuestInfo)
+        viewModel.decodeFromCommonQuest()
     }
 
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = PermissionController.createRequestPermissionResultContract(),
         onResult = { granted ->
-            hasRequiredPermissions.value = granted.containsAll(requiredPermissions)
-            if (hasRequiredPermissions.value) {
-                scope.launch {
-                    fetchHealthData(healthManager, healthQuest.type) { data ->
-                        currentHealthData.doubleValue = data
-                        // Update progress based on nextGoal
-                        progressState.floatValue =
-                            (data / healthQuest.nextGoal).toFloat().coerceIn(0f, 1f)
-                        if(data>=healthQuest.nextGoal){
-                            if(!isQuestComplete.value){
-                                onQuestCompleted()
-                            }
-                        }
-                    }
-                }
-            }
+            viewModel.areAllPermissionGranted(granted)
+            viewModel.loadCurrentHealthProgress()
         }
     )
 
 
     LaunchedEffect(Unit) {
-        val isHealthConnectAvailable = healthManager.isAvailable()
+        val isHealthConnectAvailable = viewModel.healthManager.isAvailable()
         if (!isHealthConnectAvailable) {
             Log.d("HealthConnect", "Health Connect not available")
             return@LaunchedEffect
         }
 
-        hasRequiredPermissions.value = healthManager.hasAllPermissions()
-        if (!hasRequiredPermissions.value) {
-//            permissionLauncher.launch(permissionManager.permissions)
-        } else {
-            fetchHealthData(healthManager, healthQuest.type) { data ->
-                currentHealthData.doubleValue = data
-                progressState.floatValue =
-                    (data / healthQuest.nextGoal).toFloat().coerceIn(0f, 1f)
-                if(data>=healthQuest.nextGoal){
-                    if(!isQuestComplete.value){
-                        onQuestCompleted()
-                    }
-                }
-            }
+        viewModel.hasRequiredPermissions.value = viewModel.healthManager.hasAllPermissions()
+        if (hasRequiredPermissions){
+            viewModel.loadCurrentHealthProgress()
         }
 
     }
 
 
-    if (!hasRequiredPermissions.value) {
+    if (!hasRequiredPermissions) {
         HealthConnectScreen(
             onGetStarted = {
                 permissionLauncher.launch(requiredPermissions)
             },
             onSkip = {
-                hasRequiredPermissions.value = true
+                viewModel.hasRequiredPermissions.value = true
             }
         )
     } else {
 
-        BaseQuestView(
-            hideStartQuestBtn = true,
-            progress = progressState,
-            loadingAnimationDuration = 400,
-            onQuestStarted = { /* No-op for now, health quests auto-track */ },
-            onQuestCompleted = {
-                onQuestCompleted()
+        Scaffold( Modifier.safeDrawingPadding(),
+            topBar = {
+                TopAppBar(
+                    title = {},
+                    actions = {
+                        TopBarActions(coins, 0, isCoinsVisible = true)
+                    }
+                )
             },
-            isQuestCompleted = isQuestComplete
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            floatingActionButton = {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if(!isQuestComplete && viewModel.getInventoryItemCount(InventoryItem.QUEST_SKIPPER) > 0){
+                        Image(
+                            painter = painterResource(nethical.questphone.data.R.drawable.quest_skipper),
+                            contentDescription = "use quest skipper",
+                            modifier = Modifier.size(30.dp)
+                                .clickable{
+                                    VibrationHelper.vibrate(50)
+                                    viewModel.isQuestSkippedDialogVisible.value = true
+                                }
+                        )
+
+                    }
+
+                }
+            }) { innerPadding ->
+            Column(modifier = Modifier.padding(innerPadding)
+                .padding(8.dp)) {
                 Text(
                     text = commonQuestInfo.title,
                     style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                 )
                 Text(
-                    text = (if (isQuestComplete.value) "Next Reward" else "Reward") + ": ${commonQuestInfo.reward} coins + ${
+                    text = (if (isQuestComplete) "Next Reward" else "Reward") + ": ${commonQuestInfo.reward} coins + ${
                         xpToRewardForQuest(
-                            User!!.userInfo.level
+                            viewModel.level
                         )
                     } xp",
                     style = MaterialTheme.typography.bodyLarge,
@@ -167,12 +210,12 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                     style = MaterialTheme.typography.bodyLarge
                 )
 
-                if (isQuestComplete.value) {
+                if (isQuestComplete) {
                     Text(
                         text = "Today Progress: ${
                             String.format(
                                 "%.3f",
-                                currentHealthData.doubleValue
+                                currentHealthData
                             )
                         }",
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
@@ -188,7 +231,7 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
                         text = "Current Progress: ${
                             String.format(
                                 "%.3f",
-                                currentHealthData.doubleValue
+                                currentHealthData
                             )
                         } / ${healthQuest.nextGoal} ${
                             healthQuest.type.unit
@@ -200,7 +243,6 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo) {
 
             }
         }
-
     }
 }
 

@@ -160,8 +160,6 @@ fun BaseQuestView(topBar: @Composable () -> Unit = {}, startButtonTitle: String 
                     }
 
                 }
-
-
                 questViewBody()
             }
         }
