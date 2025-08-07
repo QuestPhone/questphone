@@ -28,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,7 +45,7 @@ import neth.iecal.questphone.ui.screens.quest.setup.ai_snap.model.ModelDownloadD
 import java.io.File
 
 @Composable
-fun CameraScreen(isAiEvaluating: MutableState<Boolean>) {
+fun CameraScreen(onPicClicked: ()->Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
@@ -163,7 +162,7 @@ fun CameraScreen(isAiEvaluating: MutableState<Boolean>) {
             IconButton(
                 onClick = {
                     // Take picture
-                    takePicture(context, imageCapture,isAiEvaluating)
+                    takePicture(context, imageCapture,onPicClicked)
                 },
                 modifier = Modifier
                     .size(64.dp)
@@ -182,7 +181,7 @@ fun CameraScreen(isAiEvaluating: MutableState<Boolean>) {
         }
     }
 }
-private fun takePicture(context: Context, imageCapture: ImageCapture, isAiEvaluating: MutableState<Boolean>) {
+private fun takePicture(context: Context, imageCapture: ImageCapture, onPicClicked: () -> Unit) {
     val photoFile = File(context.getExternalFilesDir(null), "ai_snap_captured_image.jpg") // Fixed file name
 
     val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
@@ -193,7 +192,7 @@ private fun takePicture(context: Context, imageCapture: ImageCapture, isAiEvalua
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                 Log.d("CameraScreen", "Photo saved: ${photoFile.absolutePath}")
-                isAiEvaluating.value = true
+                onPicClicked()
             }
 
             override fun onError(exception: ImageCaptureException) {

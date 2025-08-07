@@ -1,114 +1,127 @@
 package neth.iecal.questphone.ui.screens.quest.view.ai_snap
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-import neth.iecal.questphone.core.utils.managers.QuestHelper
+import androidx.hilt.navigation.compose.hiltViewModel
 import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.ui.screens.game.rewardUserForQuestCompl
-import neth.iecal.questphone.ui.screens.quest.view.BaseQuestView
+import neth.iecal.questphone.ui.screens.components.TopBarActions
 import neth.iecal.questphone.ui.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.QuestDatabaseProvider
-import nethical.questphone.backend.StatsDatabaseProvider
-import nethical.questphone.backend.StatsInfo
+import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
-import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.xpToRewardForQuest
-import nethical.questphone.data.json
-import nethical.questphone.data.quest.ai.snap.AiSnap
-import java.util.UUID
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiSnapQuestView(
-    commonQuestInfo: CommonQuestInfo
+    commonQuestInfo: CommonQuestInfo,
+    viewModel: AiSnapQuestViewVM = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    val questHelper = QuestHelper(context)
-    val aiQuest = json.decodeFromString<AiSnap>(commonQuestInfo.quest_json)
-    val isQuestComplete = remember {
-        mutableStateOf(
-            commonQuestInfo.last_completed_on == getCurrentDate()
-        )
-    }
-    var isCameraScreen = remember { mutableStateOf(false) }
-    var isAiEvaluating = remember { mutableStateOf(false) }
+    val isQuestComplete by viewModel.isQuestComplete.collectAsState()
+    val isCameraScreen by viewModel.isCameraScreen.collectAsState()
+    val isAiEvaluating by viewModel.isAiEvaluating.collectAsState()
 
 
-    val dao = QuestDatabaseProvider.getInstance(context).questDao()
-    val scope = rememberCoroutineScope()
+    val isInTimeRange by viewModel.isInTimeRange.collectAsState()
+    val progress by viewModel.progress.collectAsState()
+    val coins by viewModel.coins.collectAsState()
 
-    val isInTimeRange = remember { mutableStateOf(QuestHelper.Companion.isInTimeRange(commonQuestInfo)) }
-    val isFailed = remember { mutableStateOf(QuestHelper.isTimeOver(commonQuestInfo)) }
-    var progress = remember {
-        mutableFloatStateOf(if (isQuestComplete.value || isFailed.value ) 1f else 0f)
-    }
-    BackHandler(isCameraScreen.value || isAiEvaluating.value) {
-        isCameraScreen.value = false
-        isAiEvaluating.value = false
+    val isHideStartButton = isQuestComplete || !isInTimeRange
+
+    BackHandler(isCameraScreen || isAiEvaluating) {
+        viewModel.isCameraScreen.value = false
+        viewModel.isAiEvaluating.value = false
     }
 
-    fun onQuestComplete(){
-        progress.floatValue = 1f
-        commonQuestInfo.last_completed_on = getCurrentDate()
-        commonQuestInfo.synced = false
-        commonQuestInfo.last_updated = System.currentTimeMillis()
-        scope.launch {
-            dao.upsertQuest(commonQuestInfo)
+    LaunchedEffect(Unit) {
+        viewModel.setCommonQuest(commonQuestInfo)
+        viewModel.setAiSnap()
+    }
 
-            val statsDao = StatsDatabaseProvider.getInstance(context).statsDao()
-            statsDao.upsertStats(
-                StatsInfo(
-                    id = UUID.randomUUID().toString(),
-                    quest_id = commonQuestInfo.id,
-                    user_id = User!!.getUserId(),
-                )
-            )
+    if(isAiEvaluating) {
+        AiEvaluationScreen({viewModel.isAiEvaluating.value = false}, viewModel) {
+            viewModel.onAiSnapQuestDone()
         }
-        isCameraScreen.value = false
-        rewardUserForQuestCompl(commonQuestInfo)
-        isQuestComplete.value = true
-    }
-
-    if(isAiEvaluating.value) {
-        Log.d("aiQuest",aiQuest.toString())
-        AiEvaluationScreen(isAiEvaluating,commonQuestInfo.id ?: "return error") {
-            onQuestComplete()
-        }
-    } else if (isCameraScreen.value) {
-        CameraScreen(isAiEvaluating)
+    } else if (isCameraScreen) {
+        CameraScreen({
+            viewModel.isAiEvaluating.value = true
+            viewModel.evaluateQuest {
+                viewModel.onAiSnapQuestDone()
+            }
+        })
     }
     else {
-        BaseQuestView(
-            hideStartQuestBtn = isQuestComplete.value || isFailed.value || !isInTimeRange.value,
-            onQuestStarted = {
-                scope.launch {
-                    isCameraScreen.value = true
-                }
 
+        Scaffold(
+            Modifier.safeDrawingPadding(),
+            topBar = {
+                TopAppBar(
+                    title = {},
+                    actions = {
+                        TopBarActions(coins, 0, isCoinsVisible = true)
+                    }
+                )
             },
-            progress = progress,
-            loadingAnimationDuration = 400,
-            startButtonTitle = "Click Image",
-            isFailed = isFailed,
-            onQuestCompleted = { onQuestComplete() },
-            isQuestCompleted = isQuestComplete
-        ) {
+            floatingActionButton = {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if(!isQuestComplete && viewModel.getInventoryItemCount(InventoryItem.QUEST_SKIPPER) > 0){
+                        Image(
+                            painter = painterResource(nethical.questphone.data.R.drawable.quest_skipper),
+                            contentDescription = "use quest skipper",
+                            modifier = Modifier.size(30.dp)
+                                .clickable{
+                                    VibrationHelper.vibrate(50)
+                                    viewModel.isQuestSkippedDialogVisible.value = true
+                                }
+                        )
+
+                    }
+                    if(!isHideStartButton) {
+                        Spacer(modifier = Modifier.width(15.dp))
+                        Button(
+                            onClick = {
+                                VibrationHelper.vibrate(100)
+                                viewModel.onAiSnapQuestDone()
+                            }
+                        ) {
+                            Text(text = "Start Quest")
+                        }
+                    }
+                }
+            }) { innerPadding ->
+
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.
+                padding(innerPadding)
+                    .padding(8.dp)
             ) {
                 Text(
                     text = commonQuestInfo.title,
@@ -116,7 +129,7 @@ fun AiSnapQuestView(
                 )
 
                 Text(
-                    text = (if (!isQuestComplete.value) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
+                    text = (if (!isQuestComplete) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
                         xpToRewardForQuest(
                             User!!.userInfo.level
                         )
@@ -124,7 +137,7 @@ fun AiSnapQuestView(
                     style = MaterialTheme.typography.bodyLarge
                 )
 
-                if (!isInTimeRange.value) {
+                if (!isInTimeRange) {
                     Text(
                         text = "Time: ${formatHour(commonQuestInfo.time_range[0])} to ${
                             formatHour(
