@@ -20,9 +20,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
-import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.app.screens.game.handleStreakFreezers
 import neth.iecal.questphone.app.screens.game.showStreakUpDialog
+import neth.iecal.questphone.core.utils.managers.QuestHelper
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.StatsInfo
 import nethical.questphone.backend.repositories.QuestRepository
@@ -42,8 +42,8 @@ class HomeScreenViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : AndroidViewModel(application){
 
-    val coins = userRepository.coins
-    val currentStreak = userRepository.currentStreak
+    val coins = userRepository.coinsState
+    val currentStreak = userRepository.currentStreakState
 
     val rawQuestList = questRepository.getAllQuests()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())

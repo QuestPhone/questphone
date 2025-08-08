@@ -1,8 +1,8 @@
 package neth.iecal.questphone.app.screens.game
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,7 +31,7 @@ enum class DialogState { QUEST_COMPLETED, LEVEL_UP, STREAK_UP,STREAK_FREEZER_USE
  */
 object RewardDialogInfo{
     var currentDialog by mutableStateOf<DialogState>(DialogState.NONE)
-    var coinsEarned : Int = 0
+    var coinsEarned by mutableIntStateOf(0)
     var streakFreezerReturn : StreakFreezerReturn? = null
 }
 
@@ -41,7 +41,7 @@ object RewardDialogInfo{
 @Composable
 fun RewardDialogMaker(userRepository: UserRepository) {
     // Track current dialog state
-    var currentDialog = remember { derivedStateOf { currentDialog } }
+    var currentDialog = currentDialog
 
     // store the last level so later when user earns xp, we compare it to find if they levelled up
     var oldLevel = remember { userRepository.userInfo.level }
@@ -49,10 +49,11 @@ fun RewardDialogMaker(userRepository: UserRepository) {
     val xpEarned = remember { mutableIntStateOf(0) }
 
     fun didUserLevelUp(): Boolean {
+        Log.d("LevelUp","old level $oldLevel, new Level ${userRepository.userInfo.level}")
         return oldLevel != userRepository.userInfo.level
     }
-    LaunchedEffect(currentDialog.value) {
-        when (currentDialog.value) {
+    LaunchedEffect(currentDialog) {
+        when (currentDialog) {
             DialogState.QUEST_COMPLETED -> {
                 val xp = xpToRewardForQuest(userRepository.userInfo.level)
                 userRepository.addXp(xp)
@@ -60,20 +61,22 @@ fun RewardDialogMaker(userRepository: UserRepository) {
             }
 
             DialogState.LEVEL_UP -> {
+                Log.d("Level Up","User levelled up")
+                oldLevel = userRepository.userInfo.level + 1
                 levelledUpUserRewards = userRepository.calculateLevelUpInvRewards()
                 coinsEarned = userRepository.calculateLevelUpCoinsRewards()
                 userRepository.addItemsToInventory(levelledUpUserRewards)
             }
 
             DialogState.STREAK_FREEZER_USED -> {
-                xpEarned.intValue = (streakFreezerReturn!!.lastStreak until userRepository.currentStreak).sumOf { day ->
+                xpEarned.intValue = (streakFreezerReturn!!.lastStreak until userRepository.currentStreakState.value).sumOf { day ->
                     val xp = xpFromStreak(day)
                     userRepository.addXp(xp)
                     xp
                 }
             }
             DialogState.STREAK_UP -> {
-                xpEarned.intValue = xpFromStreak(userRepository.currentStreak) + xpFromStreak(userRepository.currentStreak -1)
+                xpEarned.intValue = xpFromStreak(userRepository.currentStreakState.value)
                 userRepository.addXp(xpEarned.intValue)
 
             }
@@ -94,7 +97,7 @@ fun RewardDialogMaker(userRepository: UserRepository) {
 
 
     // Show the appropriate dialog based on the current state
-    when (currentDialog.value) {
+    when (currentDialog) {
         DialogState.QUEST_COMPLETED -> {
             QuestCompletionDialog(
                 coinReward = coinsEarned,
@@ -112,7 +115,7 @@ fun RewardDialogMaker(userRepository: UserRepository) {
 
         DialogState.LEVEL_UP -> {
             LevelUpDialog(
-                oldLevel = oldLevel,
+                coinReward = coinsEarned,
                 lvUpRew = levelledUpUserRewards,
                 newLevel = userRepository.userInfo.level,
                 onDismiss = {

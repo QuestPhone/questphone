@@ -32,7 +32,12 @@ import nethical.questphone.data.game.InventoryItem
 
 
 @Composable
-fun LevelUpDialog(oldLevel: Int,newLevel: Int,onDismiss: () -> Unit,lvUpRew: HashMap<InventoryItem,Int> = hashMapOf()) {
+fun LevelUpDialog(
+    newLevel: Int,
+    onDismiss: () -> Unit,
+    lvUpRew: HashMap<InventoryItem, Int> = hashMapOf(),
+    coinReward: Int
+) {
     Dialog(onDismissRequest = onDismiss) {
 
         Column(
@@ -69,21 +74,30 @@ fun LevelUpDialog(oldLevel: Int,newLevel: Int,onDismiss: () -> Unit,lvUpRew: Has
             Spacer(modifier = Modifier.size(8.dp))
 
             Text(
-                text = "You advanced from level $oldLevel to level $newLevel",
+                text = "You advanced to level $newLevel",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
+            Text(
+                text = "Rewards",
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            Text(
+                text = "$coinReward coins",
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(vertical = 2.dp)
+            )
+
             if (lvUpRew.isNotEmpty()) {
-                Text(
-                    text = "Rewards",
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
                 lvUpRew.forEach {
                     Row(
                         verticalAlignment = Alignment.CenterVertically

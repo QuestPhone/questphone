@@ -23,5 +23,5 @@ data class StreakFreezerReturn(
 )
 
 fun xpFromStreak(dayStreak: Int): Int {
-    return (10 * dayStreak) + (dayStreak * dayStreak / 2)
+    return (15 * dayStreak) + (dayStreak * dayStreak / 2)
 }

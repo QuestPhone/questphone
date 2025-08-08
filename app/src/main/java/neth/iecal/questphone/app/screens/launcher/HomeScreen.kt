@@ -78,7 +78,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.app.navigation.LauncherDialogRoutes
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.components.NeuralMeshAsymmetrical
@@ -87,6 +86,7 @@ import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.screens.launcher.dialogs.LauncherDialog
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
+import neth.iecal.questphone.core.utils.managers.QuestHelper
 import nethical.questphone.core.core.services.LockScreenService
 import nethical.questphone.core.core.utils.managers.isLockScreenServiceEnabled
 import nethical.questphone.core.core.utils.managers.isSetToDefaultLauncher
@@ -120,6 +120,7 @@ fun HomeScreen(
     val tempShortcuts = viewModel.tempShortcuts
     val successfulDates = viewModel.successfulDates
     val coins by viewModel.coins.collectAsState()
+    val streak by viewModel.currentStreak.collectAsState()
     var isAppSelectorVisible by remember { mutableStateOf(false) }
 
     val sidePanelItems = listOf<SidePanelItem>(
@@ -164,7 +165,7 @@ fun HomeScreen(
         modifier = Modifier.safeDrawingPadding(),
         topBar = {
             TopAppBar({}, actions = {
-                TopBarActions(coins,viewModel.currentStreak, true, true)
+                TopBarActions(coins,streak, true, true)
             })
 
         },

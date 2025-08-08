@@ -79,7 +79,7 @@ import javax.inject.Inject
 class StoreViewModel @Inject constructor(
     private val userRepository: UserRepository
 ): ViewModel() {
-    var coins = userRepository.coins
+    var coins = userRepository.coinsState
 
     var selectedCategory by mutableStateOf<Category>(Category.BOOSTERS)
         private set

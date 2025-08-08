@@ -28,7 +28,7 @@ open class ViewQuestVM(
     val isInTimeRange = MutableStateFlow(false)
     val isTimeOver = MutableStateFlow(false)
     val isQuestComplete = MutableStateFlow(false)
-    val coins = userRepository.coins
+    val coins = userRepository.coinsState
     val level = userRepository.userInfo.level
 
     val isQuestSkippedDialogVisible = MutableStateFlow(false)

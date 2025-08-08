@@ -3,9 +3,6 @@ package nethical.questphone.backend.repositories
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.auth.auth
@@ -33,8 +30,8 @@ class UserRepository @Inject constructor(
     private val questRepository: QuestRepository
 ) {
     var userInfo: UserInfo = loadUserInfo()
-    var coins = MutableStateFlow(userInfo.coins)
-    var currentStreak by mutableIntStateOf(userInfo.streak.currentStreak)
+    var coinsState = MutableStateFlow(userInfo.coins)
+    var currentStreakState = MutableStateFlow(userInfo.streak.currentStreak)
 
     // the below variables act as a trigger for launching the reward dialog declared in the MainActivity from a
     // different SubScreen.
@@ -108,13 +105,13 @@ class UserRepository @Inject constructor(
 
     fun useCoins(number: Int) {
         userInfo.coins -= number
-        coins.value -= number
+        coinsState.value -= number
         saveUserInfo()
     }
 
     fun addCoins(addedCoins: Int) {
         userInfo.coins += addedCoins
-        coins.value+=addedCoins
+        coinsState.value+=addedCoins
         saveUserInfo()
     }
 
@@ -139,21 +136,22 @@ class UserRepository @Inject constructor(
 
     fun tryUsingStreakFreezers(daysSince:Int): StreakFreezerReturn {
         val requiredFreezers = (daysSince).toInt()
-        val streakData = userInfo.streak
         val today = LocalDate.now()
         if (getInventoryItemCount(InventoryItem.STREAK_FREEZER) >= requiredFreezers) {
             deductFromInventory(InventoryItem.STREAK_FREEZER, requiredFreezers)
 
-            val oldStreak = streakData.currentStreak
-            streakData.currentStreak += requiredFreezers
-            streakData.lastCompletedDate = today.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            val oldStreak = userInfo.streak.currentStreak
+            userInfo.streak.currentStreak += requiredFreezers
+            userInfo.streak.lastCompletedDate = today.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            currentStreakState.value = userInfo.streak.currentStreak
             saveUserInfo()
             return StreakFreezerReturn(isOngoing = true,streakFreezersUsed = requiredFreezers, lastStreak = oldStreak)
         } else {
             // User failed streak
-            val oldStreak = streakData.currentStreak
-            streakData.longestStreak = maxOf(streakData.currentStreak, streakData.longestStreak)
-            streakData.currentStreak = 0
+            val oldStreak = userInfo.streak.currentStreak
+            userInfo.streak.longestStreak = maxOf(userInfo.streak.currentStreak, userInfo.streak.longestStreak)
+            userInfo.streak.currentStreak = 0
+            currentStreakState.value = userInfo.streak.currentStreak
             saveUserInfo()
             return StreakFreezerReturn(isOngoing = false,streakDaysLost = oldStreak)
         }
@@ -162,15 +160,15 @@ class UserRepository @Inject constructor(
 
     fun continueStreak(): Boolean {
         val today = LocalDate.now()
-        val streakData = userInfo.streak
-        val lastCompleted = LocalDate.parse(streakData.lastCompletedDate)
+        val lastCompleted = LocalDate.parse(userInfo.streak.lastCompletedDate)
         val daysSince = ChronoUnit.DAYS.between(lastCompleted, today)
 
         Log.d("daysSince",daysSince.toString())
         if(daysSince!=0L){
-            streakData.currentStreak += 1
-            streakData.longestStreak = maxOf(streakData.currentStreak, streakData.longestStreak)
-            streakData.lastCompletedDate = getCurrentDate()
+            userInfo.streak.currentStreak += 1
+            userInfo.streak.longestStreak = maxOf(userInfo.streak.currentStreak, userInfo.streak.longestStreak)
+            userInfo.streak.lastCompletedDate = getCurrentDate()
+            currentStreakState.value = userInfo.streak.currentStreak
 
             saveUserInfo()
             return true
