@@ -1,0 +1,68 @@
+package neth.iecal.questphone.app.screens.quest.view
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.core.utils.managers.User
+import neth.iecal.questphone.app.screens.game.rewardUserForQuestCompl
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.backend.StatsInfo
+import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.StatsRepository
+import nethical.questphone.backend.repositories.UserRepository
+import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.data.game.InventoryItem
+import java.util.UUID
+
+open class ViewQuestVM(
+    protected val questRepository: QuestRepository,
+    protected val userRepository: UserRepository,
+    protected val statsRepository: StatsRepository, application: Application,
+): AndroidViewModel(application) {
+    lateinit var commonQuestInfo: CommonQuestInfo
+
+    val progress = MutableStateFlow(0f)
+    val isInTimeRange = MutableStateFlow(false)
+    val isTimeOver = MutableStateFlow(false)
+    val isQuestComplete = MutableStateFlow(false)
+    val coins = userRepository.coins
+    val level = userRepository.userInfo.level
+
+    val isQuestSkippedDialogVisible = MutableStateFlow(false)
+    fun setCommonQuest(commonQuestInfo: CommonQuestInfo){
+        this.commonQuestInfo = commonQuestInfo
+        isInTimeRange.value = QuestHelper.isInTimeRange(commonQuestInfo)
+        isTimeOver.value = QuestHelper.isTimeOver(commonQuestInfo)
+        isQuestComplete.value = commonQuestInfo.last_completed_on == getCurrentDate()
+        progress.value = if(isQuestComplete.value) 1f else 0f
+    }
+
+    fun saveQuestToDb(){
+        progress.value = 1f
+        commonQuestInfo.last_completed_on = getCurrentDate()
+        commonQuestInfo.synced = false
+        commonQuestInfo.last_updated = System.currentTimeMillis()
+        updateQuestInDb(commonQuestInfo)
+        rewardUserForQuestCompl(commonQuestInfo)
+        isQuestComplete.value = true
+    }
+    private fun updateQuestInDb(commonQuestInfo: CommonQuestInfo){
+        viewModelScope.launch {
+            questRepository.upsertQuest(commonQuestInfo)
+            statsRepository.upsertStats(
+                StatsInfo(
+                    id = UUID.randomUUID().toString(),
+                    quest_id = commonQuestInfo.id,
+                    user_id = User?.getUserId() ?: "",)
+            )
+
+        }
+    }
+    fun getInventoryItemCount(item: InventoryItem): Int {
+        return userRepository.getInventoryItemCount(item)
+    }
+
+}
