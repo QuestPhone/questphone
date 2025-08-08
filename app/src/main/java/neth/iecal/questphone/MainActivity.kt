@@ -24,8 +24,6 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.AndroidEntryPoint
-import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
-import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.app.navigation.Navigator
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.account.UserInfoScreen
@@ -47,13 +45,15 @@ import neth.iecal.questphone.app.screens.quest.templates.SelectFromTemplates
 import neth.iecal.questphone.app.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
 import neth.iecal.questphone.app.theme.LauncherTheme
+import neth.iecal.questphone.core.services.AppBlockerService
+import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
+import neth.iecal.questphone.data.IntegrationId
 import nethical.questphone.backend.isOnline
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.backend.triggerQuestSync
 import nethical.questphone.backend.worker.FileDownloadWorker
-import nethical.questphone.core.core.services.AppBlockerService
 import java.io.File
 import javax.inject.Inject
 

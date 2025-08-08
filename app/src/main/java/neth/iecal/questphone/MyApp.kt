@@ -9,7 +9,7 @@ import nethical.questphone.backend.isOnline
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.backend.triggerQuestSync
 import nethical.questphone.backend.triggerStatsSync
-import nethical.questphone.core.core.services.reloadServiceInfo
+import neth.iecal.questphone.core.services.reloadServiceInfo
 import nethical.questphone.core.core.utils.VibrationHelper
 import javax.inject.Inject
 

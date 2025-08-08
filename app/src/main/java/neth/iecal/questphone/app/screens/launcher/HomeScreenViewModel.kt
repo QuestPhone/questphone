@@ -15,8 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -37,7 +35,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     application: Application,
-    questRepository: QuestRepository,
+    private val questRepository: QuestRepository,
     private val statsRepository: StatsRepository,
     private val userRepository: UserRepository,
 ) : AndroidViewModel(application){
@@ -58,7 +56,6 @@ class HomeScreenViewModel @Inject constructor(
     private val _time = mutableStateOf(getCurrentTime12Hr())
     val time = _time
 
-
     private val _meshStyle = MutableStateFlow(MeshStyles.ASYMMETRICAL)
     val meshStyle: StateFlow<MeshStyles> = _meshStyle
 
@@ -68,15 +65,9 @@ class HomeScreenViewModel @Inject constructor(
     private val shortcutsSp = application.applicationContext.getSharedPreferences("shortcuts", MODE_PRIVATE)
 
 
+
     init {
         viewModelScope.launch {
-
-            questRepository.getAllQuests()
-                .onEach { rawQuestList ->
-                   filterQuests()
-                }
-                .launchIn(viewModelScope)
-
             meshStyle.collect {
                 if(it== MeshStyles.USER_STATS_HEATMAP){
                     loadStats()
@@ -103,19 +94,16 @@ class HomeScreenViewModel @Inject constructor(
 
     }
 
-    fun filterQuests(){
+
+    suspend fun filterQuests(){
         Log.d("HomeScreenViewModel", "quest list state changed")
 
-        if (userRepository.userInfo.streak.currentStreak != 0) {
-            val daysSince = userRepository.checkIfStreakFailed()
-            if(daysSince!=null){
-                handleStreakFreezers(userRepository.tryUsingStreakFreezers(daysSince))
-            }
-
-        }
-
+        // we reload the list from disk cause android triggers the function twice, once with an empty list initially.
+        // we cannot ignore empty lists cuz some dates have no quests so in those cases, we cannot trigger
+        // the function that checks streaks for those days
+        var rawQuestsListLocal = questRepository.getAllQuests().first()
         val today = getCurrentDay()
-        val filtered = rawQuestList.value.filter {
+        val filtered = rawQuestsListLocal.filter {
             !it.is_destroyed && it.selected_days.contains(today)
         }
         // Mark completed
@@ -132,7 +120,7 @@ class HomeScreenViewModel @Inject constructor(
         val merged =
             (uncompleted + completed).sortedBy { QuestHelper.isInTimeRange(it) }
 
-        if (completed.size == rawQuestList.value.size) {
+        if (completed.size == rawQuestsListLocal.size) {
             if (userRepository.continueStreak()) {
                 showStreakUpDialog()
             }
@@ -141,6 +129,15 @@ class HomeScreenViewModel @Inject constructor(
         completedQuests.value = tempCompletedList.toList()
     }
 
+    fun handleCheckStreakFailure(){
+        if (userRepository.userInfo.streak.currentStreak != 0) {
+            val daysSince = userRepository.checkIfStreakFailed()
+            if(daysSince!=null){
+                handleStreakFreezers(userRepository.tryUsingStreakFreezers(daysSince))
+            }
+
+        }
+    }
     private suspend fun loadStats() {
 
         val statsList: List<StatsInfo> =

@@ -1,4 +1,4 @@
-package nethical.questphone.core.core.services
+package neth.iecal.questphone.core.services
 
 import android.content.Context
 

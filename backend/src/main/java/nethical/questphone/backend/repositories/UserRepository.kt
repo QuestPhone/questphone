@@ -126,8 +126,8 @@ class UserRepository @Inject constructor(
         val daysSince = ChronoUnit.DAYS.between(lastCompleted, today)
         Log.d("streak day since", daysSince.toString())
 
-        if (daysSince > 0) {
-            daysSince.toInt()
+        if (daysSince > 1) {
+            return daysSince.toInt()
         }
             return null
 

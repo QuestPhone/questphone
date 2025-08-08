@@ -104,26 +104,18 @@
 
                 <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
             </intent-filter>
-        </activity-alias> <!-- <service -->
-        <!-- android:name=".services.AccessibilityService" -->
-        <!-- android:exported="true" -->
-        <!-- android:label="App Blocker" -->
-        <!-- android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"> -->
-        <!-- <intent-filter> -->
-        <!-- <action android:name="android.accessibilityservice.AccessibilityService" /> -->
-        <!-- </intent-filter> -->
-        <!-- <meta-data -->
-        <!-- android:name="android.accessibilityservice" -->
-        <!-- android:resource="@xml/app_blocker_service_config" /> -->
-        <!-- </service> -->
+        </activity-alias>
+
+
+
         <service
-            android:name=".core.services.AppBlockerService"
+            android:name="neth.iecal.questphone.core.services.AppBlockerService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
         <service
-            android:name=".core.services.LockScreenService"
+            android:name="nethical.questphone.core.core.services.LockScreenService"
             android:exported="false"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
@@ -148,6 +140,14 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".core.utils.receiver.NewDayReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
             </intent-filter>
         </receiver>
     </application>

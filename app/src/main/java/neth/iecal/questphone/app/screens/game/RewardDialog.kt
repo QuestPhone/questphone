@@ -136,7 +136,9 @@ fun RewardDialogMaker(userRepository: UserRepository) {
             }
         }
         DialogState.STREAK_FREEZER_USED -> {
-            StreakFreezersUsedDialog(streakFreezerReturn!!.streakFreezersUsed!!,userRepository.userInfo.streak,xpEarned.intValue) { }
+            StreakFreezersUsedDialog(streakFreezerReturn!!.streakFreezersUsed!!,userRepository.userInfo.streak,xpEarned.intValue) {
+                RewardDialogInfo.currentDialog = DialogState.NONE
+            }
         }
 
         DialogState.STREAK_FAILED -> {

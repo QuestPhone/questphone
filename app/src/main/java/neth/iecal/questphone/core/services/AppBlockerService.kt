@@ -1,4 +1,4 @@
-package nethical.questphone.core.core.services
+package neth.iecal.questphone.core.services
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -22,15 +22,13 @@ import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import neth.iecal.questphone.MainActivity
 import nethical.questphone.core.R
+
 import nethical.questphone.core.core.utils.managers.getKeyboards
 import nethical.questphone.core.core.utils.managers.reloadApps
-import kotlin.collections.filter
-import kotlin.collections.map
-import kotlin.jvm.java
 
-
-class AppBlockerService(val cls: Class<out Context>) : Service() {
+class AppBlockerService() : Service() {
 
     private val TAG = "AppBockServiceFG"
     private lateinit var usageStatsManager: UsageStatsManager
@@ -132,7 +130,7 @@ class AppBlockerService(val cls: Class<out Context>) : Service() {
             .setOngoing(true)
 
         // Create a PendingIntent for when the notification is tapped
-        val notificationIntent = Intent(this, cls)
+        val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this, 0, notificationIntent,
             PendingIntent.FLAG_IMMUTABLE
@@ -313,7 +311,7 @@ class AppBlockerService(val cls: Class<out Context>) : Service() {
     private fun refreshHomeScreenOverlay() {
         if (isOverlayActive && currentLockedPackage != null) {
             Log.d(TAG, "Refreshing overlay for $currentLockedPackage")
-            val currentIntent = Intent(this, cls)
+            val currentIntent = Intent(this, MainActivity::class.java)
             currentIntent.addFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK or
                         Intent.FLAG_ACTIVITY_CLEAR_TOP or
@@ -326,7 +324,7 @@ class AppBlockerService(val cls: Class<out Context>) : Service() {
     }
 
     private fun showHomwScreenOverlay() {
-        val intent = Intent(this, cls)
+        val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or

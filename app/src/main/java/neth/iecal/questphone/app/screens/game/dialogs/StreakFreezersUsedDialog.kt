@@ -2,6 +2,8 @@ package neth.iecal.questphone.app.screens.game.dialogs
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,7 +37,8 @@ fun StreakFreezersUsedDialog( streakFreezersUsed:Int, streakData: StreakData, xp
             .clip(RoundedCornerShape(11.dp))) {
             Column(
                 modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Animated level up icon
                 val rotationAnimation = remember { Animatable(0f) }
@@ -48,7 +50,7 @@ fun StreakFreezersUsedDialog( streakFreezersUsed:Int, streakData: StreakData, xp
                     )
                 }
 
-                Icon(
+                Image(
                     painter = painterResource(nethical.questphone.data.R.drawable.streak_freezer),
                     contentDescription = "Streak",
                     modifier = Modifier
@@ -56,42 +58,32 @@ fun StreakFreezersUsedDialog( streakFreezersUsed:Int, streakData: StreakData, xp
                         .rotate(rotationAnimation.value)
                 )
 
-                Spacer(modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.size(8.dp))
 
                 Text(
                     text = "$streakFreezersUsed streak freezers were used to save your streak!",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                    fontWeight = FontWeight.Bold,
 
-                Spacer(modifier = Modifier.size(8.dp))
+                )
 
 
                 Text(
                     text = "New Streak: ${streakData.currentStreak} days",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     fontSize = 16.sp,
-                    modifier = Modifier.padding(bottom = 16.dp)
                 )
                 Text(
                     text = "Rewards",
-                    color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(bottom = 16.dp)
+
                 )
                 Text(
                     text = "XP: $xpEarned",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    fontSize = 16.sp,
                 )
 
-                Spacer(Modifier.size(16.dp))
 
                 Button(
                     onClick = {

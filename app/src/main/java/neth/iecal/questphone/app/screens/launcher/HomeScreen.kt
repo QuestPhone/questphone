@@ -153,9 +153,10 @@ fun HomeScreen(
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isLockScreenServiceEnabled(context)
     }
 
-    // somehow the list doesn't update without it
-    val rawQuestList by viewModel.rawQuestList.collectAsState()
-    LaunchedEffect(rawQuestList) {
+
+    // duck tape fix, trying to figure out a different way to do it without problems
+    LaunchedEffect(Unit) {
+        viewModel.handleCheckStreakFailure()
         viewModel.filterQuests()
     }
 
