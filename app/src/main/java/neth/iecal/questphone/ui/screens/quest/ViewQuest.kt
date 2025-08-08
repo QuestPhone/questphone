@@ -36,7 +36,6 @@ fun ViewQuest(
     id: String
 ) {
     val context = LocalContext.current
-    val questHelper = QuestHelper(context)
 
     val showDestroyQuestDialog = remember { mutableStateOf(false) }
 

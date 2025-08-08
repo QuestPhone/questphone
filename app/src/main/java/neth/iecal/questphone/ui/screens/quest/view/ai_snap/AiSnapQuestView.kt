@@ -109,7 +109,7 @@ fun AiSnapQuestView(
                         Button(
                             onClick = {
                                 VibrationHelper.vibrate(100)
-                                viewModel.onAiSnapQuestDone()
+                                viewModel.isCameraScreen.value = true
                             }
                         ) {
                             Text(text = "Start Quest")

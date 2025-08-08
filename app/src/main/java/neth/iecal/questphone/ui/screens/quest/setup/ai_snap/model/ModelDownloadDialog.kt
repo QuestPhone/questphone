@@ -125,7 +125,7 @@ fun ModelDownloadDialog(
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text("Download Model", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 20.dp))
-                    Text("Performing this quest requires more additional files to be downloaded. Please select any one from the below to continue.", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 20.dp))
+                    Text("Performing this quest requires more additional files to be downloaded. Please select any one from the below to continue.",  modifier = Modifier.padding(bottom = 20.dp))
 
                     if (isModelDownloading) {
                         Text(

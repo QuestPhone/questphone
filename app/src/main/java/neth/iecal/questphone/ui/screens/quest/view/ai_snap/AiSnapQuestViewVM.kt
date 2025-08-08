@@ -91,6 +91,7 @@ class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
                 return false
             }
 
+            Log.d("Loading Model","Starting to load model $modelId ")
             val modelFile = File(application.filesDir, "$modelId.onnx")
             if (!modelFile.exists()) {
                 isModelDownloaded.value = false
