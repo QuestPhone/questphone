@@ -70,13 +70,6 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            if (userRepository.userInfo.streak.currentStreak != 0) {
-                val daysSince = userRepository.checkIfStreakFailed()
-                if(daysSince!=null){
-                    handleStreakFreezers(userRepository.tryUsingStreakFreezers(daysSince))
-                }
-
-            }
 
             questRepository.getAllQuests()
                 .onEach { rawQuestList ->
@@ -112,6 +105,15 @@ class HomeScreenViewModel @Inject constructor(
 
     fun filterQuests(){
         Log.d("HomeScreenViewModel", "quest list state changed")
+
+        if (userRepository.userInfo.streak.currentStreak != 0) {
+            val daysSince = userRepository.checkIfStreakFailed()
+            if(daysSince!=null){
+                handleStreakFreezers(userRepository.tryUsingStreakFreezers(daysSince))
+            }
+
+        }
+
         val today = getCurrentDay()
         val filtered = rawQuestList.value.filter {
             !it.is_destroyed && it.selected_days.contains(today)

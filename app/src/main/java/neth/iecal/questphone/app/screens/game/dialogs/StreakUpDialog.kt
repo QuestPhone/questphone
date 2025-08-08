@@ -2,6 +2,7 @@ package neth.iecal.questphone.app.screens.game.dialogs
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,7 +39,8 @@ fun StreakUpDialog( streakData: StreakData, xpEarned: Int,onDismiss: () -> Unit,
             .clip(RoundedCornerShape(11.dp))) {
             Column(
                 modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Animated level up icon
                 val rotationAnimation = remember { Animatable(0f) }
@@ -59,43 +61,29 @@ fun StreakUpDialog( streakData: StreakData, xpEarned: Int,onDismiss: () -> Unit,
                         .rotate(rotationAnimation.value)
                 )
 
-                Spacer(modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.size(8.dp))
 
                 Text(
                     text = "All Quests Completed for today!",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    fontSize = 28.sp,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.size(8.dp))
-
-
                 Text(
                     text = "New Streak: ${streakData.currentStreak} days",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     fontSize = 16.sp,
-                    modifier = Modifier.padding(bottom = 16.dp)
                 )
-
+                Spacer(modifier = Modifier.size(8.dp))
                 Text(
                     text = "Rewards",
-                    color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(bottom = 16.dp)
                 )
                 Text(
                     text = "XP: $xpEarned",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    fontSize = 16.sp,
                 )
-
-                Spacer(Modifier.size(16.dp))
 
                 Button(
                     onClick = {

@@ -3,6 +3,7 @@ package neth.iecal.questphone.app.screens.game.dialogs
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,7 +25,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import neth.iecal.questphone.R
 import nethical.questphone.core.core.utils.VibrationHelper
@@ -42,7 +42,8 @@ fun LevelUpDialog(
 
         Column(
             modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             val rotationAnimation = remember { Animatable(0f) }
 
@@ -55,67 +56,41 @@ fun LevelUpDialog(
 
             Icon(
                 painter = painterResource(R.drawable.star),
-                contentDescription = "Level Up",
+                contentDescription = "Voila!",
                 tint = Color(0xFFFFC107), // Gold color
                 modifier = Modifier
                     .size(50.dp)
                     .rotate(rotationAnimation.value)
             )
 
-            Spacer(modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.size(8.dp))
 
             Text(
                 text = "Level Up!",
                 textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            Spacer(modifier = Modifier.size(8.dp))
 
             Text(
                 text = "You advanced to level $newLevel",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
             )
+
+            Spacer(modifier = Modifier.size(8.dp))
 
             Text(
                 text = "Rewards",
-                color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            Text(
-                text = "$coinReward coins",
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-                fontSize = 18.sp,
-                modifier = Modifier.padding(vertical = 2.dp)
-            )
+            RewardItem(R.drawable.coin_icon, coinReward,"Coins")
 
             if (lvUpRew.isNotEmpty()) {
                 lvUpRew.forEach {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(it.key.icon),
-                            contentDescription = it.key.simpleName,
-                            modifier = Modifier.size(30.dp)
-                        )
-                        Spacer(Modifier.size(4.dp))
-
-                        Text(
-                            text = "${it.key.simpleName} x ${it.value}",
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(vertical = 2.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.size(8.dp))
+                    RewardItem(it.key.icon,it.value,it.key.simpleName)
                 }
             }
 
@@ -130,5 +105,24 @@ fun LevelUpDialog(
                 Text("Continue")
             }
         }
+    }
+}
+
+@Composable
+private fun RewardItem(icon: Int, amount: Int,name:String){
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = painterResource(icon),
+            contentDescription = name,
+            modifier = Modifier.size(25.dp)
+        )
+        Spacer(Modifier.size(4.dp))
+
+        Text(
+            text = "x $amount",
+            textAlign = TextAlign.Center,
+        )
     }
 }

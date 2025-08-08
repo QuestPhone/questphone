@@ -1,5 +1,6 @@
 package neth.iecal.questphone.app.screens.game
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,14 +39,15 @@ object RewardDialogInfo{
 /**
  * Handles both showing the rewards dialog as well as rewarding user with xp, coins and bs.
  */
+@SuppressLint("MutableCollectionMutableState")
 @Composable
 fun RewardDialogMaker(userRepository: UserRepository) {
     // Track current dialog state
-    var currentDialog = currentDialog
+    val currentDialog = currentDialog
 
     // store the last level so later when user earns xp, we compare it to find if they levelled up
-    var oldLevel = remember { userRepository.userInfo.level }
-    var levelledUpUserRewards = remember { hashMapOf<InventoryItem, Int>() }
+    var oldLevel by remember { mutableIntStateOf( userRepository.userInfo.level) }
+    var levelledUpUserRewards by remember { mutableStateOf( hashMapOf<InventoryItem, Int>()) }
     val xpEarned = remember { mutableIntStateOf(0) }
 
     fun didUserLevelUp(): Boolean {
@@ -62,7 +64,7 @@ fun RewardDialogMaker(userRepository: UserRepository) {
 
             DialogState.LEVEL_UP -> {
                 Log.d("Level Up","User levelled up")
-                oldLevel = userRepository.userInfo.level + 1
+                oldLevel = userRepository.userInfo.level
                 levelledUpUserRewards = userRepository.calculateLevelUpInvRewards()
                 coinsEarned = userRepository.calculateLevelUpCoinsRewards()
                 userRepository.addItemsToInventory(levelledUpUserRewards)

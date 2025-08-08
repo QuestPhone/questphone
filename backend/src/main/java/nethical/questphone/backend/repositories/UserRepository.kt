@@ -33,6 +33,7 @@ class UserRepository @Inject constructor(
     var coinsState = MutableStateFlow(userInfo.coins)
     var currentStreakState = MutableStateFlow(userInfo.streak.currentStreak)
 
+    
     // the below variables act as a trigger for launching the reward dialog declared in the MainActivity from a
     // different SubScreen.
     fun getUserId(): String {
@@ -122,7 +123,7 @@ class UserRepository @Inject constructor(
         val today = LocalDate.now()
         val streakData = userInfo.streak
         val lastCompleted = LocalDate.parse(streakData.lastCompletedDate)
-        val daysSince = ChronoUnit.DAYS.between(lastCompleted, today) - 1
+        val daysSince = ChronoUnit.DAYS.between(lastCompleted, today)
         Log.d("streak day since", daysSince.toString())
 
         if (daysSince > 0) {
@@ -189,7 +190,7 @@ class UserRepository @Inject constructor(
     }
 
 
-    private fun loadUserInfo(): UserInfo {
+    fun loadUserInfo(): UserInfo {
         val sharedPreferences = context.getSharedPreferences("user_info", Context.MODE_PRIVATE)
         val userInfoJson = sharedPreferences.getString("user_info", null)
         return userInfoJson?.let {
