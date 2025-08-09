@@ -340,7 +340,7 @@ fun BaseQuestStatsView(
                     }
                 ) {
                     viewModel.deductFromInventory(InventoryItem.QUEST_EDITOR)
-                    navController.navigate(baseData.integration_id.name + "/${baseData.title}")
+                    navController.navigate(baseData.integration_id.name + "/${baseData.id}")
                 }
             }
 
