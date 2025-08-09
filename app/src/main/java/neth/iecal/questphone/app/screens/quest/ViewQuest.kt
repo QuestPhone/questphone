@@ -24,30 +24,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
+import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.data.toAdv
-import neth.iecal.questphone.app.navigation.RootRoute
 import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.repositories.QuestRepository
 
 @Composable
 fun ViewQuest(
     navController: NavHostController,
+    questRepository: QuestRepository,
     id: String
 ) {
     val context = LocalContext.current
 
     val showDestroyQuestDialog = remember { mutableStateOf(false) }
 
-
     val scope = rememberCoroutineScope()
-    val dao = QuestDatabaseProvider.getInstance(context).questDao()
 
     var commonQuestInfo by remember { mutableStateOf<CommonQuestInfo?>(null) }
 
     LaunchedEffect(Unit) {
-        val dao = QuestDatabaseProvider.getInstance(context).questDao()
-        commonQuestInfo = dao.getQuestById(id)
+        commonQuestInfo = questRepository.getQuestById(id)
     }
 
     Surface {
@@ -63,7 +61,7 @@ fun ViewQuest(
                 commonQuestInfo!!.synced = false
                 commonQuestInfo!!.last_updated = System.currentTimeMillis()
                 scope.launch {
-                    dao.upsertQuest(commonQuestInfo!!)
+                    questRepository.upsertQuest(commonQuestInfo!!)
                 }
                     navController.navigate(RootRoute.HomeScreen.route) {
                         popUpTo(RootRoute.ViewQuest.route) { inclusive = true }
@@ -75,7 +73,7 @@ fun ViewQuest(
 }
 
 @Composable
-fun DestroyQuestDialog(onDismiss: () -> Unit) {
+private fun DestroyQuestDialog(onDismiss: () -> Unit) {
 
     Dialog(onDismissRequest = onDismiss) {
         Column(

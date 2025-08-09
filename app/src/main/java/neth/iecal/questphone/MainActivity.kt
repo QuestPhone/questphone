@@ -173,7 +173,7 @@ class MainActivity : ComponentActivity() {
                         ) { backStackEntry ->
                             val id = backStackEntry.arguments?.getString("id")
 
-                            ViewQuest(navController, id!!)
+                            ViewQuest(navController, questRepository,id!!)
                         }
 
                         navigation(

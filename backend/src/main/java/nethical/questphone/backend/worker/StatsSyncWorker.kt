@@ -17,9 +17,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import nethical.questphone.backend.QuestDatabaseProvider
 import nethical.questphone.backend.StatsInfo
 import nethical.questphone.backend.Supabase
+import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.R
@@ -31,13 +31,13 @@ class StatsSyncWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val userRepository: UserRepository,
-    private val statRepository: StatsRepository
+    private val statRepository: StatsRepository,
+    private val questRepository: QuestRepository
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
         try {
             val isFirstTimeSync = inputData.getBoolean("is_first_time",false)
-            val dao = QuestDatabaseProvider.getInstance(applicationContext).questDao()
             val userId = Supabase.supabase.auth.currentUserOrNull()?.id ?: return Result.success()
 
 
@@ -75,7 +75,7 @@ class StatsSyncWorker @AssistedInject constructor(
                 Supabase.supabase.postgrest["quest_stats"].upsert(
                     it
                 )
-                dao.markAsSynced(it.id)
+                questRepository.markAsSynced(it.id)
             }
 
             val manager =

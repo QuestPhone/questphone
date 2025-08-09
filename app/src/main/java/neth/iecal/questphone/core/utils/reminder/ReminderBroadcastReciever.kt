@@ -14,14 +14,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import neth.iecal.questphone.MainActivity
 import neth.iecal.questphone.R
-import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.core.core.utils.getCurrentDate
+import javax.inject.Inject
 
 /**
  * A BroadcastReceiver that receives intents from AlarmManager when a scheduled reminder fires.
  * It's responsible for building and displaying the notification.
  */
 class ReminderBroadcastReceiver : BroadcastReceiver() {
+    @Inject lateinit var questRepository: QuestRepository
 
     override fun onReceive(context: Context?, intent: Intent?) {
         // Ensure context and intent are not null
@@ -31,9 +33,8 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             val title = intent?.getStringExtra(NotificationScheduler.EXTRA_REMINDER_TITLE) ?: "Reminder"
             val description = intent?.getStringExtra(NotificationScheduler.EXTRA_REMINDER_DESCRIPTION) ?: "You have a new reminder."
 
-            val dao = QuestDatabaseProvider.getInstance(context).questDao()
             CoroutineScope(Dispatchers.Default).launch {
-                val quest = dao.getQuestById(reminderId)
+                val quest = questRepository.getQuestById(reminderId)
                 withContext(Dispatchers.Main) {
                     if(quest!=null){
                         val isNotCompleted = quest.last_completed_on != getCurrentDate()

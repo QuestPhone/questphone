@@ -13,16 +13,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import nethical.questphone.backend.QuestDatabaseProvider
 import nethical.questphone.backend.ReminderData
 import nethical.questphone.backend.ReminderDatabaseProvider
+import nethical.questphone.backend.repositories.QuestRepository
 import java.util.Date
+import javax.inject.Inject
 
 /**
  * Handles the scheduling and cancellation of reminder notifications using AlarmManager.
  * It also manages the creation of the notification channel.
  */
 class NotificationScheduler(private val context: Context) {
+
+    @Inject lateinit var questRepository: QuestRepository
 
     internal val alarmManager: AlarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -210,18 +213,17 @@ class NotificationScheduler(private val context: Context) {
         createNotificationChannel() // Ensure notification channel is recreated/exists
 
         val reminderDao = ReminderDatabaseProvider.getInstance(context).reminderDao()
-        val questDao = QuestDatabaseProvider.getInstance(context).questDao()
 
         CoroutineScope(Dispatchers.Default).launch {
             val persistedReminders: List<ReminderData> = reminderDao.getAllUpcoming()
 
-            val allQuests = questDao.getAllQuests().first()
+            val allQuests = questRepository.getAllQuests().first()
 
             val allQuestIds = allQuests.map { it.id }.toSet()
 
             allQuestIds.forEach {
                 if(it !in persistedReminders.map { it.quest_id }){
-                    val quest = questDao.getQuestById(it)
+                    val quest = questRepository.getQuestById(it)
                     if(quest != null){
                         generateReminders(context,quest)
                     }
@@ -229,7 +231,7 @@ class NotificationScheduler(private val context: Context) {
             }
             persistedReminders.forEach {
                 if(it.timeMillis < System.currentTimeMillis()){
-                    val quest = questDao.getQuestById(it.quest_id)
+                    val quest = questRepository.getQuestById(it.quest_id)
                     if(quest != null){
                         generateReminders(context,quest)
                     }

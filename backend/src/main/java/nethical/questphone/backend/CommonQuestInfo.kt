@@ -139,22 +139,6 @@ abstract class QuestDatabase : RoomDatabase() {
     abstract fun questDao(): QuestDao
 }
 
-object QuestDatabaseProvider {
-    @Volatile
-    private var INSTANCE: QuestDatabase? = null
-
-    fun getInstance(context: Context): QuestDatabase {
-        return INSTANCE ?: synchronized(this) {
-            val instance = Room.databaseBuilder(
-                context.applicationContext,
-                QuestDatabase::class.java,
-                "quest_database"
-            ).build()
-            INSTANCE = instance
-            instance
-        }
-    }
-}
 
 @Module
 @InstallIn(SingletonComponent::class)

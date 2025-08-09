@@ -34,7 +34,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.QuestDatabaseProvider
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
@@ -62,9 +61,6 @@ fun SwiftMarkQuestView(
     val isQuestComplete by viewModel.isQuestComplete.collectAsState()
     val isInTimeRange by viewModel.isInTimeRange.collectAsState()
     val progress by viewModel.progress.collectAsState()
-
-    val scope = rememberCoroutineScope()
-    val dao = QuestDatabaseProvider.getInstance(context).questDao()
 
     val hideStartQuestBtn = isQuestComplete || !isInTimeRange
     val coins by viewModel.coins.collectAsState()
