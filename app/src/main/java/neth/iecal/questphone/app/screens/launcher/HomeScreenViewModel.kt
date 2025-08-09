@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context.MODE_PRIVATE
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
@@ -17,12 +16,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
 import neth.iecal.questphone.app.screens.game.handleStreakFreezers
 import neth.iecal.questphone.app.screens.game.showStreakUpDialog
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.StatsInfo
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
@@ -43,10 +40,6 @@ class HomeScreenViewModel @Inject constructor(
     val coins = userRepository.coinsState
     val currentStreak = userRepository.currentStreakState
 
-    val rawQuestList = questRepository.getAllQuests()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
-
-
     val questList = MutableStateFlow<List<CommonQuestInfo>>(emptyList())
     val completedQuests = MutableStateFlow<List<String>>(emptyList())
 
@@ -59,7 +52,6 @@ class HomeScreenViewModel @Inject constructor(
     private val _meshStyle = MutableStateFlow(MeshStyles.ASYMMETRICAL)
     val meshStyle: StateFlow<MeshStyles> = _meshStyle
 
-    val successfulDates = mutableStateMapOf<LocalDate, List<String>>()
 
     private val meshStylesp = application.applicationContext.getSharedPreferences("mesh_style", MODE_PRIVATE)
     private val shortcutsSp = application.applicationContext.getSharedPreferences("shortcuts", MODE_PRIVATE)
@@ -68,11 +60,6 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            meshStyle.collect {
-                if(it== MeshStyles.USER_STATS_HEATMAP){
-                    loadStats()
-                }
-            }
             loadSavedConfigs()
             // Keep updating time every minute
             while (true) {
@@ -138,27 +125,10 @@ class HomeScreenViewModel @Inject constructor(
 
         }
     }
-    private suspend fun loadStats() {
-
-        val statsList: List<StatsInfo> =
-            statsRepository.getAllUnSyncedStats()
-                .stateIn(
-                    viewModelScope,
-                    SharingStarted.WhileSubscribed(5000),
-                    emptyList<StatsInfo>()
-                ).first()
-
-
-        statsList.forEach {
-            val prevList = (successfulDates[it.date]?: emptyList()).toMutableList()
-            prevList.add(it.quest_id)
-            successfulDates[it.date] = prevList
-        }
-    }
 
     fun toggleMeshStyle() {
-        val options = MeshStyles.entries.filter { it != meshStyle.value }
-        _meshStyle.value = options.random()
+        val currentIndex = MeshStyles.entries.indexOf(meshStyle.value)
+        _meshStyle.value = MeshStyles.entries[(currentIndex + 1) % MeshStyles.entries.size]
         meshStylesp.edit { putInt("mesh_style", meshStyle.value.ordinal) }
     }
 

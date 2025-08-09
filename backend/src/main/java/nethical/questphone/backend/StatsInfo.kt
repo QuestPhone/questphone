@@ -114,24 +114,6 @@ abstract class StatsDatabase : RoomDatabase() {
     abstract fun statsDao(): StatsInfoDao
 }
 
-
-object StatsDatabaseProvider {
-    @Volatile
-    private var INSTANCE: StatsDatabase? = null
-
-    fun getInstance(context: Context): StatsDatabase {
-        return INSTANCE ?: synchronized(this) {
-            val instance = Room.databaseBuilder(
-                context.applicationContext,
-                StatsDatabase::class.java,
-                "stats_info_database"
-            ).build()
-            INSTANCE = instance
-            instance
-        }
-    }
-}
-
 @Module
 @InstallIn(SingletonComponent::class)
 object StatsDatabaseModule {

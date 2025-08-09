@@ -19,19 +19,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
@@ -41,7 +49,9 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
-import nethical.questphone.backend.QuestDatabaseProvider
+import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.StatsRepository
+import javax.inject.Inject
 
 // --- Data class to hold daily quest information ---
 data class DailyQuestInfo(
@@ -57,12 +67,48 @@ private val MONTH_SPACING = 8.dp // Space between months in the grid
 private val DAY_LABEL_WIDTH = 32.dp
 private val MONTH_LABEL_HEIGHT = 20.dp
 
+@HiltViewModel
+class HeatMapChartVM @Inject constructor(
+    val questRepository: QuestRepository,
+    val statsRepository: StatsRepository
+): ViewModel() {
+    var successfulDates: MutableStateFlow<Map<LocalDate, List<String>>> = MutableStateFlow<Map<LocalDate, List<String>>>(emptyMap())
+    var allQuestTitles = MutableStateFlow<Map<String, String>>(emptyMap())
+
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            loadStats()
+            loadAllQuestTitles()
+        }
+    }
+
+    suspend fun loadStats() {
+        val allStats = statsRepository.getAllStatsForUser().first().toMutableList()
+
+        val result = mutableMapOf<LocalDate, MutableList<String>>()
+        for (stat in allStats) {
+            val list = result.getOrPut(stat.date) { mutableListOf() }
+            list.add(stat.quest_id)
+        }
+        successfulDates.value = result
+    }
+
+
+    suspend fun loadAllQuestTitles(){
+        allQuestTitles.value =  questRepository.getAllQuests().first().associate { it.id to it.title }
+    }
+}
+
 @Composable
 fun HeatMapChart(
-    questMap: Map<LocalDate, List<String>>, // Using kotlinx.datetime.LocalDate
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: HeatMapChartVM = hiltViewModel()
 ) {
-    if (questMap.isEmpty()) {
+    val statsMap by viewModel.successfulDates.collectAsState()
+    val allQuestTitles by viewModel.allQuestTitles.collectAsState()
+
+    if (statsMap.isEmpty()) {
         Text("No Data available.", modifier = modifier.padding(16.dp))
         return
     }
@@ -70,11 +116,11 @@ fun HeatMapChart(
     val currentSystemTimeZone = remember { TimeZone.currentSystemDefault() }
 
     // Determine the date range and pad with empty days
-    val dateRange = remember(questMap) {
+    val dateRange = remember(statsMap) {
         val today = Clock.System.todayIn(currentSystemTimeZone)
 
         // The start date is still calculated from the first data point or today.
-        val minDate = questMap.keys.minOrNull() ?: today
+        val minDate = statsMap.keys.minOrNull() ?: today
         val daysFromMondayStart = minDate.dayOfWeek.value - DayOfWeek.MONDAY.value
         val startDate = minDate.minus(daysFromMondayStart, DateTimeUnit.DAY)
 
@@ -89,12 +135,12 @@ fun HeatMapChart(
         startDate to endDate
     }
 
-    val allDaysData = remember(dateRange, questMap) {
+    val allDaysData = remember(dateRange, statsMap) {
         val (startDate, endDate) = dateRange
         val days = mutableListOf<DailyQuestInfo>()
         var currentDate = startDate
         while (currentDate <= endDate) {
-            val questsForDate = questMap[currentDate] ?: emptyList()
+            val questsForDate = statsMap[currentDate] ?: emptyList()
             days.add(
                 DailyQuestInfo(date = currentDate, quests = questsForDate)
             )
@@ -140,11 +186,16 @@ fun HeatMapChart(
                 )
             }
         }
+        if(selectedDayInfo.value!=null) {
+            QuestTooltip(
+                dailyInfo = selectedDayInfo.value!!,
+                questTitleList = allQuestTitles,
+                onDismiss = {
+                    selectedDayInfo.value = null
+                }
+            )
 
-        QuestTooltip(
-            dailyInfo = selectedDayInfo
-        )
-
+        }
         Spacer(modifier = Modifier.height(8.dp))
 
         ContributionLegend(modifier = Modifier.padding(horizontal = 16.dp))
@@ -327,71 +378,65 @@ fun ContributionLegend(modifier: Modifier = Modifier) {
 
 
 @Composable
-fun QuestTooltip(dailyInfo: MutableState<DailyQuestInfo?>) {
-    val context = LocalContext.current
-    val questList = remember { mutableMapOf<String, String>()}
+fun QuestTooltip(dailyInfo: DailyQuestInfo, onDismiss: ()-> Unit, questTitleList: Map<String, String>) {
+    val filteredQuestTitles = remember { mutableStateOf(mapOf<String, String>()) }
 
-    LaunchedEffect(dailyInfo.value) {
-        if(dailyInfo.value!=null){
-            val dao = QuestDatabaseProvider.getInstance(context).questDao()
-            dailyInfo.value!!.quests.forEach {
-                questList[it] = dao.getQuestById(it)?.title ?: it
+        LaunchedEffect(Unit) {
+            val tempMap = mutableMapOf<String, String>()
+            dailyInfo.quests.forEach {
+                tempMap[it] = questTitleList[it].toString()
             }
+            filteredQuestTitles.value = tempMap
         }
-    }
-
-    if (dailyInfo.value != null) {
-
-        Dialog(onDismissRequest = {
-            dailyInfo.value = null
-        }) {
-            Card(
-                modifier = Modifier.padding(8.dp)
+    Dialog(onDismissRequest = {
+        onDismiss()
+    }) {
+        Card(
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // Format date string manually
-                    val dayName =
-                        dailyInfo.value!!.date.dayOfWeek.name.toLowerCase(Locale.current)
-                            .replaceFirstChar { it.titlecase() }
-                    val monthName =
-                        dailyInfo.value!!.date.month.name.toLowerCase(Locale.current)
-                            .replaceFirstChar { it.titlecase() }
-                    val dateText =
-                        "$dayName, $monthName ${dailyInfo.value!!.date.dayOfMonth}, ${dailyInfo.value!!.date.year}"
+                // Format date string manually
+                val dayName =
+                    dailyInfo.date.dayOfWeek.name.toLowerCase(Locale.current)
+                        .replaceFirstChar { it.titlecase() }
+                val monthName =
+                    dailyInfo.date.month.name.toLowerCase(Locale.current)
+                        .replaceFirstChar { it.titlecase() }
+                val dateText =
+                    "$dayName, $monthName ${dailyInfo.date.dayOfMonth}, ${dailyInfo.date.year}"
 
-                    val questCount = dailyInfo.value!!.quests.size
+                val questCount = dailyInfo.quests.size
 
+                Text(
+                    text = dateText,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+
+                val questText = if (questCount == 0) {
+                    "No quests attempted."
+                } else {
+                    "$questCount ${if (questCount == 1) "Quest" else "Quests"} Attempted"
+                }
+
+                Text(
+                    text = questText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                filteredQuestTitles.value.forEach { questName ->
                     Text(
-                        text = dateText,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                        text = "• ${questName.value}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                     )
-
-                    val questText = if (questCount == 0) {
-                        "No quests attempted."
-                    } else {
-                        "$questCount ${if (questCount == 1) "Quest" else "Quests"} Attempted"
-                    }
-
-                    Text(
-                        text = questText,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    questList.forEach { questName ->
-                        Text(
-                            text = "• ${questName.value}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                        )
-                    }
                 }
             }
         }
-
     }
 }
+

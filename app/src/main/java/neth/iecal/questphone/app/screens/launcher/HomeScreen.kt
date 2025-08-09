@@ -118,7 +118,6 @@ fun HomeScreen(
     val completedQuests by viewModel.completedQuests.collectAsState()
     val shortcuts = viewModel.shortcuts
     val tempShortcuts = viewModel.tempShortcuts
-    val successfulDates = viewModel.successfulDates
     val coins by viewModel.coins.collectAsState()
     val streak by viewModel.currentStreak.collectAsState()
     var isAppSelectorVisible by remember { mutableStateOf(false) }
@@ -245,15 +244,19 @@ fun HomeScreen(
                 Modifier.padding(8.dp)
             ) {
                 Box(Modifier
-                    .size(200.dp)
                     .combinedClickable(onClick = {}, onLongClick = {
                         viewModel.toggleMeshStyle()
 
                     })){
                     when(meshStyle){
-                        MeshStyles.SYMMETRICAL -> NeuralMeshSymmetrical(modifier = Modifier.fillMaxSize())
-                        MeshStyles.ASYMMETRICAL -> NeuralMeshAsymmetrical(modifier = Modifier.fillMaxSize())
-                        MeshStyles.USER_STATS_HEATMAP -> HeatMapChart(successfulDates, Modifier.height(200.dp))
+                        MeshStyles.SYMMETRICAL -> NeuralMeshSymmetrical(modifier = Modifier.size(200.dp))
+                        MeshStyles.ASYMMETRICAL -> NeuralMeshAsymmetrical(modifier = Modifier.size(200.dp))
+                        MeshStyles.USER_STATS_HEATMAP -> {
+                            Column (modifier = Modifier.height(200.dp),
+                                verticalArrangement = Arrangement.Center){
+                                HeatMapChart(Modifier.padding(8.dp))
+                            }
+                        }
                     }
                 }
                 Spacer(Modifier.size(12.dp))

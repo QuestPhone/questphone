@@ -7,11 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import neth.iecal.questphone.app.screens.game.DialogState
-import neth.iecal.questphone.app.screens.game.RewardDialogInfo
 import neth.iecal.questphone.app.screens.game.handleStreakFreezers
 import nethical.questphone.backend.repositories.UserRepository
 import javax.inject.Inject
@@ -22,16 +17,17 @@ class NewDayReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_DATE_CHANGED) {
             Log.d("New Day","Date changed")
-            CoroutineScope(Dispatchers.Default).launch {
-                val lastStreak = userRepository.userInfo.streak.currentStreak
-                handleDayChange()
-                if(RewardDialogInfo.currentDialog == DialogState.STREAK_FAILED){
-                    sendDateChangedNotification(context,"You lost your $lastStreak day streak","Don't worry, we know you can rise again")
-                }
-                if(RewardDialogInfo.currentDialog == DialogState.STREAK_FREEZER_USED){
-                    sendDateChangedNotification(context,"Streak Freezers Used","We used ${RewardDialogInfo.streakFreezerReturn?.streakFreezersUsed} to save you $lastStreak day streak!")
-                }
-            }
+            // Todo : fix
+//            CoroutineScope(Dispatchers.Default).launch {
+//                val lastStreak = userRepository.userInfo.streak.currentStreak
+//                handleDayChange()
+//                if(RewardDialogInfo.currentDialog == DialogState.STREAK_FAILED){
+//                    sendDateChangedNotification(context,"You lost your $lastStreak day streak","Don't worry, we know you can rise again")
+//                }
+//                if(RewardDialogInfo.currentDialog == DialogState.STREAK_FREEZER_USED){
+//                    sendDateChangedNotification(context,"Streak Freezers Used","We used ${RewardDialogInfo.streakFreezerReturn?.streakFreezersUsed} to save you $lastStreak day streak!")
+//                }
+//            }
 
         }
     }

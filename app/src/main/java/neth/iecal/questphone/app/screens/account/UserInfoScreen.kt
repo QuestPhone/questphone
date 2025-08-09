@@ -35,7 +35,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,17 +57,13 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDate
 import neth.iecal.questphone.OnboardActivity
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.screens.game.InventoryBox
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
-import nethical.questphone.backend.repositories.StatsRepository
+import nethical.questphone.backend.BuildConfig
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatNumber
 import nethical.questphone.core.core.utils.formatRemainingTime
@@ -83,13 +78,9 @@ import javax.inject.Inject
 class UserInfoViewModel @Inject constructor(
     application: Application,
     private val userRepository: UserRepository,
-    private val statsRepository: StatsRepository
 ) : AndroidViewModel(application) {
 
     val userInfo: UserInfo = userRepository.userInfo
-    private val _successfulDates = MutableStateFlow<Map<LocalDate, List<String>>>(emptyMap())
-    val successfulDates: StateFlow<Map<LocalDate, List<String>>> = _successfulDates
-
     val totalXpForCurrentLevel = xpToLevelUp(userInfo.level)
     val totalXpForNextLevel = xpToLevelUp(userInfo.level + 1)
 
@@ -101,26 +92,12 @@ class UserInfoViewModel @Inject constructor(
             val profileFile = File(application.filesDir, "profile")
             profileFile.absolutePath
         }else{
-            "${nethical.questphone.backend.BuildConfig.SUPABASE_URL}/storage/v1/object/public/profile/${userRepository.getUserId()}/profile"
+            "${BuildConfig.SUPABASE_URL}/storage/v1/object/public/profile/${userRepository.getUserId()}/profile"
         }
     } else null
 
-    init {
-        loadStats()
-    }
 
-    fun loadStats() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val allStats = statsRepository.getAllStatsForUser().first().toMutableList()
 
-            val result = mutableMapOf<LocalDate, MutableList<String>>()
-            for (stat in allStats) {
-                val list = result.getOrPut(stat.date) { mutableListOf() }
-                list.add(stat.quest_id)
-            }
-            _successfulDates.value = result
-        }
-    }
 
     fun logOut(onLoggedOut: () -> Unit) {
         viewModelScope.launch {
@@ -130,6 +107,7 @@ class UserInfoViewModel @Inject constructor(
             }
         }
     }
+
 }
 
 
@@ -137,10 +115,6 @@ class UserInfoViewModel @Inject constructor(
 @Composable
 fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController: NavController) {
     val context = LocalContext.current
-    val selectedInventoryItem = remember { mutableStateOf<InventoryItem?>(null) }
-
-    val successfulDates by viewModel.successfulDates.collectAsState()
-
 
     Scaffold { innerPadding ->
         Column(
@@ -280,10 +254,9 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
             Spacer(modifier = Modifier.height(32.dp))
 
             HeatMapChart(
-                questMap = successfulDates,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
             )
 
             if(viewModel.userInfo.active_boosts.isNotEmpty()) {
