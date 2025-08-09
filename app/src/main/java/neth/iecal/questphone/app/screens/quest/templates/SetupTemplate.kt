@@ -68,13 +68,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.data.TemplateVariable
-import neth.iecal.questphone.data.VariableType
 import neth.iecal.questphone.app.screens.quest.setup.ai_snap.model.ModelDownloadDialog
 import neth.iecal.questphone.app.screens.quest.setup.components.DateSelector
 import neth.iecal.questphone.app.screens.quest.setup.components.TimeRangeDialog
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SelectAppsDialog
+import neth.iecal.questphone.data.TemplateVariable
+import neth.iecal.questphone.data.VariableType
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.managers.formatAppList
 import nethical.questphone.core.core.utils.readableTimeRange
@@ -173,7 +172,7 @@ fun SetupTemplate(controller: NavController,viewModel: TemplatesViewModel) {
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = if (getCurrentDate() == User!!.userInfo.getCreatedOnString())"Click on the highlighted items to change values" else "Fake a quest if you want. It'll sit in your history, reminding you you're a fraud. Real ones can ignore this, you’ve got nothing to hide.",
+                                text = if (getCurrentDate() == viewModel.userCreatedOn)"Click on the highlighted items to change values" else "Fake a quest if you want. It'll sit in your history, reminding you you're a fraud. Real ones can ignore this, you’ve got nothing to hide.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium
                             )
@@ -187,7 +186,7 @@ fun SetupTemplate(controller: NavController,viewModel: TemplatesViewModel) {
                             .padding(bottom = 80.dp) // Space for FAB
                     ) {
                         ClickableTemplateText(
-                            content = data.content.replace("#{userName}", User!!.userInfo.username),
+                            content = data.content.replace("#{userName}", viewModel.username),
                             variables = data.variableTypes,
                             variableValues = variableValues,
                             onVariableClick = { variable ->

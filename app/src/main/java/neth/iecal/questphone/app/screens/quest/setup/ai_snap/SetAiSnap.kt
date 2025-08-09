@@ -50,7 +50,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
-import neth.iecal.questphone.app.screens.quest.setup.SetupViewModel
+import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import neth.iecal.questphone.app.screens.quest.setup.ai_snap.model.ModelDownloadDialog
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.UserRepository
@@ -60,9 +60,9 @@ import nethical.questphone.data.quest.ai.snap.AiSnap
 import javax.inject.Inject
 
 @HiltViewModel
-class SetAiSnapViewModel @Inject constructor (questRepository: QuestRepository,
-                                              userRepository: UserRepository
-) : SetupViewModel(questRepository, userRepository){
+class SetAiSnapViewModelQuest @Inject constructor (questRepository: QuestRepository,
+                                                   userRepository: UserRepository
+) : QuestSetupViewModel(questRepository, userRepository){
     val taskDescription = MutableStateFlow("")
     val features : SnapshotStateList<String> = mutableStateListOf()
 
@@ -81,7 +81,7 @@ class SetAiSnapViewModel @Inject constructor (questRepository: QuestRepository,
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewModel: SetAiSnapViewModel = hiltViewModel()) {
+fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewModel: SetAiSnapViewModelQuest = hiltViewModel()) {
     val scrollState = rememberScrollState()
 
     val questInfoState by viewModel.questInfoState.collectAsState()

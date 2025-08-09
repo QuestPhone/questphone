@@ -18,7 +18,9 @@ fun LauncherDialog(
     rootNavController: NavController,
     minutesPerFiveCoins :Int = 0,
     unlockApp: (Int) -> Unit = {},
-    startDestination: String
+    startDestination: String,
+    remainingFreePasses :Int= 0,
+    onFreePassUsed : ()->Unit = {}
 ) {
     val navController = rememberNavController()
 
@@ -41,7 +43,9 @@ fun LauncherDialog(
                 FreePassInfo(
                     onShowAllQuests = { navController.navigate(LauncherDialogRoutes.ShowAllQuest.route) },
                     pkgName = pkgName,
-                    onDismiss = onDismiss
+                    onDismiss = onDismiss,
+                    remainingFreePassesToday = remainingFreePasses,
+                    onFreePassUsed = onFreePassUsed,
                 )
             }
             composable(LauncherDialogRoutes.MakeAChoice.route) {

@@ -5,9 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.core.utils.managers.QuestHelper
-import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.app.screens.game.rewardUserForQuestCompl
+import neth.iecal.questphone.core.utils.managers.QuestHelper
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.StatsInfo
 import nethical.questphone.backend.repositories.QuestRepository
@@ -56,7 +55,8 @@ open class ViewQuestVM(
                 StatsInfo(
                     id = UUID.randomUUID().toString(),
                     quest_id = commonQuestInfo.id,
-                    user_id = User?.getUserId() ?: "",)
+                    user_id = userRepository.getUserId()
+                )
             )
 
         }

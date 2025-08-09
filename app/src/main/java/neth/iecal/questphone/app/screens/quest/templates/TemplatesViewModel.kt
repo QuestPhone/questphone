@@ -22,16 +22,22 @@ import neth.iecal.questphone.data.toAdv
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.fetchUrlContent
 import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.json
 import javax.inject.Inject
 
 @HiltViewModel
 class TemplatesViewModel @Inject constructor(
-    private val questRepository: QuestRepository
+    private val questRepository: QuestRepository,
+    userRepository: UserRepository
 ) : ViewModel() {
 
     private val _template = MutableStateFlow<List<Template>>(emptyList())
     val template: StateFlow<List<Template>> = _template.asStateFlow()
+
+    val isAnonymous = userRepository.userInfo.isAnonymous
+    val userCreatedOn = userRepository.userInfo.getCreatedOnString()
+    val username = userRepository.userInfo.username
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()

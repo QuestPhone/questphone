@@ -48,7 +48,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
-import neth.iecal.questphone.app.screens.quest.setup.SetupViewModel
+import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
@@ -58,9 +58,9 @@ import nethical.questphone.data.quest.health.HealthTaskType
 import javax.inject.Inject
 
 @HiltViewModel
-class SetHealthConnectViewModel @Inject constructor (questRepository: QuestRepository,
-                                                     userRepository: UserRepository
-): SetupViewModel(questRepository, userRepository){
+class SetHealthConnectViewModelQuest @Inject constructor (questRepository: QuestRepository,
+                                                          userRepository: UserRepository
+): QuestSetupViewModel(questRepository, userRepository){
     val healthQuest = MutableStateFlow(HealthQuest())
 
     fun saveQuest(onSuccess: ()-> Unit){
@@ -72,7 +72,7 @@ class SetHealthConnectViewModel @Inject constructor (questRepository: QuestRepos
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController,viewModel: SetHealthConnectViewModel = hiltViewModel()) {
+fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController,viewModel: SetHealthConnectViewModelQuest = hiltViewModel()) {
     val scrollState = rememberScrollState()
     val haptic = LocalHapticFeedback.current
 

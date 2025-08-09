@@ -1,5 +1,6 @@
 package neth.iecal.questphone.app.screens.quest.stats.specific
 
+// BaseQuestStatsViewVM.kt
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -43,15 +44,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,7 +58,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -75,9 +78,10 @@ import kotlinx.datetime.toLocalDateTime
 import neth.iecal.questphone.R
 import neth.iecal.questphone.core.utils.managers.User
 import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.QuestDatabaseProvider
-import nethical.questphone.backend.StatsDatabaseProvider
 import nethical.questphone.backend.StatsInfo
+import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.StatsRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.daysSince
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.core.core.utils.getStartOfWeek
@@ -89,58 +93,206 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
+import javax.inject.Inject
 
-@Composable
-fun BaseQuestStatsView(id: String, navController: NavHostController) {
-    val context = LocalContext.current
-    var successfulDates = remember { mutableStateListOf<kotlinx.datetime.LocalDate>() }
+@HiltViewModel
+class BaseQuestStatsViewVM @Inject constructor(
+    private val userRepository: UserRepository,
+    private val questRepository: QuestRepository,
+    private val statsRepository: StatsRepository
+) : ViewModel() {
 
-    /*
-    Total Amount of quests(including failed and successful) that could be performed since the creation of the quest
-     */
-    var totalPerformableQuests by remember { mutableIntStateOf(0) }
-    var totalSuccessfulQuests by remember { mutableIntStateOf(0) }
-    var totalFailedQuests by remember { mutableIntStateOf(0) }
-    var currentStreak by remember { mutableIntStateOf(0) }
-    var longestStreak by remember { mutableIntStateOf(0) }
-    var failureRate by remember { mutableFloatStateOf(0f) }
-    var successRate by remember { mutableFloatStateOf(0f) }
-    var totalCoins by remember { mutableIntStateOf(0) }
-    var weeklyAverageCompletions by remember { mutableDoubleStateOf(0.0) }
+    // Loading state
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    var baseData by remember { mutableStateOf<CommonQuestInfo>(CommonQuestInfo()) }
-    LaunchedEffect(Unit) {
-        val bdao = QuestDatabaseProvider.getInstance(context).questDao()
-        baseData = bdao.getQuestById(id)!!
+    // Quest data
+    private val _baseData = MutableStateFlow(CommonQuestInfo())
+    val baseData: StateFlow<CommonQuestInfo> = _baseData.asStateFlow()
 
-        val dao = StatsDatabaseProvider.getInstance(context).statsDao()
+    private val _successfulDates = MutableStateFlow<List<kotlinx.datetime.LocalDate>>(emptyList())
+    val successfulDates: StateFlow<List<kotlinx.datetime.LocalDate>> = _successfulDates.asStateFlow()
 
-        var stats = dao.getStatsByQuestId(baseData.id).first()
+    // Quest statistics
+    private val _totalPerformableQuests = MutableStateFlow(0)
+    val totalPerformableQuests: StateFlow<Int> = _totalPerformableQuests.asStateFlow()
 
-        successfulDates.addAll(stats.map { it.date })
-        val allowedDays = baseData.selected_days.map { it.toJavaDayOfWeek() }.toSet()
-        totalPerformableQuests = daysSince(baseData.created_on, allowedDays)
-        totalSuccessfulQuests = stats.size
-        totalFailedQuests = totalPerformableQuests - totalFailedQuests
-        currentStreak = calculateCurrentStreak(stats,allowedDays)
-        longestStreak = calculateLongestStreak(stats,allowedDays)
-        failureRate = if (totalPerformableQuests > 0) (totalFailedQuests.toFloat() / totalPerformableQuests) * 100 else 0f
-        successRate = if (totalPerformableQuests > 0) (totalSuccessfulQuests.toFloat() / totalPerformableQuests) * 100 else 0f
-        totalCoins = totalSuccessfulQuests * baseData.reward
-        weeklyAverageCompletions = weeklyAverage(stats)
+    private val _totalSuccessfulQuests = MutableStateFlow(0)
+    val totalSuccessfulQuests: StateFlow<Int> = _totalSuccessfulQuests.asStateFlow()
+
+    private val _totalFailedQuests = MutableStateFlow(0)
+    val totalFailedQuests: StateFlow<Int> = _totalFailedQuests.asStateFlow()
+
+    private val _currentStreak = MutableStateFlow(0)
+    val currentStreak: StateFlow<Int> = _currentStreak.asStateFlow()
+
+    private val _longestStreak = MutableStateFlow(0)
+    val longestStreak: StateFlow<Int> = _longestStreak.asStateFlow()
+
+    private val _failureRate = MutableStateFlow(0f)
+    val failureRate: StateFlow<Float> = _failureRate.asStateFlow()
+
+    private val _successRate = MutableStateFlow(0f)
+    val successRate: StateFlow<Float> = _successRate.asStateFlow()
+
+    private val _totalCoins = MutableStateFlow(0)
+    val totalCoins: StateFlow<Int> = _totalCoins.asStateFlow()
+
+    private val _weeklyAverageCompletions = MutableStateFlow(0.0)
+    val weeklyAverageCompletions: StateFlow<Double> = _weeklyAverageCompletions.asStateFlow()
+
+    // Dialog states
+    private val _showCalendarDialog = MutableStateFlow(false)
+    val showCalendarDialog: StateFlow<Boolean> = _showCalendarDialog.asStateFlow()
+
+    private val _selectedDate = MutableStateFlow<LocalDate?>(null)
+    val selectedDate: StateFlow<LocalDate?> = _selectedDate.asStateFlow()
+
+    private val _currentYearMonth = MutableStateFlow(YearMonth.now())
+    val currentYearMonth: StateFlow<YearMonth> = _currentYearMonth.asStateFlow()
+
+    private val _isQuestEditorInfoDialogVisible = MutableStateFlow(false)
+    val isQuestEditorInfoDialogVisible: StateFlow<Boolean> = _isQuestEditorInfoDialogVisible.asStateFlow()
+
+    private val _isQuestDeleterInfoDialogVisible = MutableStateFlow(false)
+    val isQuestDeleterInfoDialogVisible: StateFlow<Boolean> = _isQuestDeleterInfoDialogVisible.asStateFlow()
+
+    fun loadQuestStats(questId: String) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+
+                val baseData = questRepository.getQuestById(questId) ?: return@launch
+                _baseData.value = baseData
+
+                val stats = statsRepository.getStatsByQuestId(baseData.id).first()
+
+                val successfulDates = stats.map { it.date }
+                _successfulDates.value = successfulDates
+
+                val allowedDays = baseData.selected_days.map { it.toJavaDayOfWeek() }.toSet()
+                val totalPerformableQuests = daysSince(baseData.created_on, allowedDays)
+                val totalSuccessfulQuests = stats.size
+                val totalFailedQuests = totalPerformableQuests - totalSuccessfulQuests
+                val currentStreak = calculateCurrentStreak(stats, allowedDays)
+                val longestStreak = calculateLongestStreak(stats, allowedDays)
+                val failureRate = if (totalPerformableQuests > 0)
+                    (totalFailedQuests.toFloat() / totalPerformableQuests) * 100 else 0f
+                val successRate = if (totalPerformableQuests > 0)
+                    (totalSuccessfulQuests.toFloat() / totalPerformableQuests) * 100 else 0f
+                val totalCoins = totalSuccessfulQuests * baseData.reward
+                val weeklyAverageCompletions = weeklyAverage(stats)
+
+                _totalPerformableQuests.value = totalPerformableQuests
+                _totalSuccessfulQuests.value = totalSuccessfulQuests
+                _totalFailedQuests.value = totalFailedQuests
+                _currentStreak.value = currentStreak
+                _longestStreak.value = longestStreak
+                _failureRate.value = failureRate
+                _successRate.value = successRate
+                _totalCoins.value = totalCoins
+                _weeklyAverageCompletions.value = weeklyAverageCompletions
+
+            } catch (e: Exception) {
+                // Handle error
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
+    fun showCalendarDialog() {
+        _showCalendarDialog.value = true
+    }
 
-    var showCalendarDialog by remember { mutableStateOf(false) }
-    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+    fun hideCalendarDialog() {
+        _showCalendarDialog.value = false
+    }
 
-    val currentYearMonth = remember { mutableStateOf(YearMonth.now()) }
+    fun updateCurrentYearMonth(yearMonth: YearMonth) {
+        _currentYearMonth.value = yearMonth
+    }
 
+    fun updateSelectedDate(date: LocalDate?) {
+        _selectedDate.value = date
+    }
+
+    fun showQuestEditorDialog() {
+        _isQuestEditorInfoDialogVisible.value = true
+    }
+
+    fun hideQuestEditorDialog() {
+        _isQuestEditorInfoDialogVisible.value = false
+    }
+
+    fun showQuestDeleterDialog() {
+        _isQuestDeleterInfoDialogVisible.value = true
+    }
+
+    fun hideQuestDeleterDialog() {
+        _isQuestDeleterInfoDialogVisible.value = false
+    }
+
+    fun deductFromInventory(item: InventoryItem){
+        userRepository.deductFromInventory(item)
+    }
+
+    fun deleteQuest(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val quest = questRepository.getQuest(_baseData.value.title)
+                quest?.let {
+                    it.is_destroyed = true
+                    questRepository.upsertQuest(it)
+                    onSuccess()
+                }
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+}
+
+// Updated Composable
+@Composable
+fun BaseQuestStatsView(
+    id: String,
+    navController: NavHostController,
+    viewModel: BaseQuestStatsViewVM = hiltViewModel()
+) {
     val scrollState = rememberScrollState()
 
-    val isQuestEditorInfoDialogVisible = remember { mutableStateOf(false) }
-    val isQuestDeleterInfoDialogVisible = remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
+    // Collect states
+    val isLoading by viewModel.isLoading.collectAsState()
+    val baseData by viewModel.baseData.collectAsState()
+    val successfulDates by viewModel.successfulDates.collectAsState()
+    val totalPerformableQuests by viewModel.totalPerformableQuests.collectAsState()
+    val totalSuccessfulQuests by viewModel.totalSuccessfulQuests.collectAsState()
+    val currentStreak by viewModel.currentStreak.collectAsState()
+    val longestStreak by viewModel.longestStreak.collectAsState()
+    val successRate by viewModel.successRate.collectAsState()
+    val weeklyAverageCompletions by viewModel.weeklyAverageCompletions.collectAsState()
+    val totalCoins by viewModel.totalCoins.collectAsState()
+    val showCalendarDialog by viewModel.showCalendarDialog.collectAsState()
+    val currentYearMonth by viewModel.currentYearMonth.collectAsState()
+    val isQuestEditorInfoDialogVisible by viewModel.isQuestEditorInfoDialogVisible.collectAsState()
+    val isQuestDeleterInfoDialogVisible by viewModel.isQuestDeleterInfoDialogVisible.collectAsState()
+
+    LaunchedEffect(id) {
+        viewModel.loadQuestStats(id)
+    }
+
+    if (isLoading) {
+        // Show loading state
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
@@ -167,41 +319,53 @@ fun BaseQuestStatsView(id: String, navController: NavHostController) {
             // Calendar preview showing last month's completions
             CalendarSection(
                 questStats = successfulDates.toSet(),
-                onShowFullCalendar = { showCalendarDialog = true }
+                onShowFullCalendar = { viewModel.showCalendarDialog() }
             )
 
             // Quest Details
-            QuestDetailsCard(baseData,isQuestEditorInfoDialogVisible,isQuestDeleterInfoDialogVisible)
+            QuestDetailsCard(
+                baseData,
+                { viewModel.showQuestEditorDialog() },
+                { viewModel.showQuestDeleterDialog() }
+            )
 
-            UseItemDialog(InventoryItem.QUEST_EDITOR,isQuestEditorInfoDialogVisible){
-                navController.navigate(baseData.integration_id.name + "/${baseData.title}")
-            }
-
-            UseItemDialog(InventoryItem.QUEST_DELETER,isQuestDeleterInfoDialogVisible){
-                val dao = QuestDatabaseProvider.getInstance(context).questDao()
-                coroutineScope.launch {
-                    val quest = dao.getQuest(baseData.title)
-                    quest!!.is_destroyed = true
-                    dao.upsertQuest(quest)
+            if (isQuestEditorInfoDialogVisible) {
+                UseItemDialog(
+                    InventoryItem.QUEST_EDITOR,
+                    {
+                        viewModel.hideQuestEditorDialog()
+                    }
+                ) {
+                    viewModel.deductFromInventory(InventoryItem.QUEST_EDITOR)
+                    navController.navigate(baseData.integration_id.name + "/${baseData.title}")
                 }
-                navController.popBackStack()
             }
 
+            if (isQuestDeleterInfoDialogVisible) {
+                UseItemDialog(
+                    InventoryItem.QUEST_DELETER,
+                    {
+                        viewModel.hideQuestDeleterDialog()
+                    }
+                ) {
+                    viewModel.deductFromInventory(InventoryItem.QUEST_DELETER)
+                    viewModel.deleteQuest {
+                        navController.popBackStack()
+                    }
+                }
+            }
         }
 
         // Calendar Dialog
         if (showCalendarDialog) {
             CalendarDialog(
                 successfulDates = successfulDates.toSet(),
-                currentYearMonth = currentYearMonth,
-                onDismiss = { showCalendarDialog = false }
+                currentYearMonth = remember { mutableStateOf(currentYearMonth) },
+                onDismiss = { viewModel.hideCalendarDialog() }
             )
         }
-
-
     }
 }
-
 @Composable
 fun QuestHeader(baseData: CommonQuestInfo, currentStreak: Int) {
     Card(
@@ -513,7 +677,7 @@ fun CalendarSection(
 
 
 @Composable
-fun QuestDetailsCard(baseData: CommonQuestInfo, isQuestEditorInfoDialogVisible: MutableState<Boolean>, isQuestDeleterInfoDialogVisible: MutableState<Boolean>) {
+fun QuestDetailsCard(baseData: CommonQuestInfo, onQuestEditorClicked: () -> Unit, onQuestDeleterClicked: ()-> Unit) {
     val context = LocalContext.current
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -551,7 +715,7 @@ fun QuestDetailsCard(baseData: CommonQuestInfo, isQuestEditorInfoDialogVisible: 
 
             if(!baseData.is_destroyed) {
                 OutlinedButton(onClick = {
-                    isQuestEditorInfoDialogVisible.value = true
+                    onQuestEditorClicked()
 
                 }, modifier = Modifier.fillMaxWidth()) {
                     Row(
@@ -578,7 +742,7 @@ fun QuestDetailsCard(baseData: CommonQuestInfo, isQuestEditorInfoDialogVisible: 
                 Spacer(Modifier.size(4.dp))
 
                 OutlinedButton(onClick = {
-                    isQuestDeleterInfoDialogVisible.value = true
+                    onQuestDeleterClicked()
 
                 }, modifier = Modifier.fillMaxWidth()) {
                     Row(
@@ -754,7 +918,10 @@ fun CalendarDialog(
                                             .clip(CircleShape)
                                             .background(
                                                 when {
-                                                    isSuccessful -> MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                                    isSuccessful -> MaterialTheme.colorScheme.primary.copy(
+                                                        alpha = 0.8f
+                                                    )
+
                                                     isToday -> MaterialTheme.colorScheme.surfaceVariant
                                                     else -> Color.Transparent
                                                 }
@@ -776,7 +943,9 @@ fun CalendarDialog(
                                         )
                                     }
                                 } else {
-                                    Box(modifier = Modifier.weight(1f).aspectRatio(1f))
+                                    Box(modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f))
                                 }
                             }
                         }
@@ -837,57 +1006,52 @@ fun LegendItem(color: Color? = null, borderColor: Color? = null, text: String) {
 }
 
 @Composable
-fun UseItemDialog(item: InventoryItem, isDialogVisible: MutableState<Boolean>, onUse: ()-> Unit = {}){
-    if(isDialogVisible.value){
-        Dialog(onDismissRequest = {
-            isDialogVisible.value = false
-        }) {
-            val doesUserOwnEditor = User!!.getInventoryItemCount(item)>0
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                tonalElevation = 8.dp,
-                modifier = Modifier
-                    .padding(24.dp)
-                    .wrapContentSize()
+private fun UseItemDialog(item: InventoryItem, onDismiss: ()-> Unit, onUse: ()-> Unit = {}){
+    Dialog(onDismissRequest = onDismiss) {
+        val doesUserOwnEditor = User!!.getInventoryItemCount(item)>0
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            tonalElevation = 8.dp,
+            modifier = Modifier
+                .padding(24.dp)
+                .wrapContentSize()
+        ) {
+
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Image(
-                        painter = painterResource(item.icon),
-                        contentDescription = InventoryItem.QUEST_EDITOR.simpleName,
-                        modifier = Modifier.size(60.dp)
-                    )
-                    if (doesUserOwnEditor) {
-                        Text("Do You Want to Spend 1 ${item.simpleName} to perform this action?")
-                    } else {
-                        Text("You currently have no ${item.simpleName}. Please buy one from the shop to edit this quest")
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(onClick = { isDialogVisible.value = false }) {
-                            Text("Close")
-                        }
-
-                        if(doesUserOwnEditor){
-                            Button(onClick = {
-                                User!!.deductFromInventory(item)
-                                onUse()
-                                isDialogVisible.value = false
-                            }) {
-                                Text("Use")
-                            }
-                        }
-                    }
-
+                Image(
+                    painter = painterResource(item.icon),
+                    contentDescription = InventoryItem.QUEST_EDITOR.simpleName,
+                    modifier = Modifier.size(60.dp)
+                )
+                if (doesUserOwnEditor) {
+                    Text("Do You Want to Spend 1 ${item.simpleName} to perform this action?")
+                } else {
+                    Text("You currently have no ${item.simpleName}. Please buy one from the shop to edit this quest")
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Close")
+                    }
+
+                    if(doesUserOwnEditor){
+                        Button(onClick = {
+                            onUse()
+                            onDismiss()
+                        }) {
+                            Text("Use")
+                        }
+                    }
+                }
+
             }
         }
     }

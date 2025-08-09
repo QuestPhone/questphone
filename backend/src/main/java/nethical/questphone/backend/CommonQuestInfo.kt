@@ -48,7 +48,7 @@ data class CommonQuestInfo(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
     var title: String = "",
-    val reward: Int = 5,
+    var reward: Int = 5,
     var integration_id : BaseIntegrationId = BaseIntegrationId.DEEP_FOCUS,
     var selected_days: Set<DayOfWeek> = emptySet(),
     var auto_destruct: String = "9999-12-31",

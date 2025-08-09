@@ -67,7 +67,6 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.components.TopBarActions
 import nethical.questphone.backend.repositories.UserRepository
@@ -88,6 +87,15 @@ class StoreViewModel @Inject constructor(
 
     val items: List<InventoryItem>
         get() = _items.toList()
+
+    fun hasEnoughCoinsToPurchaseItem(item: InventoryItem): Boolean {
+        val userCoins = userRepository.userInfo.coins
+        return userCoins >= item.price
+    }
+
+    fun getItemInventoryCount(item: InventoryItem): Int{
+        return userRepository.getInventoryItemCount(item)
+    }
 
     fun getItemsByCategory(category: Category): List<InventoryItem> {
         return items.filter { it.category == category }
@@ -130,7 +138,7 @@ fun StoreScreen(
             when (result) {
                 SnackbarResult.Dismissed -> {}
                 SnackbarResult.ActionPerformed -> {
-                    navController.navigate(RootRoute.Store.route)
+                    navController.navigate(RootRoute.UserInfo.route)
                 }
             }
         }
@@ -177,6 +185,9 @@ fun StoreScreen(
             selectedItem?.let { item ->
                 PurchaseDialog(
                     item = item,
+                    hasEnoughCoins = viewModel.hasEnoughCoinsToPurchaseItem(selectedItem!!),
+                    userCoins = coins,
+                    inventoryCount = viewModel.getItemInventoryCount(selectedItem!!),
                     onDismiss = { selectedItem = null },
                     onPurchase = {
                         if (viewModel.makeItemPurchase(item)) {
@@ -383,12 +394,12 @@ private fun StoreItemCard(
 @Composable
 private fun PurchaseDialog(
     item: InventoryItem,
+    hasEnoughCoins: Boolean,
+    inventoryCount: Int,
+    userCoins: Int,
     onDismiss: () -> Unit,
     onPurchase: () -> Unit
 ) {
-    val userCoins = User?.userInfo!!.coins
-    val hasEnoughCoins = userCoins >= item.price
-
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(16.dp),
@@ -471,7 +482,7 @@ private fun PurchaseDialog(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${User?.getInventoryItemCount(item)}",
+                        text = "$inventoryCount",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp

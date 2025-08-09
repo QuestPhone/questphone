@@ -9,32 +9,8 @@ import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
-import androidx.annotation.RequiresApi
-import nethical.questphone.core.core.services.LockScreenService
 
-fun isLockScreenServiceEnabled(context: Context): Boolean {
-    val expectedService = "${context.packageName}/${LockScreenService::class.java.name}"
-    val enabledServices = Settings.Secure.getString(
-        context.contentResolver,
-        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-    ) ?: return false
 
-    val services = TextUtils.SimpleStringSplitter(':')
-    services.setString(enabledServices)
-    for (service in services) {
-        if (service.equals(expectedService, ignoreCase = true)) {
-            return true
-        }
-    }
-    return false
-}
-
-@RequiresApi(Build.VERSION_CODES.P)
-fun performLockScreenAction() {
-    LockScreenService.Companion.instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
-}
-
-/*
 fun isAccessibilityServiceEnabled( context : Context, serviceClass: Class<out AccessibilityService>): Boolean {
     val serviceName = ComponentName(context, serviceClass).flattenToString()
     val enabledServices = Settings.Secure.getString(
@@ -48,7 +24,6 @@ fun isAccessibilityServiceEnabled( context : Context, serviceClass: Class<out Ac
     )
     return isAccessibilityEnabled == 1 && enabledServices.contains(serviceName)
 }
-*/
 
 fun openAccessibilityServiceScreen(context: Context,cls: Class<*>) {
     try {

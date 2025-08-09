@@ -86,13 +86,13 @@ import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.screens.launcher.dialogs.LauncherDialog
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
+import neth.iecal.questphone.core.services.LockScreenService
+import neth.iecal.questphone.core.services.performLockScreenAction
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import nethical.questphone.core.core.services.LockScreenService
-import nethical.questphone.core.core.utils.managers.isLockScreenServiceEnabled
+import nethical.questphone.core.core.utils.managers.isAccessibilityServiceEnabled
 import nethical.questphone.core.core.utils.managers.isSetToDefaultLauncher
 import nethical.questphone.core.core.utils.managers.openAccessibilityServiceScreen
 import nethical.questphone.core.core.utils.managers.openDefaultLauncherSettings
-import nethical.questphone.core.core.utils.managers.performLockScreenAction
 import nethical.questphone.data.MeshStyles
 
 data class SidePanelItem(
@@ -150,7 +150,8 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
 
     val isDoubleTapToSleepEnabled = remember(context) {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isLockScreenServiceEnabled(context)
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isAccessibilityServiceEnabled(context,
+            LockScreenService::class.java)
     }
 
 

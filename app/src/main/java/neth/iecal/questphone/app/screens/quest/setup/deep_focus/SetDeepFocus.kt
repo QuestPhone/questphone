@@ -41,7 +41,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
-import neth.iecal.questphone.app.screens.quest.setup.SetupViewModel
+import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
@@ -51,9 +51,9 @@ import nethical.questphone.data.quest.focus.FocusTimeConfig
 import javax.inject.Inject
 
 @HiltViewModel
-class SetDeepFocusViewModel @Inject constructor(
+class SetDeepFocusViewModelQuest @Inject constructor(
     questRepository: QuestRepository, userRepository: UserRepository
-) : SetupViewModel(questRepository, userRepository){
+) : QuestSetupViewModel(questRepository, userRepository){
     var selectedApps :SnapshotStateList<String> = mutableStateListOf()
 
     var focusTimeConfig = MutableStateFlow(FocusTimeConfig())
@@ -75,7 +75,7 @@ class SetDeepFocusViewModel @Inject constructor(
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController, viewModel: SetDeepFocusViewModel = hiltViewModel()) {
+fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController, viewModel: SetDeepFocusViewModelQuest = hiltViewModel()) {
 
     val haptic = LocalHapticFeedback.current
     val showAppSelectionDialog by viewModel.showAppSelectionDialog.collectAsState()

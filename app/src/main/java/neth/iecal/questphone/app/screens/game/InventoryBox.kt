@@ -43,7 +43,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.managers.User
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.game.Category
 import nethical.questphone.data.game.InventoryItem
@@ -55,10 +54,12 @@ class InventoryBoxViewModel @Inject constructor(
 ): ViewModel(){
     val userInfo = userRepository.userInfo
 
-
     private var _selectedInventoryItem = MutableStateFlow<InventoryItem?>(null)
     val selectedInventoryItem: StateFlow<InventoryItem?> = _selectedInventoryItem.asStateFlow()
 
+    fun isBoosterActive(item: InventoryItem): Boolean{
+        return userRepository.isBoosterActive(item)
+    }
 
     fun useSelectedItem(){
         selectedInventoryItem.value!!.onUse()
@@ -76,7 +77,7 @@ fun InventoryBox(viewModel: InventoryBoxViewModel = hiltViewModel()){
 
 
     if(selectedInventoryItem!=null){
-        InventoryItemInfoDialog(selectedInventoryItem!!, onUseRequest = {
+        InventoryItemInfoDialog(selectedInventoryItem!!,viewModel.isBoosterActive(selectedInventoryItem!!), onUseRequest = {
             viewModel.useSelectedItem()
         }, onDismissRequest = {
             viewModel.selectedItem(null)
@@ -185,6 +186,7 @@ private fun InventoryItemCard(
 @Composable
 private fun InventoryItemInfoDialog(
     reward: InventoryItem,
+    isBoosterActive:Boolean,
     onUseRequest: () -> Unit = {},
     onDismissRequest: () -> Unit = {}
 ) {
@@ -236,7 +238,7 @@ private fun InventoryItemInfoDialog(
 
                     if (reward.isDirectlyUsableFromInventory) {
 
-                        if (reward.category == Category.BOOSTERS && !User!!.isBoosterActive(reward)) {
+                        if (reward.category == Category.BOOSTERS && !isBoosterActive) {
                             Button(
                                 onClick = {
                                     onUseRequest()

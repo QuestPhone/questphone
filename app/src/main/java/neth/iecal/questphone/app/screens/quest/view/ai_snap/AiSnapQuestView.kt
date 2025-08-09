@@ -27,7 +27,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import neth.iecal.questphone.core.utils.managers.User
 import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.screens.quest.view.components.MdPad
 import nethical.questphone.backend.CommonQuestInfo
@@ -131,7 +130,7 @@ fun AiSnapQuestView(
                 Text(
                     text = (if (!isQuestComplete) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
                         xpToRewardForQuest(
-                            User!!.userInfo.level
+                            viewModel.level
                         )
                     } xp",
                     style = MaterialTheme.typography.bodyLarge

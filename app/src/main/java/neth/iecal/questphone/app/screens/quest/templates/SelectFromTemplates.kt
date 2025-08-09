@@ -55,9 +55,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
-import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.data.Template
 import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.data.Template
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -235,7 +234,7 @@ fun SelectFromTemplates(
                         template = template,
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {
-                            if(template.integration.isLoginRequired && User!!.userInfo.isAnonymous){
+                            if(template.integration.isLoginRequired && viewModel.isAnonymous){
                                 showLoginRequiredDialog.value = true
                             }else {
                                 viewModel.selectTemplate(template)

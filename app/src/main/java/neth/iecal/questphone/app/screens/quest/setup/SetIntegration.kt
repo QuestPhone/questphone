@@ -1,7 +1,6 @@
 package neth.iecal.questphone.app.screens.quest.setup
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -38,17 +37,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
+import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.managers.User
-import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.app.screens.quest_docs.QuestTutorial
+import neth.iecal.questphone.data.IntegrationId
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.VibrationHelper
+import javax.inject.Inject
+
+@HiltViewModel
+class SetIntegrationVM @Inject constructor(
+    userRepository: UserRepository
+): ViewModel() {
+    val isAnonymous = userRepository.userInfo.isAnonymous
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun SetIntegration(navController: NavHostController) {
+fun SetIntegration(navController: NavHostController, viewModel: SetIntegrationVM = hiltViewModel()) {
 
     val showLoginRequiredDialog = remember { mutableStateOf(false) }
     Scaffold()
@@ -120,8 +130,7 @@ fun SetIntegration(navController: NavHostController) {
 //                                                    inclusive = true
 //                                                }
 //                                            }
-                                            Log.d("anonymous", User!!.userInfo.isAnonymous.toString())
-                                            if(!item.isLoginRequired || !User!!.userInfo.isAnonymous){
+                                            if(!item.isLoginRequired || !viewModel.isAnonymous){
                                                 navController.navigate("${item.name}/ntg") {
                                                     popUpTo(navController.currentDestination?.route ?: "") {
                                                         inclusive = true

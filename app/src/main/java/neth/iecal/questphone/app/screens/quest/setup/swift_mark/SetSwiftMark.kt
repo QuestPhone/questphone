@@ -34,20 +34,20 @@ import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
-import neth.iecal.questphone.app.screens.quest.setup.SetupViewModel
+import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
 import javax.inject.Inject
 
 @HiltViewModel
-class SetSwiftMarkViewModel @Inject constructor (questRepository: QuestRepository,
-                                                 userRepository: UserRepository
-): SetupViewModel(questRepository, userRepository)
+class SetSwiftMarkViewModelQuest @Inject constructor (questRepository: QuestRepository,
+                                                      userRepository: UserRepository
+): QuestSetupViewModel(questRepository, userRepository)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, viewModel: SetSwiftMarkViewModel = hiltViewModel()) {
+fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, viewModel: SetSwiftMarkViewModelQuest = hiltViewModel()) {
     val questInfoState by viewModel.questInfoState.collectAsState()
 
     val scrollState = rememberScrollState()
@@ -64,7 +64,7 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, vi
                 baseQuest
             ),
             onConfirm = {
-                viewModel.addQuestToDb("") {
+                viewModel.addQuestToDb("",1) {
                     navController.popBackStack()
                 }
             },

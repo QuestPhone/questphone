@@ -1,7 +1,14 @@
-package nethical.questphone.core.core.services
+package neth.iecal.questphone.core.services
 
 import android.accessibilityservice.AccessibilityService
+import android.os.Build
 import android.view.accessibility.AccessibilityEvent
+import androidx.annotation.RequiresApi
+
+@RequiresApi(Build.VERSION_CODES.P)
+fun performLockScreenAction() {
+    LockScreenService.Companion.instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
+}
 
 class LockScreenService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {}

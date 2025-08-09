@@ -11,7 +11,7 @@ import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
 
-open class SetupViewModel(
+open class QuestSetupViewModel(
     protected val questRepository: QuestRepository,
     protected val userRepository: UserRepository
 ): ViewModel() {
@@ -29,10 +29,11 @@ open class SetupViewModel(
         val quest = questRepository.getQuestById(id.toString())
         questInfoState.value.fromBaseQuest(quest ?: CommonQuestInfo(integration_id = integrationId))
     }
-    fun addQuestToDb(json: String, onSuccess: ()-> Unit){
+    fun addQuestToDb(json: String,reward: Int = 5, onSuccess: ()-> Unit){
         viewModelScope.launch {
             val baseQuest = getBaseQuestInfo()
             baseQuest.quest_json = json
+            baseQuest.reward = reward
             Log.d("Setup Quest","Added quest ${nethical.questphone.data.json.encodeToString(baseQuest)} ")
             questRepository.upsertQuest(baseQuest)
             isReviewDialogVisible.value = false
