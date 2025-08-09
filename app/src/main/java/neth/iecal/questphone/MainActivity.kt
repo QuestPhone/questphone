@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         val data = getSharedPreferences("onboard", MODE_PRIVATE)
-        val notificationScheduler = NotificationScheduler(applicationContext)
+        val notificationScheduler = NotificationScheduler(applicationContext,questRepository)
         val modelSp = getSharedPreferences("models", Context.MODE_PRIVATE)
 
         val isTokenizerDownloaded = modelSp.getBoolean("is_downloaded_tokenizer",false)

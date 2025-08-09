@@ -17,15 +17,12 @@ import nethical.questphone.backend.ReminderData
 import nethical.questphone.backend.ReminderDatabaseProvider
 import nethical.questphone.backend.repositories.QuestRepository
 import java.util.Date
-import javax.inject.Inject
 
 /**
  * Handles the scheduling and cancellation of reminder notifications using AlarmManager.
  * It also manages the creation of the notification channel.
  */
-class NotificationScheduler(private val context: Context) {
-
-    @Inject lateinit var questRepository: QuestRepository
+class NotificationScheduler(private val context: Context,val questRepository: QuestRepository? = null) {
 
     internal val alarmManager: AlarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -217,7 +214,7 @@ class NotificationScheduler(private val context: Context) {
         CoroutineScope(Dispatchers.Default).launch {
             val persistedReminders: List<ReminderData> = reminderDao.getAllUpcoming()
 
-            val allQuests = questRepository.getAllQuests().first()
+            val allQuests = questRepository!!.getAllQuests().first()
 
             val allQuestIds = allQuests.map { it.id }.toSet()
 

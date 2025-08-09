@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,6 +23,7 @@ import javax.inject.Inject
  * A BroadcastReceiver that receives intents from AlarmManager when a scheduled reminder fires.
  * It's responsible for building and displaying the notification.
  */
+@AndroidEntryPoint(BroadcastReceiver::class)
 class ReminderBroadcastReceiver : BroadcastReceiver() {
     @Inject lateinit var questRepository: QuestRepository
 
