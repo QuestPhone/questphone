@@ -38,11 +38,16 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import neth.iecal.questphone.R
+import neth.iecal.questphone.core.utils.managers.executeItem
+import neth.iecal.questphone.data.InventoryExecParams
+import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.game.Category
 import nethical.questphone.data.game.InventoryItem
@@ -50,7 +55,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InventoryBoxViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val questRepository: QuestRepository,
+    private val statsRepository: StatsRepository
 ): ViewModel(){
     val userInfo = userRepository.userInfo
 
@@ -61,8 +68,13 @@ class InventoryBoxViewModel @Inject constructor(
         return userRepository.isBoosterActive(item)
     }
 
-    fun useSelectedItem(){
-        selectedInventoryItem.value!!.onUse()
+    fun useSelectedItem(navController: NavController){
+        executeItem( selectedInventoryItem.value!!, InventoryExecParams(
+            navController = navController,
+            userRepository = userRepository,
+            questRepository = questRepository,
+            statsRepository = statsRepository
+        ))
         userRepository.deductFromInventory(selectedInventoryItem.value!!)
         _selectedInventoryItem.value = null
     }
@@ -72,13 +84,13 @@ class InventoryBoxViewModel @Inject constructor(
 }
 
 @Composable
-fun InventoryBox(viewModel: InventoryBoxViewModel = hiltViewModel()){
+fun InventoryBox(navController: NavController,viewModel: InventoryBoxViewModel = hiltViewModel()){
     val selectedInventoryItem by viewModel.selectedInventoryItem.collectAsState()
 
 
     if(selectedInventoryItem!=null){
         InventoryItemInfoDialog(selectedInventoryItem!!,viewModel.isBoosterActive(selectedInventoryItem!!), onUseRequest = {
-            viewModel.useSelectedItem()
+            viewModel.useSelectedItem(navController)
         }, onDismissRequest = {
             viewModel.selectedItem(null)
         })
@@ -237,26 +249,17 @@ private fun InventoryItemInfoDialog(
                     }
 
                     if (reward.isDirectlyUsableFromInventory) {
-
                         if (reward.category == Category.BOOSTERS && !isBoosterActive) {
                             Button(
                                 onClick = {
                                     onUseRequest()
+                                    onDismissRequest()
                                 }) {
                                 Text("Use")
                             }
                         }
                     }
 
-                    if (reward.category != Category.BOOSTERS) {
-                        Button(
-                            onClick = {
-                                onUseRequest()
-                                onDismissRequest()
-                            }) {
-                            Text("Use")
-                        }
-                    }
                 }
             }
         }

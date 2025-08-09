@@ -143,7 +143,7 @@ class MainActivity : ComponentActivity() {
                     ) {
 
                         composable(RootRoute.UserInfo.route) {
-                            UserInfoScreen()
+                            UserInfoScreen(navController = navController)
                         }
                         composable(
                             route = "${RootRoute.SelectApps.route}{mode}",

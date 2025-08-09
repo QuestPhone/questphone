@@ -4,12 +4,11 @@ import android.app.Application
 import android.net.ConnectivityManager
 import android.net.Network
 import dagger.hilt.android.HiltAndroidApp
-import neth.iecal.questphone.core.utils.managers.User
+import neth.iecal.questphone.core.services.reloadServiceInfo
 import nethical.questphone.backend.isOnline
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.backend.triggerQuestSync
 import nethical.questphone.backend.triggerStatsSync
-import neth.iecal.questphone.core.services.reloadServiceInfo
 import nethical.questphone.core.core.utils.VibrationHelper
 import javax.inject.Inject
 
@@ -25,7 +24,6 @@ class MyApp : Application() {
         super.onCreate()
 
 
-        User = userRepository
         VibrationHelper.init(this)
         reloadServiceInfo(this)
         connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager

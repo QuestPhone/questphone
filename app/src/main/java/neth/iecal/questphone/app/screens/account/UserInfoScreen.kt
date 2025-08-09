@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -104,8 +105,7 @@ class UserInfoViewModel @Inject constructor(
         }
     } else null
 
-
-        init {
+    init {
         loadStats()
     }
 
@@ -135,7 +135,7 @@ class UserInfoViewModel @Inject constructor(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel()) {
+fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController: NavController) {
     val context = LocalContext.current
     val selectedInventoryItem = remember { mutableStateOf<InventoryItem?>(null) }
 
@@ -312,7 +312,7 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel()) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            InventoryBox()
+            InventoryBox(navController)
         }
     }
 }

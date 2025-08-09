@@ -76,7 +76,6 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toLocalDateTime
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.utils.managers.User
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.StatsInfo
 import nethical.questphone.backend.repositories.QuestRepository
@@ -236,6 +235,9 @@ class BaseQuestStatsViewVM @Inject constructor(
     fun deductFromInventory(item: InventoryItem){
         userRepository.deductFromInventory(item)
     }
+    fun doesUserHaveItem(item: InventoryItem): Boolean {
+        return userRepository.getInventoryItemCount(item)>0
+    }
 
     fun deleteQuest(onSuccess: () -> Unit) {
         viewModelScope.launch {
@@ -332,6 +334,7 @@ fun BaseQuestStatsView(
             if (isQuestEditorInfoDialogVisible) {
                 UseItemDialog(
                     InventoryItem.QUEST_EDITOR,
+                    viewModel.doesUserHaveItem(InventoryItem.QUEST_EDITOR),
                     {
                         viewModel.hideQuestEditorDialog()
                     }
@@ -344,6 +347,7 @@ fun BaseQuestStatsView(
             if (isQuestDeleterInfoDialogVisible) {
                 UseItemDialog(
                     InventoryItem.QUEST_DELETER,
+                    viewModel.doesUserHaveItem(InventoryItem.QUEST_DELETER),
                     {
                         viewModel.hideQuestDeleterDialog()
                     }
@@ -1006,9 +1010,8 @@ fun LegendItem(color: Color? = null, borderColor: Color? = null, text: String) {
 }
 
 @Composable
-private fun UseItemDialog(item: InventoryItem, onDismiss: ()-> Unit, onUse: ()-> Unit = {}){
+private fun UseItemDialog(item: InventoryItem,doesUserOwnEditor:Boolean, onDismiss: ()-> Unit, onUse: ()-> Unit = {}){
     Dialog(onDismissRequest = onDismiss) {
-        val doesUserOwnEditor = User!!.getInventoryItemCount(item)>0
         Surface(
             shape = MaterialTheme.shapes.medium,
             tonalElevation = 8.dp,
