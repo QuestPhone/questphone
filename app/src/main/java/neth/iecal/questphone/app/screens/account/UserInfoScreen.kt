@@ -32,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -317,57 +318,58 @@ private fun Menu(isAnonymous: Boolean,onLogout: () -> Unit, ) {
         )
     }
 
-    if(isLogoutInfoVisible) {
+    if (isLogoutInfoVisible) {
         BasicAlertDialog(
             {
                 isLogoutInfoVisible = false
             }
 
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(20.dp)
-                    .width(IntrinsicSize.Min),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Are you sure you want to log out?",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                if (isAnonymous) {
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text =
-                            "You will lose all your quests, progress, stats and everything if you log out.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.End,
-                    modifier = Modifier.fillMaxWidth()
+            Surface {
+                Column(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .width(IntrinsicSize.Min),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    TextButton(onClick = {
-                        isLogoutInfoVisible = false
-                    }) {
-                        Text("Cancel")
+                    Text(
+                        text = "Are you sure you want to log out?",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    if (isAnonymous) {
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text =
+                                "You will lose all your quests, progress, stats and everything if you log out.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                    TextButton(onClick = {
-                        onLogout()
-                    }) {
-                        Text("Log Out", color = Color.Red)
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        TextButton(onClick = {
+                            isLogoutInfoVisible = false
+                        }) {
+                            Text("Cancel")
+                        }
+                        TextButton(onClick = {
+                            onLogout()
+                        }) {
+                            Text("Log Out", color = Color.Red)
+                        }
                     }
                 }
             }
         }
     }
 }
-
 
 
 @Composable

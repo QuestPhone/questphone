@@ -1,7 +1,6 @@
 package nethical.questphone.backend.repositories
 
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
 import android.util.Log
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -204,8 +203,8 @@ class UserRepository @Inject constructor(
     }
 
     suspend fun signOut() {
-        val sharedPrefs = context.getSharedPreferences("onboard", MODE_PRIVATE)
-        sharedPrefs.edit { putBoolean("onboard", false) }
+        context.deleteSharedPreferences("crnt_pg_onboard")
+        context.deleteSharedPreferences("onboard")
         deleteLocalUserInfoCache()
 
         questRepository.deleteAll()

@@ -30,7 +30,7 @@ data class UserInfo @OptIn(ExperimentalTime::class) constructor(
     @Transient
     var needsSync: Boolean = true,
     @Transient
-    var isAnonymous : Boolean = false,
+    var isAnonymous : Boolean = true,
 ){
     fun getFirstName(): String {
         return full_name.trim().split(" ").firstOrNull() ?: ""
