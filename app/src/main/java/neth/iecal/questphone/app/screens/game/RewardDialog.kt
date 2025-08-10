@@ -57,7 +57,10 @@ fun RewardDialogMaker(userRepository: UserRepository) {
     LaunchedEffect(currentDialog) {
         when (currentDialog) {
             DialogState.QUEST_COMPLETED -> {
-                val xp = xpToRewardForQuest(userRepository.userInfo.level)
+                var xp = xpToRewardForQuest(userRepository.userInfo.level)
+                if(userRepository.isBoosterActive(InventoryItem.XP_BOOSTER)){
+                    xp+=xp
+                }
                 userRepository.addXp(xp)
                 xpEarned.intValue = xp
             }

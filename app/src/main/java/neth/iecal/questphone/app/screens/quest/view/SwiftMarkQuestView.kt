@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -21,10 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -33,6 +33,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.screens.quest.view.components.MdPad
+import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
+import neth.iecal.questphone.app.theme.smoothYellow
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
@@ -56,12 +58,13 @@ fun SwiftMarkQuestView(
     viewModel: SwiftMarkQuestViewVModel = hiltViewModel()
 ) {
 
-    val context = LocalContext.current
-
     val isQuestComplete by viewModel.isQuestComplete.collectAsState()
     val isInTimeRange by viewModel.isInTimeRange.collectAsState()
     val progress by viewModel.progress.collectAsState()
 
+    val activeBoosts by viewModel.activeBoosts.collectAsState()
+
+    val scrollState = rememberScrollState()
     val hideStartQuestBtn = isQuestComplete || !isInTimeRange
     val coins by viewModel.coins.collectAsState()
 
@@ -109,24 +112,48 @@ fun SwiftMarkQuestView(
             }
         }) { innerPadding ->
 
+        QuestSkipperDialog(viewModel)
         Column(
             modifier = Modifier.padding(innerPadding)
                 .padding(8.dp)
+                .verticalScroll(scrollState)
         ) {
             Text(
                 text = commonQuestInfo.title,
                 style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                 textDecoration = if(hideStartQuestBtn) TextDecoration.LineThrough else TextDecoration.None
             )
-
-            Text(
-                text = (if (isQuestComplete) "Next Reward" else "Reward") + ": ${commonQuestInfo.reward} coins + ${
-                    xpToRewardForQuest(
-                        viewModel.level
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = (if (!isQuestComplete) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
+                        xpToRewardForQuest(
+                            viewModel.level
+                        )
+                    } xp",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                if(!isQuestComplete && viewModel.isBoosterActive(InventoryItem.XP_BOOSTER)) {
+                    Text(
+                        text = " + ",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Black,
+                        color = smoothYellow
                     )
-                } xp",
-                style = MaterialTheme.typography.bodyLarge
-            )
+                    Image(painter = painterResource( InventoryItem.XP_BOOSTER.icon),
+                        contentDescription = InventoryItem.XP_BOOSTER.simpleName,
+                        Modifier.size(20.dp))
+                    Text(
+                        text = " ${
+                            xpToRewardForQuest(
+                                viewModel.level
+                            )
+                        } xp",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Black,
+                        color = smoothYellow
+                    )
+                }
+            }
 
             Text(
                 text = "Time: ${formatHour(commonQuestInfo.time_range[0])} to ${

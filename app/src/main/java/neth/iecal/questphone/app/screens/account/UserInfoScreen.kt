@@ -67,7 +67,6 @@ import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
 import nethical.questphone.backend.BuildConfig
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatNumber
-import nethical.questphone.core.core.utils.formatRemainingTime
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.UserInfo
 import nethical.questphone.data.game.xpToLevelUp
@@ -116,7 +115,6 @@ class UserInfoViewModel @Inject constructor(
 @Composable
 fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController: NavController) {
     val context = LocalContext.current
-
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
@@ -124,7 +122,6 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
                 modifier = Modifier.padding(bottom = 32.dp)
@@ -147,143 +144,119 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
                 })
             }
 
-            // Avatar
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            ) {
-                Image(
-                    painter = rememberAsyncImagePainter(
-
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(viewModel.profilePicLink)
-                            .crossfade(true)
-                            .error(R.drawable.baseline_person_24)
-                            .placeholder(R.drawable.baseline_person_24)
-                            .build(),
-                    ),
-                    contentDescription = "Avatar",
-                    Modifier.fillMaxSize(),
-                    colorFilter = if (viewModel.profilePicLink==null)
-                        ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-                    else
-                        null,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                "@${viewModel.userInfo.username}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Text(
-                viewModel.userInfo.username,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-
-
-            // Level Progress Bar
-            Column(
-                modifier = Modifier.width(250.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Level ${viewModel.userInfo.level}",
-                        color = MaterialTheme.colorScheme.outline,
-                        fontSize = 12.sp
-                    )
-                    Text(
-                        "XP: ${viewModel.userInfo.xp} / ${viewModel.totalXpForNextLevel}",
-                        color = MaterialTheme.colorScheme.outline,
-                        fontSize = 12.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Avatar
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(12.dp)
-                        .align(Alignment.CenterHorizontally)
+                        .size(120.dp)
+                        .clip(RoundedCornerShape(12.dp))
                 ) {
-                    LinearProgressIndicator(
-                        progress = { viewModel.xpProgress.coerceIn(0f, 1f) },
-                        modifier = Modifier.fillMaxSize(),
+                    Image(
+                        painter = rememberAsyncImagePainter(
+
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(viewModel.profilePicLink)
+                                .crossfade(true)
+                                .error(R.drawable.baseline_person_24)
+                                .placeholder(R.drawable.baseline_person_24)
+                                .build(),
+                        ),
+                        contentDescription = "Avatar",
+                        Modifier.fillMaxSize(),
+                        colorFilter = if (viewModel.profilePicLink == null)
+                            ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                        else
+                            null,
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Stats Box
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Row(
+                Text(
+                    "@${viewModel.userInfo.username}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Text(
+                    viewModel.userInfo.username,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+
+
+                // Level Progress Bar
+                Column(
+                    modifier = Modifier.width(250.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            "Level ${viewModel.userInfo.level}",
+                            color = MaterialTheme.colorScheme.outline,
+                            fontSize = 12.sp
+                        )
+                        Text(
+                            "XP: ${viewModel.userInfo.xp} / ${viewModel.totalXpForNextLevel}",
+                            color = MaterialTheme.colorScheme.outline,
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(12.dp)
+                            .align(Alignment.CenterHorizontally)
+                    ) {
+                        LinearProgressIndicator(
+                            progress = { viewModel.xpProgress.coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Stats Box
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatItem(
-                        value = formatNumber(viewModel.userInfo.coins),
-                        label = "coins"
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        StatItem(
+                            value = formatNumber(viewModel.userInfo.coins),
+                            label = "coins"
+                        )
 
-                    StatItem(
-                        value = "${formatNumber(viewModel.userInfo.streak.currentStreak)}d",
-                        label = "Streak"
-                    )
+                        StatItem(
+                            value = "${formatNumber(viewModel.userInfo.streak.currentStreak)}d",
+                            label = "Streak"
+                        )
 
-                    StatItem(
-                        value = "${formatNumber(viewModel.userInfo.streak.longestStreak)}d",
-                        label = "Top Streak"
-                    )
+                        StatItem(
+                            value = "${formatNumber(viewModel.userInfo.streak.longestStreak)}d",
+                            label = "Top Streak"
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(32.dp))
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
             HeatMapChart(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
             )
-
-            if(viewModel.userInfo.active_boosts.isNotEmpty()) {
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Active Boosts",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        viewModel.userInfo.active_boosts.forEach { it ->
-                            ActiveBoostsItem(it.key, formatRemainingTime(it.value))
-                        }
-                    }
-
-                }
-            }
-
             Spacer(modifier = Modifier.height(32.dp))
 
             InventoryBox(navController)

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import nethical.questphone.backend.Supabase
 import nethical.questphone.backend.triggerProfileSync
 import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.core.core.utils.getFullTimeAfter
 import nethical.questphone.core.core.utils.isTimeOver
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.StreakFreezerReturn
@@ -32,6 +33,8 @@ class UserRepository @Inject constructor(
     var coinsState = MutableStateFlow(userInfo.coins)
     var currentStreakState = MutableStateFlow(userInfo.streak.currentStreak)
 
+    var activeBoostsState = MutableStateFlow(userInfo.active_boosts)
+        private set
     
     // the below variables act as a trigger for launching the reward dialog declared in the MainActivity from a
     // different SubScreen.
@@ -60,12 +63,19 @@ class UserRepository @Inject constructor(
 
     fun removeInactiveBooster() {
         userInfo.active_boosts.entries.removeIf { isTimeOver(it.value) }
+        activeBoostsState.value = userInfo.active_boosts
         saveUserInfo()
     }
 
+    fun activateBoost(item: InventoryItem, hoursToAdd: Long, minsToAdd: Long){
+        userInfo.active_boosts.put(InventoryItem.XP_BOOSTER, getFullTimeAfter(hoursToAdd, minsToAdd))
+        saveUserInfo()
+        //update state
+        activeBoostsState.value = userInfo.active_boosts
+    }
     fun isBoosterActive(reward: InventoryItem): Boolean {
         if (userInfo.active_boosts.contains(reward)) {
-            val isActive = !isTimeOver(userInfo.active_boosts.getOrDefault(reward, "9999-09-09-09-09"))
+            val isActive = !isTimeOver(userInfo.active_boosts.getOrDefault(reward, "0069-69-69-69-69"))
             if (!isActive) removeInactiveBooster()
             return isActive
         }

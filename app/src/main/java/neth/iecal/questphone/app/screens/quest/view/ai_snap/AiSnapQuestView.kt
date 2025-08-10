@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.screens.quest.view.components.MdPad
+import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
+import neth.iecal.questphone.app.theme.smoothYellow
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
@@ -50,8 +54,10 @@ fun AiSnapQuestView(
     val progress by viewModel.progress.collectAsState()
     val coins by viewModel.coins.collectAsState()
 
+    val activeBoosts by viewModel.activeBoosts.collectAsState()
     val isHideStartButton = isQuestComplete || !isInTimeRange
 
+    val scrollState = rememberScrollState()
     BackHandler(isCameraScreen || isAiEvaluating) {
         viewModel.isCameraScreen.value = false
         viewModel.isAiEvaluating.value = false
@@ -116,25 +122,52 @@ fun AiSnapQuestView(
                     }
                 }
             }) { innerPadding ->
+            QuestSkipperDialog(viewModel)
 
             Column(
                 modifier = Modifier.
                 padding(innerPadding)
                     .padding(8.dp)
+                    .verticalScroll(scrollState)
             ) {
+
                 Text(
                     text = commonQuestInfo.title,
                     style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                 )
 
-                Text(
-                    text = (if (!isQuestComplete) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
-                        xpToRewardForQuest(
-                            viewModel.level
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = (if (!isQuestComplete) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
+                            xpToRewardForQuest(
+                                viewModel.level
+                            )
+                        } xp",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    if(!isQuestComplete && viewModel.isBoosterActive(InventoryItem.XP_BOOSTER)) {
+                        Text(
+                            text = " + ",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Black,
+                            color = smoothYellow
                         )
-                    } xp",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                        Image(painter = painterResource( InventoryItem.XP_BOOSTER.icon),
+                            contentDescription = InventoryItem.XP_BOOSTER.simpleName,
+                            Modifier.size(20.dp))
+                        Text(
+                            text = " ${
+                                xpToRewardForQuest(
+                                    viewModel.level
+                                )
+                            } xp",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Black,
+                            color = smoothYellow
+                        )
+                    }
+                }
+
 
                 if (!isInTimeRange) {
                     Text(
@@ -146,6 +179,7 @@ fun AiSnapQuestView(
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
+
                 MdPad(commonQuestInfo)
 
             }

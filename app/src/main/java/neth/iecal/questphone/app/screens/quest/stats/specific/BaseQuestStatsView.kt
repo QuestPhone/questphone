@@ -280,7 +280,7 @@ fun BaseQuestStatsView(
     val isQuestEditorInfoDialogVisible by viewModel.isQuestEditorInfoDialogVisible.collectAsState()
     val isQuestDeleterInfoDialogVisible by viewModel.isQuestDeleterInfoDialogVisible.collectAsState()
 
-    LaunchedEffect(id) {
+    LaunchedEffect(Unit) {
         viewModel.loadQuestStats(id)
     }
 

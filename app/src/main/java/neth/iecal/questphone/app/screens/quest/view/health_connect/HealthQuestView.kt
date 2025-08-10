@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,11 +34,14 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.core.utils.managers.HealthConnectManager
-import neth.iecal.questphone.core.utils.managers.HealthConnectManager.Companion.requiredPermissions
 import neth.iecal.questphone.app.screens.components.TopBarActions
+import neth.iecal.questphone.app.screens.game.ActiveBoostItems
 import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
 import neth.iecal.questphone.app.screens.quest.view.components.MdPad
+import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
+import neth.iecal.questphone.app.theme.smoothYellow
+import neth.iecal.questphone.core.utils.managers.HealthConnectManager
+import neth.iecal.questphone.core.utils.managers.HealthConnectManager.Companion.requiredPermissions
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
@@ -118,8 +123,9 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo, viewModel: HealthQuestView
     val currentHealthData by viewModel.currentHealthProgress.collectAsState()
     val progressState by viewModel.progress.collectAsState()
     val coins by viewModel.coins.collectAsState()
+    val activeBoosts by viewModel.activeBoosts.collectAsState()
 
-
+    val scrollState = rememberScrollState()
     LaunchedEffect(Unit) {
         viewModel.setCommonQuest(commonQuestInfo)
         viewModel.decodeFromCommonQuest()
@@ -190,20 +196,48 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo, viewModel: HealthQuestView
 
                 }
             }) { innerPadding ->
+            QuestSkipperDialog(viewModel)
+
             Column(modifier = Modifier.padding(innerPadding)
-                .padding(8.dp)) {
+                .padding(8.dp)
+                .verticalScroll(scrollState)) {
                 Text(
                     text = commonQuestInfo.title,
                     style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                 )
-                Text(
-                    text = (if (isQuestComplete) "Next Reward" else "Reward") + ": ${commonQuestInfo.reward} coins + ${
-                        xpToRewardForQuest(
-                            viewModel.level
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = (if (!isQuestComplete) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
+                            xpToRewardForQuest(
+                                viewModel.level
+                            )
+                        } xp",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    if(!isQuestComplete && viewModel.isBoosterActive(InventoryItem.XP_BOOSTER)) {
+                        Text(
+                            text = " + ",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Black,
+                            color = smoothYellow
                         )
-                    } xp",
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                        Image(painter = painterResource( InventoryItem.XP_BOOSTER.icon),
+                            contentDescription = InventoryItem.XP_BOOSTER.simpleName,
+                            Modifier.size(20.dp))
+                        Text(
+                            text = " ${
+                                xpToRewardForQuest(
+                                    viewModel.level
+                                )
+                            } xp",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Black,
+                            color = smoothYellow
+                        )
+                    }
+                }
+
 
                 Text(
                     text = "Health Task Type: ${healthQuest.type.label}",
@@ -238,6 +272,10 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo, viewModel: HealthQuestView
                         }",
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     )
+                }
+
+                if(!isQuestComplete) {
+                    ActiveBoostItems(activeBoosts, modifier = Modifier.padding(vertical = 12.dp))
                 }
                 MdPad(commonQuestInfo)
 

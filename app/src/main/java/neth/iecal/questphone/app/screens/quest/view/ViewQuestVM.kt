@@ -29,7 +29,7 @@ open class ViewQuestVM(
     val isQuestComplete = MutableStateFlow(false)
     val coins = userRepository.coinsState
     val level = userRepository.userInfo.level
-
+    val activeBoosts = userRepository.activeBoostsState
     val isQuestSkippedDialogVisible = MutableStateFlow(false)
     fun setCommonQuest(commonQuestInfo: CommonQuestInfo){
         this.commonQuestInfo = commonQuestInfo
@@ -61,8 +61,15 @@ open class ViewQuestVM(
 
         }
     }
+    fun useItem(inventoryItem: InventoryItem,onUsed:()->Unit){
+        userRepository.deductFromInventory(inventoryItem)
+        onUsed()
+    }
     fun getInventoryItemCount(item: InventoryItem): Int {
         return userRepository.getInventoryItemCount(item)
+    }
+    fun isBoosterActive(item: InventoryItem): Boolean{
+        return userRepository.isBoosterActive(item)
     }
 
 }

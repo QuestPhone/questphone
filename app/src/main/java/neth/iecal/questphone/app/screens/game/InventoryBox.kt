@@ -44,11 +44,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import neth.iecal.questphone.R
+import neth.iecal.questphone.app.screens.account.ActiveBoostsItem
 import neth.iecal.questphone.core.utils.managers.executeItem
 import neth.iecal.questphone.data.InventoryExecParams
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
+import nethical.questphone.core.core.utils.formatRemainingTime
 import nethical.questphone.data.game.Category
 import nethical.questphone.data.game.InventoryItem
 import javax.inject.Inject
@@ -60,6 +62,7 @@ class InventoryBoxViewModel @Inject constructor(
     private val statsRepository: StatsRepository
 ): ViewModel(){
     val userInfo = userRepository.userInfo
+    val activeBoosts = userRepository.activeBoostsState
 
     private var _selectedInventoryItem = MutableStateFlow<InventoryItem?>(null)
     val selectedInventoryItem: StateFlow<InventoryItem?> = _selectedInventoryItem.asStateFlow()
@@ -75,6 +78,7 @@ class InventoryBoxViewModel @Inject constructor(
             questRepository = questRepository,
             statsRepository = statsRepository
         ))
+
         userRepository.deductFromInventory(selectedInventoryItem.value!!)
         _selectedInventoryItem.value = null
     }
@@ -84,42 +88,66 @@ class InventoryBoxViewModel @Inject constructor(
 }
 
 @Composable
-fun InventoryBox(navController: NavController,viewModel: InventoryBoxViewModel = hiltViewModel()){
+fun InventoryBox(navController: NavController,viewModel: InventoryBoxViewModel = hiltViewModel()) {
     val selectedInventoryItem by viewModel.selectedInventoryItem.collectAsState()
+    val activeBoosts by viewModel.activeBoosts.collectAsState()
 
 
-    if(selectedInventoryItem!=null){
-        InventoryItemInfoDialog(selectedInventoryItem!!,viewModel.isBoosterActive(selectedInventoryItem!!), onUseRequest = {
-            viewModel.useSelectedItem(navController)
-        }, onDismissRequest = {
-            viewModel.selectedItem(null)
-        })
+    if (selectedInventoryItem != null) {
+        InventoryItemInfoDialog(
+            selectedInventoryItem!!,
+            viewModel.isBoosterActive(selectedInventoryItem!!),
+            onUseRequest = {
+                viewModel.useSelectedItem(navController)
+            },
+            onDismissRequest = {
+                viewModel.selectedItem(null)
+            })
     }
 
-
+    Text(
+        text = "Active Boosts",
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier.padding(bottom = 16.dp)
+    )
+    ActiveBoostItems(activeBoosts)
+    Spacer(Modifier.padding(bottom = 16.dp))
+    Text(
+        text = "Inventory",
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier.padding(bottom = 16.dp)
+    )
     Column(
-        modifier = Modifier.fillMaxWidth()
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            text = "Inventory",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            viewModel.userInfo.inventory.forEach { it ->
-                InventoryItemCard(it.key,it.value) { item ->
-                    viewModel.selectedItem(item)
-                }
-
+        viewModel.userInfo.inventory.forEach { it ->
+            InventoryItemCard(it.key, it.value) { item ->
+                viewModel.selectedItem(item)
             }
-        }
 
+        }
     }
+
 }
 
+@Composable
+fun ActiveBoostItems(activeBoosts:  HashMap<InventoryItem, String>,modifier: Modifier = Modifier){
+
+    if(activeBoosts.isNotEmpty()) {
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = modifier
+        ) {
+            activeBoosts.forEach { it ->
+                ActiveBoostsItem(it.key, formatRemainingTime(it.value))
+            }
+        }
+    }
+
+}
 
 @Composable
 private fun InventoryItemCard(
