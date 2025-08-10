@@ -115,7 +115,7 @@
             android:foregroundServiceType="dataSync" />
 
         <service
-            android:name="nethical.questphone.core.core.services.LockScreenService"
+            android:name="neth.iecal.questphone.core.services.LockScreenService"
             android:exported="false"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>

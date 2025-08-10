@@ -64,9 +64,9 @@ fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostCon
             AuthStep.LOGIN -> {
                 LoginScreen(viewModel) {
                     if (context.isOnline()) {
+                        triggerProfileSync(context,true)
                         triggerQuestSync(context.applicationContext, true)
                         triggerStatsSync(context, true)
-                        triggerProfileSync(context)
                     }
                 }
             }

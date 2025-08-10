@@ -6,16 +6,11 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.annotation.RequiresPermission
-import androidx.work.Constraints
-import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import nethical.questphone.backend.worker.QuestSyncWorker
-import nethical.questphone.backend.worker.StatsSyncWorker
+import nethical.questphone.backend.services.sync.ProfileSyncService
+import nethical.questphone.backend.services.sync.QuestSyncService
+import nethical.questphone.backend.services.sync.StatsSyncService
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -50,61 +45,13 @@ fun Context.isOnline(): Boolean {
 
 
 fun triggerQuestSync(context: Context, isFirstSync: Boolean = false) {
-
-    val inputData = workDataOf(
-        "is_first_time" to isFirstSync
-    )
-    val constraints = Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.CONNECTED)  // run only when internet is available
-        .build()
-
-    val syncWorkRequest = OneTimeWorkRequestBuilder<QuestSyncWorker>()
-        .setConstraints(constraints)
-        .setInputData(inputData)
-        .build()
-
-    // Enqueue uniquely so multiple calls don’t pile up duplicate workers
-    WorkManager.getInstance(context).enqueueUniqueWork(
-        "sync_quests_work",
-        ExistingWorkPolicy.KEEP,  // if the work is already enqueued or running, keep it and do not enqueue a new one
-        syncWorkRequest
-    )
+    QuestSyncService.start(context, isFirstSync)
 }
 
-fun triggerProfileSync(context: Context) {
-    val constraints = Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.CONNECTED)  // run only when internet is available
-        .build()
-
-    val syncWorkRequest = OneTimeWorkRequestBuilder<QuestSyncWorker>()
-        .setConstraints(constraints)
-        .build()
-
-    // Enqueue uniquely so multiple calls don’t pile up duplicate workers
-    WorkManager.getInstance(context).enqueueUniqueWork(
-        "sync_profile_work",
-        ExistingWorkPolicy.KEEP,  // if the work is already enqueued or running, keep it and do not enqueue a new one
-        syncWorkRequest
-    )
+fun triggerProfileSync(context: Context, isFirstLoginSync:Boolean = false) {
+    ProfileSyncService.start(context,isFirstLoginSync)
 }
 
 fun triggerStatsSync(context: Context, isFirstSync: Boolean = false) {
-    val inputData = workDataOf(
-        "is_first_time" to isFirstSync
-    )
-    val constraints = Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.CONNECTED)  // run only when internet is available
-        .build()
-
-    val syncWorkRequest = OneTimeWorkRequestBuilder<StatsSyncWorker>()
-        .setConstraints(constraints)
-        .setInputData(inputData)
-        .build()
-
-    // Enqueue uniquely so multiple calls don’t pile up duplicate workers
-    WorkManager.getInstance(context).enqueueUniqueWork(
-        "sync_profile_work",
-        ExistingWorkPolicy.KEEP,  // if the work is already enqueued or running, keep it and do not enqueue a new one
-        syncWorkRequest
-    )
+    StatsSyncService.start(context,isFirstSync)
 }
