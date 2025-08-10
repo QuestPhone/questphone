@@ -4,15 +4,23 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import kotlinx.serialization.Serializable
 import neth.iecal.questphone.R
-import neth.iecal.questphone.data.quest.CommonQuestInfo
-import neth.iecal.questphone.ui.screens.quest.setup.ai_snap.SetAiSnap
-import neth.iecal.questphone.ui.screens.quest.setup.deep_focus.SetDeepFocus
-import neth.iecal.questphone.ui.screens.quest.setup.health_connect.SetHealthConnect
-import neth.iecal.questphone.ui.screens.quest.setup.swift_mark.SetSwiftMark
-import neth.iecal.questphone.ui.screens.quest.view.DeepFocusQuestView
-import neth.iecal.questphone.ui.screens.quest.view.HealthQuestView
-import neth.iecal.questphone.ui.screens.quest.view.SwiftMarkQuestView
-import neth.iecal.questphone.ui.screens.quest.view.ai_snap.AiSnapQuestView
+import neth.iecal.questphone.app.screens.quest.setup.ai_snap.SetAiSnap
+import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SetDeepFocus
+import neth.iecal.questphone.app.screens.quest.setup.health_connect.SetHealthConnect
+import neth.iecal.questphone.app.screens.quest.setup.swift_mark.SetSwiftMark
+import neth.iecal.questphone.app.screens.quest.view.DeepFocusQuestView
+import neth.iecal.questphone.app.screens.quest.view.SwiftMarkQuestView
+import neth.iecal.questphone.app.screens.quest.view.ai_snap.AiSnapQuestView
+import neth.iecal.questphone.app.screens.quest.view.health_connect.HealthQuestView
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.data.BaseIntegrationId
+
+/**
+ * Converts [BaseIntegrationId] into its equivalent [IntegrationId]
+ */
+fun BaseIntegrationId.toAdv(): IntegrationId{
+    return IntegrationId.valueOf(this.name)
+}
 
 @Serializable
 enum class IntegrationId(

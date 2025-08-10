@@ -13,55 +13,63 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import dagger.hilt.android.AndroidEntryPoint
+import neth.iecal.questphone.app.navigation.Navigator
+import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.app.screens.account.UserInfoScreen
+import neth.iecal.questphone.app.screens.game.RewardDialogMaker
+import neth.iecal.questphone.app.screens.game.StoreScreen
+import neth.iecal.questphone.app.screens.launcher.AppList
+import neth.iecal.questphone.app.screens.launcher.AppListViewModel
+import neth.iecal.questphone.app.screens.launcher.HomeScreen
+import neth.iecal.questphone.app.screens.launcher.HomeScreenViewModel
+import neth.iecal.questphone.app.screens.onboard.subscreens.SelectApps
+import neth.iecal.questphone.app.screens.onboard.subscreens.SelectAppsModes
+import neth.iecal.questphone.app.screens.onboard.subscreens.SetCoinRewardRatio
+import neth.iecal.questphone.app.screens.pet.TheSystemDialog
+import neth.iecal.questphone.app.screens.quest.ListAllQuests
+import neth.iecal.questphone.app.screens.quest.ViewQuest
+import neth.iecal.questphone.app.screens.quest.setup.SetIntegration
+import neth.iecal.questphone.app.screens.quest.stats.specific.BaseQuestStatsView
+import neth.iecal.questphone.app.screens.quest.templates.SelectFromTemplates
+import neth.iecal.questphone.app.screens.quest.templates.SetupTemplate
+import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
+import neth.iecal.questphone.app.theme.LauncherTheme
+import neth.iecal.questphone.core.services.AppBlockerService
+import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
 import neth.iecal.questphone.data.IntegrationId
-import neth.iecal.questphone.data.game.User
-import neth.iecal.questphone.data.quest.QuestDatabaseProvider
-import neth.iecal.questphone.data.quest.stats.StatsDatabaseProvider
-import neth.iecal.questphone.services.AppBlockerService
-import neth.iecal.questphone.ui.navigation.Navigator
-import neth.iecal.questphone.ui.navigation.Screen
-import neth.iecal.questphone.ui.navigation.SetupQuestScreen
-import neth.iecal.questphone.ui.screens.account.UserInfoScreen
-import neth.iecal.questphone.ui.screens.game.StoreScreen
-import neth.iecal.questphone.ui.screens.launcher.AppList
-import neth.iecal.questphone.ui.screens.launcher.HomeScreen
-import neth.iecal.questphone.ui.screens.onboard.SelectApps
-import neth.iecal.questphone.ui.screens.onboard.SelectAppsModes
-import neth.iecal.questphone.ui.screens.onboard.SetCoinRewardRatio
-import neth.iecal.questphone.ui.screens.pet.TheSystemDialog
-import neth.iecal.questphone.ui.screens.quest.ListAllQuests
-import neth.iecal.questphone.ui.screens.quest.RewardDialogMaker
-import neth.iecal.questphone.ui.screens.quest.ViewQuest
-import neth.iecal.questphone.ui.screens.quest.setup.SetIntegration
-import neth.iecal.questphone.ui.screens.quest.stats.specific.BaseQuestStatsView
-import neth.iecal.questphone.ui.screens.quest.templates.SelectFromTemplates
-import neth.iecal.questphone.ui.screens.quest.templates.SetupTemplate
-import neth.iecal.questphone.ui.theme.LauncherTheme
-import neth.iecal.questphone.utils.isOnline
-import neth.iecal.questphone.utils.reminder.NotificationScheduler
-import neth.iecal.questphone.utils.triggerQuestSync
-import neth.iecal.questphone.utils.worker.FileDownloadWorker
+import nethical.questphone.backend.isOnline
+import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.StatsRepository
+import nethical.questphone.backend.repositories.UserRepository
+import nethical.questphone.backend.triggerQuestSync
+import nethical.questphone.backend.worker.FileDownloadWorker
 import java.io.File
+import javax.inject.Inject
 
 
+@AndroidEntryPoint(ComponentActivity::class)
 class MainActivity : ComponentActivity() {
+    @Inject lateinit var userRepository: UserRepository
+    @Inject lateinit var questRepository: QuestRepository
+    @Inject lateinit var statRepository: StatsRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
         val data = getSharedPreferences("onboard", MODE_PRIVATE)
-        val notificationScheduler = NotificationScheduler(applicationContext)
+        val notificationScheduler = NotificationScheduler(applicationContext,questRepository)
         val modelSp = getSharedPreferences("models", Context.MODE_PRIVATE)
 
         val isTokenizerDownloaded = modelSp.getBoolean("is_downloaded_tokenizer",false)
@@ -83,7 +91,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}
-            val isPetDialogVisible = remember { mutableStateOf(true) }
 
             LaunchedEffect(Unit) {
                 isUserOnboarded.value = data.getBoolean("onboard",false)
@@ -99,28 +106,24 @@ class MainActivity : ComponentActivity() {
             LauncherTheme {
                 Surface {
                     val navController = rememberNavController()
-                    val currentRoute = navController.currentBackStackEntryAsState()
 
-                    val questDao = QuestDatabaseProvider.getInstance(applicationContext).questDao()
-                    val statsDao = StatsDatabaseProvider.getInstance(applicationContext).statsDao()
-
-                    val unSyncedQuestItems = remember { questDao.getUnSyncedQuests() }
-                    val unSyncedStatsItems = remember { statsDao.getAllUnSyncedStats() }
+                    val unSyncedQuestItems = remember { questRepository.getUnSyncedQuests() }
+                    val unSyncedStatsItems = remember { statRepository.getAllUnSyncedStats() }
                     val context = LocalContext.current
 
                     val forceCurrentScreen = remember { derivedStateOf { Navigator.currentScreen } }
-                    RewardDialogMaker()
+                    RewardDialogMaker(userRepository)
 
                     TheSystemDialog()
                     LaunchedEffect(Unit) {
                         unSyncedQuestItems.collect {
                             notificationScheduler.reloadAllReminders()
-                            if (context.isOnline() && !User.userInfo.isAnonymous) {
+                            if (context.isOnline() && !userRepository.userInfo.isAnonymous) {
                                 triggerQuestSync(applicationContext)
                             }
                         }
                         unSyncedStatsItems.collect {
-                            if (context.isOnline() && !User.userInfo.isAnonymous ) {
+                            if (context.isOnline() && !userRepository.userInfo.isAnonymous ) {
                                 triggerQuestSync(applicationContext)
                             }
                         }
@@ -132,50 +135,52 @@ class MainActivity : ComponentActivity() {
                             Navigator.currentScreen = null
                         }
                     }
-
+                    val homeScreenViewModel : HomeScreenViewModel = hiltViewModel()
+                    val templatesViewModel: TemplatesViewModel = hiltViewModel()
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.HomeScreen.route,
+                        startDestination = RootRoute.HomeScreen.route,
                     ) {
 
-                        composable(Screen.UserInfo.route) {
-                            UserInfoScreen()
+                        composable(RootRoute.UserInfo.route) {
+                            UserInfoScreen(navController = navController)
                         }
                         composable(
-                            route = "${Screen.SelectApps.route}{mode}",
+                            route = "${RootRoute.SelectApps.route}{mode}",
                             arguments = listOf(navArgument("mode") { type = NavType.IntType })
                         ) { backstack ->
                             val mode = backstack.arguments?.getInt("mode")
                             SelectApps(SelectAppsModes.entries[mode!!])
                         }
-                        composable(Screen.HomeScreen.route) {
-                            HomeScreen(navController)
+                        composable(RootRoute.HomeScreen.route) {
+                            HomeScreen(navController,homeScreenViewModel)
                         }
 
-                        composable(Screen.Store.route) {
+                        composable(RootRoute.Store.route) {
                             StoreScreen(navController)
                         }
-                        composable(Screen.AppList.route) {
-                            AppList(navController)
+                        composable(RootRoute.AppList.route) {
+                            val appListViewModel : AppListViewModel = hiltViewModel()
+                            AppList(navController,appListViewModel)
                         }
 
-                        composable(Screen.ListAllQuest.route) {
+                        composable(RootRoute.ListAllQuest.route) {
                             ListAllQuests(navController)
                         }
                         composable(
-                            route = "${Screen.ViewQuest.route}{id}",
+                            route = "${RootRoute.ViewQuest.route}{id}",
                             arguments = listOf(navArgument("id") { type = NavType.StringType })
                         ) { backStackEntry ->
                             val id = backStackEntry.arguments?.getString("id")
 
-                            ViewQuest(navController, id!!)
+                            ViewQuest(navController, questRepository,id!!)
                         }
 
                         navigation(
-                            startDestination = SetupQuestScreen.Integration.route,
-                            route = Screen.AddNewQuest.route
+                            startDestination = RootRoute.SetIntegration.route,
+                            route = RootRoute.AddNewQuest.route
                         ) {
-                            composable(SetupQuestScreen.Integration.route) {
+                            composable(RootRoute.SetIntegration.route) {
                                 SetIntegration(
                                     navController
                                 )
@@ -195,20 +200,20 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-                        composable("${Screen.QuestStats.route}{id}") { backStackEntry ->
+                        composable("${RootRoute.QuestStats.route}{id}") { backStackEntry ->
                             val id = backStackEntry.arguments?.getString("id")
 
                             BaseQuestStatsView(id!!, navController)
                         }
-                        composable(Screen.SelectTemplates.route) {
-                            SelectFromTemplates(navController)
+                        composable(RootRoute.SelectTemplates.route) {
+                            SelectFromTemplates(navController,templatesViewModel)
                         }
-                        composable(Screen.SetCoinRewardRatio.route){
+                        composable(RootRoute.SetupTemplate.route) {
+                            SetupTemplate(navController,templatesViewModel)
+                        }
+
+                        composable(RootRoute.SetCoinRewardRatio.route){
                             SetCoinRewardRatio()
-                        }
-                        composable("${Screen.SetupTemplate.route}{id}") { backStackEntry ->
-                            val id = backStackEntry.arguments?.getString("id")
-                            SetupTemplate(id!!,navController)
                         }
                     }
                 }

@@ -1,11 +1,33 @@
 package neth.iecal.questphone.data
 
 import kotlinx.serialization.Serializable
-import neth.iecal.questphone.data.quest.CommonQuestInfo
-import neth.iecal.questphone.data.quest.ai.snap.AiSnap
-import neth.iecal.questphone.data.quest.focus.DeepFocus
-import neth.iecal.questphone.data.quest.health.HealthQuest
-import neth.iecal.questphone.utils.json
+import nethical.questphone.backend.CommonQuestInfo
+import nethical.questphone.data.DayOfWeek
+import nethical.questphone.data.json
+import nethical.questphone.data.quest.ai.snap.AiSnap
+import nethical.questphone.data.quest.focus.DeepFocus
+import nethical.questphone.data.quest.health.HealthQuest
+
+@Serializable
+data class Template(
+    val name: String,
+    val description: String,
+    val requirements: String,
+    val color: String,
+    val integration: IntegrationId,
+    val category: String,
+    val id: String
+)
+
+@Serializable
+data class TemplateContent(
+    val content: String,
+    val variableTypes: MutableList<TemplateVariable> = mutableListOf(),
+    val questExtraVariableDeclaration: MutableList<VariableName> = mutableListOf(),
+    val requirements: String,
+    val basicQuest: CommonQuestInfo = CommonQuestInfo(),
+    val questExtra: AllQuestsWrapper = AllQuestsWrapper()
+)
 
 @Serializable
 enum class VariableType{
@@ -13,7 +35,7 @@ enum class VariableType{
 }
 
 @Serializable
-enum class VariableName(val types: VariableType,val default: String,val label : String, val setter: (AllQuestsWrapper, MutableMap<String,String>,String) -> AllQuestsWrapper = {x,_ ,_-> x }){
+enum class VariableName(val types: VariableType,val default: String,val label : String, val setter: (AllQuestsWrapper, Map<String,String>,String) -> AllQuestsWrapper = {x,_ ,_-> x }){
     selected_days(VariableType.daysOfWeek,json.encodeToString(DayOfWeek.entries.toSet()),"Which Days?"),
     auto_destruct(VariableType.date,"9999-06-21","End Date"),
     time_range(VariableType.timeRange,"[0,24]", "Time Range"),
@@ -125,12 +147,3 @@ data class AllQuestsWrapper(
         return "{}"
     }
 }
-@Serializable
-data class TemplateData(
-    val content: String,
-    val variableTypes: MutableList<TemplateVariable> = mutableListOf(),
-    val questExtraVariableDeclaration: MutableList<VariableName> = mutableListOf(),
-    val requirements: String,
-    val basicQuest: CommonQuestInfo = CommonQuestInfo(),
-    val questExtra: AllQuestsWrapper = AllQuestsWrapper()
-)

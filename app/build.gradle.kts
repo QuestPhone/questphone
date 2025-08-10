@@ -1,6 +1,4 @@
 
-import java.io.FileInputStream
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -8,14 +6,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 
     kotlin("plugin.serialization") version "2.0.20"
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 
-    id("com.google.devtools.ksp") version "2.1.21-2.0.1"
-}
-
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
 }
 
 android {
@@ -30,9 +23,6 @@ android {
         versionName = "1.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "SUPABASE_URL", "\"${localProperties["SUPABASE_URL"]}\"")
-        buildConfigField("String", "SUPABASE_API_KEY", "\"${localProperties["SUPABASE_API_KEY"]}\"")
-        buildConfigField("String", "API_URL", "\"${localProperties["API_URL"]}\"")
     }
 
     flavorDimensions += "distribution"
@@ -49,14 +39,6 @@ android {
             buildConfigField("Boolean", "IS_FDROID", "false")
         }
 
-    }
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            isUniversalApk = true
-        }
     }
     buildTypes {
         release {
@@ -77,16 +59,8 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-    sourceSets["main"].jniLibs.srcDirs("src/main/jniLibs")
 
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-        }
     }
-
-    ndkVersion = "29.0.13599879 rc2"
 }
 
 dependencies {
@@ -107,7 +81,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     implementation (libs.kotlinx.serialization.json)
 
@@ -140,7 +114,15 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
 
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+    ksp(libs.hilt.android.compiler)
+
     ksp(libs.androidx.room.compiler)
     implementation (libs.androidx.ui.text.google.fonts)
 
+    implementation(project(":data"))
+    implementation(project(":core"))
+    implementation(project(":backend"))
+    implementation(project(":ai"))
 }
