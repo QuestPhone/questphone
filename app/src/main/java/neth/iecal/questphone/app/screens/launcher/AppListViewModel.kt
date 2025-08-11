@@ -109,10 +109,10 @@ class AppListViewModel @Inject constructor(
     }
 
     fun reloadDistractions(){
-        _distractions.value = userRepository.userInfo.blockedAndroidPackages
+        _distractions.value = userRepository.getBlockedPackages()
     }
     fun reloadUnlockedApps(){
-        unlockedDistractions.value = userRepository.userInfo.unlockedAndroidPackages
+        unlockedDistractions.value = userRepository.getUnlockedPackages()
     }
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query

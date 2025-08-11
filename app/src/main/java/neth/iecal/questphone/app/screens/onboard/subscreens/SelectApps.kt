@@ -92,7 +92,7 @@ class SelectAppsViewModel @Inject constructor (application: Application,
     }
 
     fun loadSelectedApps() {
-        _selectedApps.value = userRepository.userInfo.blockedAndroidPackages
+        _selectedApps.value = userRepository.getBlockedPackages()
     }
 
     fun toggleApp(packageName: String) {

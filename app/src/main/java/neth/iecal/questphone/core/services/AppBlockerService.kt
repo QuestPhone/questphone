@@ -363,7 +363,7 @@ class AppBlockerService : Service() {
     }
 
     fun loadUnlockedAppsFromServer(){
-        AppBlockerServiceInfo.unlockedApps = userRepository.userInfo.unlockedAndroidPackages
+        AppBlockerServiceInfo.unlockedApps = userRepository.getUnlockedPackages()
     }
     fun isAppUnlocked(packageName:String):Boolean{
         return AppBlockerServiceInfo.unlockedApps.containsKey(packageName)
@@ -381,7 +381,7 @@ class AppBlockerService : Service() {
 
     fun loadLockedApps() {
         lockedApps.clear()
-        lockedApps.addAll(userRepository.userInfo.blockedAndroidPackages)
+        lockedApps.addAll(userRepository.getBlockedPackages())
 
         Log.d(TAG, "Loaded locked apps: $lockedApps")
     }
@@ -395,7 +395,6 @@ class AppBlockerService : Service() {
         // If removing a locked app, also remove it from temporary unlock if it was there
         AppBlockerServiceInfo.unlockedApps.remove(packageName)
     }
-
 
     fun getLockedApps(): Set<String> {
         return lockedApps.toSet() // Return a copy

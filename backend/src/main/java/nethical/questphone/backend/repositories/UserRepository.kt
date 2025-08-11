@@ -121,6 +121,12 @@ class UserRepository @Inject constructor(
             saveUserInfo()
         }
     }
+    fun getBlockedPackages():Set<String>{
+        return userInfo.blockedAndroidPackages?:emptySet()
+    }
+    fun getUnlockedPackages(): MutableMap<String, Long>{
+        return userInfo.unlockedAndroidPackages ?: mutableMapOf()
+    }
 
     fun useCoins(number: Int) {
         userInfo.coins -= number

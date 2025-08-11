@@ -44,9 +44,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import nethical.questphone.backend.repositories.UserRepository
+import javax.inject.Inject
 
 open class OnboardingContent {
     // Standard title and description page
@@ -64,7 +67,9 @@ open class OnboardingContent {
 }
 
 
-class OnboarderViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class OnboarderViewModel @Inject constructor(application: Application,
+  private val userRepository: UserRepository) : AndroidViewModel(application) {
 
 
     private val _currentPage = MutableStateFlow(0)
@@ -77,7 +82,9 @@ class OnboarderViewModel(application: Application) : AndroidViewModel(applicatio
     private val _isNextEnabled = MutableStateFlow(true)
     val isNextEnabled: StateFlow<Boolean> = _isNextEnabled
 
-
+    fun getDistractingApps(): Set<String> {
+        return userRepository.getBlockedPackages()
+    }
     init {
         loadCurrentPage()
     }

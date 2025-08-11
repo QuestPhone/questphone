@@ -17,10 +17,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.startForegroundService
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import neth.iecal.questphone.MainActivity
 import neth.iecal.questphone.app.screens.account.SetupProfileScreen
+import neth.iecal.questphone.app.screens.onboard.subscreens.BlockedAppsView
 import neth.iecal.questphone.app.screens.onboard.subscreens.LoginOnboard
 import neth.iecal.questphone.app.screens.onboard.subscreens.NotificationPerm
 import neth.iecal.questphone.app.screens.onboard.subscreens.OverlayScreenPerm
@@ -36,7 +37,7 @@ import nethical.questphone.core.core.utils.managers.checkUsagePermission
 @Composable
 fun OnBoarderView(navController: NavHostController) {
 
-    val viewModel: OnboarderViewModel = viewModel()
+    val viewModel: OnboarderViewModel = hiltViewModel()
 
     val context = LocalContext.current
     val notificationPermLauncher = rememberLauncherForActivityResult(
@@ -139,7 +140,11 @@ fun OnBoarderView(navController: NavHostController) {
             SetupProfileScreen(isNextEnabledSetupProfile)
         },
         OnboardingContent.CustomPage {
-            SelectApps()
+            if(viewModel.getDistractingApps().isEmpty()){
+                SelectApps()
+            }else{
+                BlockedAppsView(viewModel)
+            }
         }
     )
 
