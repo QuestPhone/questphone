@@ -254,8 +254,10 @@ class AppBlockerService : Service() {
             showLockScreenFor(detectedForegroundPackage)
             return true
         }else {
-            val interval = AppBlockerServiceInfo.unlockedApps[detectedForegroundPackage]!! - System.currentTimeMillis()
-            startCooldownTimer(detectedForegroundPackage, interval.toLong())
+            try {
+                val interval = AppBlockerServiceInfo.unlockedApps[detectedForegroundPackage]!! - System.currentTimeMillis()
+                startCooldownTimer(detectedForegroundPackage, interval.toLong())
+            }catch (_: Exception){}
         }
         return false
     }
@@ -458,11 +460,16 @@ class AppBlockerService : Service() {
                 INTENT_ACTION_START_DEEP_FOCUS -> {
                     AppBlockerServiceInfo.deepFocus.exceptionApps = intent.getStringArrayListExtra("exception")?.toHashSet()!!
                     AppBlockerServiceInfo.deepFocus.isRunning = true
+                    AppBlockerServiceInfo.deepFocus.duration = intent.getLongExtra("duration",0L)
+                    startCooldownTimer("deepfocus", AppBlockerServiceInfo.deepFocus.duration)
+                    Log.d("Turning deep focus", AppBlockerServiceInfo.deepFocus.duration.toString())
                     turnDeepFocus()
+
                 }
                 INTENT_ACTION_STOP_DEEP_FOCUS -> {
                     AppBlockerServiceInfo.deepFocus.isRunning = false
                     AppBlockerServiceInfo.deepFocus.exceptionApps = hashSetOf<String>()
+                    AppBlockerServiceInfo.deepFocus.duration = 0
                     loadLockedApps()
                 }
                 INTENT_ACTION_UNLOCK_APP -> {
@@ -577,20 +584,23 @@ class AppBlockerService : Service() {
             val timeText = String.format("%d:%02d", minutes, seconds)
 
             // Get app name for better UX
-            val appName = try {
-                packageManager.getApplicationInfo(packageName, 0)
-                    .loadLabel(packageManager).toString()
-            } catch (e: Exception) {
-                Log.w("AppBlockerService", "Failed to get app name: ${e.message}")
-                packageName
-            }
 
+            val title = if(AppBlockerServiceInfo.deepFocus.isRunning) "Focus Session Ongoing" else {
+                val appName = try {
+                    packageManager.getApplicationInfo(packageName, 0)
+                        .loadLabel(packageManager).toString()
+                } catch (e: Exception) {
+                    Log.w("AppBlockerService", "Failed to get app name: ${e.message}")
+                    packageName
+                }
+                "Unlocked App $appName"
+            }
             // Build the notification
             val builder = NotificationCompat.Builder(this,
                 NOTIFICATION_CHANNEL_ID
             )
                 .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-                .setContentTitle("Unlocked App: $appName")
+                .setContentTitle(title)
                 .setContentText("Time remaining: $timeText")
                 .setProgress(100, (progress * 100).toInt(), false)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)

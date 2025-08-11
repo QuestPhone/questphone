@@ -1,10 +1,6 @@
 package neth.iecal.questphone.app.screens.quest.view
 
-import android.R
 import android.app.Application
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -43,14 +39,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.startForegroundService
 import androidx.core.content.edit
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.application
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,16 +63,14 @@ import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.core.core.utils.managers.sendRefreshRequest
 import nethical.questphone.data.game.InventoryItem
-import nethical.questphone.data.xpToRewardForQuest
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.focus.DeepFocus
+import nethical.questphone.data.xpToRewardForQuest
 import javax.inject.Inject
 
 private const val PREF_NAME = "deep_focus_prefs"
 private const val KEY_START_TIME = "start_time_"
 private const val KEY_PAUSED_ELAPSED = "paused_elapsed_"
-private const val NOTIFICATION_CHANNEL_ID = "focus_timer_channel"
-private const val NOTIFICATION_ID = 1001
 
 @HiltViewModel
 class DeepFocusQuestViewVM @Inject constructor(questRepository: QuestRepository,
@@ -103,9 +93,6 @@ class DeepFocusQuestViewVM @Inject constructor(questRepository: QuestRepository,
     val pausedElapsedKey = KEY_PAUSED_ELAPSED + questKey
     val prefs = application.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
-    init {
-        createNotificationChannel(application)
-    }
 
     fun setDeepFocus(){
         deepFocus = json.decodeFromString<DeepFocus>(commonQuestInfo.quest_json)
@@ -136,10 +123,10 @@ class DeepFocusQuestViewVM @Inject constructor(questRepository: QuestRepository,
             putLong(KEY_START_TIME + questKey, System.currentTimeMillis())
                 .putLong(KEY_PAUSED_ELAPSED + questKey, 0L)
         }
-        AppBlockerServiceInfo.deepFocus.isRunning = true
-        AppBlockerServiceInfo.deepFocus.exceptionApps = deepFocus.unrestrictedApps.toHashSet()
+
         val intent = Intent(INTENT_ACTION_START_DEEP_FOCUS)
         intent.putStringArrayListExtra("exception", deepFocus.unrestrictedApps.toCollection(ArrayList()))
+        intent.putExtra("duration", deepFocus.nextFocusDurationInMillis)
         application.sendBroadcast(intent)
     }
 
@@ -160,8 +147,6 @@ class DeepFocusQuestViewVM @Inject constructor(questRepository: QuestRepository,
                 .remove(pausedElapsedKey)
         }
 
-        // Cancel notification when complete
-        cancelTimerNotification(application)
         sendRefreshRequest(application, INTENT_ACTION_STOP_DEEP_FOCUS)
 
         AppBlockerServiceInfo.deepFocus.isRunning = false
@@ -195,11 +180,9 @@ fun DeepFocusQuestView(
     val isQuestComplete by viewModel.isQuestComplete.collectAsState()
     val isQuestRunning by viewModel.isQuestRunning.collectAsState()
     val timerActive by viewModel.isTimerActive.collectAsState()
-    val isAppInForeground by viewModel.isAppInForeground.collectAsState()
     val progress by viewModel.progress.collectAsState()
     val coins by viewModel.coins.collectAsState()
     val activeBoosts by viewModel.activeBoosts.collectAsState()
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     val questKey = commonQuestInfo.title.replace(" ", "_").lowercase()
     val startTimeKey = KEY_START_TIME + questKey
@@ -211,30 +194,6 @@ fun DeepFocusQuestView(
 
     val scrollState = rememberScrollState()
     // Observe app lifecycle for notification management
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_RESUME -> {
-                    viewModel.isAppInForeground.value = true
-                    cancelTimerNotification(context)
-                }
-                Lifecycle.Event.ON_PAUSE -> {
-                    viewModel.isAppInForeground.value = false
-                    // Show notification if quest is running and app goes to background
-                    if (isQuestRunning && !isQuestComplete) {
-                        updateTimerNotification(context, commonQuestInfo.title, progress, duration)
-                    }
-                }
-                else -> { /* Ignore other events */ }
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
 
     LaunchedEffect(Unit) {
         viewModel.setCommonQuest(commonQuestInfo)
@@ -267,10 +226,6 @@ fun DeepFocusQuestView(
                 val elapsedTime = currentTime - startTime
                 viewModel.progress.value = (elapsedTime / duration.toFloat()).coerceIn(0f, 1f)
 
-                // Update notification if app is in background
-                if (!isAppInForeground && isQuestRunning) {
-                    updateTimerNotification(context, commonQuestInfo.title, progress, duration)
-                }
 
                 delay(1000) // Update every second instead of 100ms to reduce battery usage
             }
@@ -430,10 +385,6 @@ fun DeepFocusQuestView(
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier
                             .clickable {
-                                // Show notification before launching other app
-                                if (isQuestRunning && !isQuestComplete) {
-                                    updateTimerNotification(context, commonQuestInfo.title, progress, duration)
-                                }
                                 val intent = pm.getLaunchIntentForPackage(packageName)
                                 intent?.let { context.startActivity(it) }
                             }
@@ -447,52 +398,4 @@ fun DeepFocusQuestView(
         }
     }
 
-}
-
-private fun createNotificationChannel(context: Context) {
-    val name = "Focus Timer"
-    val descriptionText = "Shows the remaining time for focus quests"
-    val importance = NotificationManager.IMPORTANCE_DEFAULT
-    val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance).apply {
-        description = descriptionText
-        setShowBadge(true)
-    }
-    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    notificationManager.createNotificationChannel(channel)
-}
-
-private fun updateTimerNotification(context: Context, questTitle: String, progress: Float, duration: Long) {
-    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-    val pendingIntent = PendingIntent.getActivity(
-        context,
-        0,
-        intent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-
-    val remainingSeconds = ((duration * (1 - progress)) / 1000).toInt()
-    val minutes = remainingSeconds / 60
-    val seconds = remainingSeconds % 60
-    val timeText = "$minutes:${seconds.toString().padStart(2, '0')}"
-
-    val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-        .setSmallIcon(R.drawable.ic_lock_idle_alarm) // Use your app's icon here
-        .setContentTitle("Focus Quest: $questTitle")
-        .setContentText("Remaining time: $timeText")
-        .setProgress(100, (progress * 100).toInt(), false)
-        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-        .setOngoing(true) // Make it persistent
-        .setContentIntent(pendingIntent)
-        .setSilent(true)
-        .setAutoCancel(false)
-        .build()
-
-    notificationManager.notify(NOTIFICATION_ID, notification)
-}
-
-private fun cancelTimerNotification(context: Context) {
-    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    notificationManager.cancel(NOTIFICATION_ID)
 }

@@ -24,5 +24,6 @@ fun reloadServiceInfo(context: Context){
 }
 data class DeepFocus (
     var exceptionApps: HashSet<String> = hashSetOf(),
-    var isRunning: Boolean = false
+    var isRunning: Boolean = false,
+    var duration: Long = 0L
 )
