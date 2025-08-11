@@ -11,10 +11,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.screens.game.handleStreakFreezers
 import neth.iecal.questphone.app.screens.game.showStreakUpDialog
@@ -107,7 +105,7 @@ class HomeScreenViewModel @Inject constructor(
         val merged =
             (uncompleted + completed).sortedBy { QuestHelper.isInTimeRange(it) }
 
-        if (completed.size == rawQuestsListLocal.size) {
+        if (completed.size == filtered.size) {
             if (userRepository.continueStreak()) {
                 showStreakUpDialog()
             }

@@ -67,8 +67,8 @@ import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
 import nethical.questphone.backend.BuildConfig
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatNumber
-import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.UserInfo
+import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.xpToLevelUp
 import java.io.File
 import javax.inject.Inject
@@ -81,11 +81,9 @@ class UserInfoViewModel @Inject constructor(
 ) : AndroidViewModel(application) {
 
     val userInfo: UserInfo = userRepository.userInfo
-    val totalXpForCurrentLevel = xpToLevelUp(userInfo.level)
-    val totalXpForNextLevel = xpToLevelUp(userInfo.level + 1)
+    val totalXpForNextLevel = xpToLevelUp(userInfo.level)
 
-    val xpProgress = (userInfo.xp - totalXpForCurrentLevel).toFloat() /
-            (totalXpForNextLevel - totalXpForCurrentLevel)
+    val xpProgress = (userInfo.xp.toFloat() / totalXpForNextLevel )
 
     val profilePicLink = if (userInfo.has_profile){
         if(userInfo.isAnonymous){
@@ -214,7 +212,7 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
                             .align(Alignment.CenterHorizontally)
                     ) {
                         LinearProgressIndicator(
-                            progress = { viewModel.xpProgress.coerceIn(0f, 1f) },
+                            progress = { viewModel.xpProgress },
                             modifier = Modifier.fillMaxSize(),
                         )
                     }

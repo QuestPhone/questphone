@@ -22,7 +22,7 @@ data class UserInfo @OptIn(ExperimentalTime::class) constructor(
     var full_name: String = "",
     var has_profile: Boolean = false,
     var xp : Int= 0,
-    var coins: Int = 0,
+    var coins: Int = 500,
     var level : Int = 1,
     val inventory: HashMap<InventoryItem, Int> = hashMapOf(Pair(InventoryItem.STREAK_FREEZER,2)),
     val achievements: List<Achievements> = listOf(Achievements.THE_EARLY_FEW),
@@ -59,12 +59,12 @@ private fun formatInstantToDate(instant: Instant): String {
  * Converts the level to xp required to level up
  */
 fun xpToLevelUp(level: Int): Int {
-    return (50 * level * level - 50 * level)
+    return (100 * level * level)
 }
 
 /**
  * The xp that is rewarded when user completes a quest
  */
 fun xpToRewardForQuest(level: Int, multiplier: Int = 1): Int {
-    return (20 * level + 30) * multiplier
+    return maxOf((30 * level + 50) * multiplier, 150)
 }

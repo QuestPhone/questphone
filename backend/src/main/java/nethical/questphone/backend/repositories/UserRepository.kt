@@ -34,7 +34,6 @@ class UserRepository @Inject constructor(
     var currentStreakState = MutableStateFlow(userInfo.streak.currentStreak)
 
     var activeBoostsState = MutableStateFlow(userInfo.active_boosts)
-        private set
     
     // the below variables act as a trigger for launching the reward dialog declared in the MainActivity from a
     // different SubScreen.
@@ -55,7 +54,8 @@ class UserRepository @Inject constructor(
         removeInactiveBooster()
         val multiplier = if (isBoosterActive(InventoryItem.XP_BOOSTER)) 2 else 1
         userInfo.xp += xp * multiplier
-        while (userInfo.xp >= xpToLevelUp(userInfo.level + 1)) {
+        while (userInfo.xp >= xpToLevelUp(userInfo.level )) {
+            userInfo.xp -= xpToLevelUp(userInfo.level)
             userInfo.level++
         }
         saveUserInfo()
@@ -160,7 +160,7 @@ class UserRepository @Inject constructor(
 
 
     fun tryUsingStreakFreezers(daysSince:Int): StreakFreezerReturn {
-        val requiredFreezers = (daysSince).toInt()
+        val requiredFreezers = (daysSince -1).toInt()
         val today = LocalDate.now()
         if (getInventoryItemCount(InventoryItem.STREAK_FREEZER) >= requiredFreezers) {
             deductFromInventory(InventoryItem.STREAK_FREEZER, requiredFreezers)

@@ -58,9 +58,6 @@ fun RewardDialogMaker(userRepository: UserRepository) {
         when (currentDialog) {
             DialogState.QUEST_COMPLETED -> {
                 var xp = xpToRewardForQuest(userRepository.userInfo.level)
-                if(userRepository.isBoosterActive(InventoryItem.XP_BOOSTER)){
-                    xp+=xp
-                }
                 userRepository.addXp(xp)
                 xpEarned.intValue = xp
             }

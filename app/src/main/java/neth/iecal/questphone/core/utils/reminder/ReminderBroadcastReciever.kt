@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.annotation.CallSuper
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -23,17 +24,24 @@ import javax.inject.Inject
  * A BroadcastReceiver that receives intents from AlarmManager when a scheduled reminder fires.
  * It's responsible for building and displaying the notification.
  */
+abstract class HiltBroadcastReceiver : BroadcastReceiver() {
+    @CallSuper
+    override fun onReceive(context: Context, intent: Intent) {}
+}
+
 @AndroidEntryPoint(BroadcastReceiver::class)
-class ReminderBroadcastReceiver : BroadcastReceiver() {
+class ReminderBroadcastReceiver : HiltBroadcastReceiver() {
     @Inject lateinit var questRepository: QuestRepository
 
-    override fun onReceive(context: Context?, intent: Intent?) {
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
         // Ensure context and intent are not null
-        context?.let {
+        context.let {
             // Extract reminder details from the intent extras
-            val reminderId = intent?.getStringExtra(NotificationScheduler.EXTRA_REMINDER_ID) ?: ""
-            val title = intent?.getStringExtra(NotificationScheduler.EXTRA_REMINDER_TITLE) ?: "Reminder"
-            val description = intent?.getStringExtra(NotificationScheduler.EXTRA_REMINDER_DESCRIPTION) ?: "You have a new reminder."
+            val reminderId = intent.getStringExtra(NotificationScheduler.EXTRA_REMINDER_ID) ?: ""
+            val title = intent.getStringExtra(NotificationScheduler.EXTRA_REMINDER_TITLE) ?: "Reminder"
+            val description = intent.getStringExtra(NotificationScheduler.EXTRA_REMINDER_DESCRIPTION)
+                ?: "You have a new reminder."
 
             CoroutineScope(Dispatchers.Default).launch {
                 val quest = questRepository.getQuestById(reminderId)

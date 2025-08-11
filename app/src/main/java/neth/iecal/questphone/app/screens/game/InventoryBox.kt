@@ -105,14 +105,24 @@ fun InventoryBox(navController: NavController,viewModel: InventoryBoxViewModel =
             })
     }
 
-    Text(
-        text = "Active Boosts",
-        fontSize = 18.sp,
-        fontWeight = FontWeight.Medium,
-        modifier = Modifier.padding(bottom = 16.dp)
-    )
-    ActiveBoostItems(activeBoosts)
-    Spacer(Modifier.padding(bottom = 16.dp))
+    if(activeBoosts.isNotEmpty()) {
+        Text(
+            text = "Active Boosts",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            activeBoosts.forEach { it ->
+                ActiveBoostsItem(it.key, formatRemainingTime(it.value))
+            }
+        }
+        Spacer(Modifier.padding(bottom = 16.dp))
+
+    }
     Text(
         text = "Inventory",
         fontSize = 18.sp,
@@ -129,25 +139,8 @@ fun InventoryBox(navController: NavController,viewModel: InventoryBoxViewModel =
 
         }
     }
-
 }
 
-@Composable
-fun ActiveBoostItems(activeBoosts:  HashMap<InventoryItem, String>,modifier: Modifier = Modifier){
-
-    if(activeBoosts.isNotEmpty()) {
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = modifier
-        ) {
-            activeBoosts.forEach { it ->
-                ActiveBoostsItem(it.key, formatRemainingTime(it.value))
-            }
-        }
-    }
-
-}
 
 @Composable
 private fun InventoryItemCard(

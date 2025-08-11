@@ -35,7 +35,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.screens.components.TopBarActions
-import neth.iecal.questphone.app.screens.game.ActiveBoostItems
 import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
 import neth.iecal.questphone.app.screens.quest.view.components.MdPad
 import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
@@ -48,10 +47,10 @@ import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.data.game.InventoryItem
-import nethical.questphone.data.xpToRewardForQuest
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.health.HealthQuest
 import nethical.questphone.data.quest.health.HealthTaskType
+import nethical.questphone.data.xpToRewardForQuest
 import javax.inject.Inject
 
 @HiltViewModel
@@ -274,9 +273,7 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo, viewModel: HealthQuestView
                     )
                 }
 
-                if(!isQuestComplete) {
-                    ActiveBoostItems(activeBoosts, modifier = Modifier.padding(vertical = 12.dp))
-                }
+
                 MdPad(commonQuestInfo)
 
             }
