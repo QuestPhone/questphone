@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import androidx.core.content.ContextCompat.startForegroundService
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
@@ -63,6 +64,8 @@ class AppListViewModel @Inject constructor(
 
     private val _distractions = MutableStateFlow<Set<String>>(emptySet())
     val distractions = _distractions.asStateFlow()
+    private val unlockedDistractions = MutableStateFlow<Map<String, Long>>(mapOf())
+
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
@@ -76,6 +79,8 @@ class AppListViewModel @Inject constructor(
         viewModelScope.launch {
             loadApps()
             initFreePasses()
+            reloadDistractions()
+            reloadUnlockedApps()
         }
     }
 
@@ -101,19 +106,26 @@ class AppListViewModel @Inject constructor(
             }
         }
 
-        val sp = context.getSharedPreferences("distractions", Context.MODE_PRIVATE)
-        _distractions.value = sp.getStringSet("distracting_apps", emptySet()) ?: emptySet()
     }
 
+    fun reloadDistractions(){
+        _distractions.value = userRepository.userInfo.blockedAndroidPackages
+    }
+    fun reloadUnlockedApps(){
+        unlockedDistractions.value = userRepository.userInfo.unlockedAndroidPackages
+    }
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
         _filteredApps.value = _apps.value.filter { it.name.contains(query, ignoreCase = true) }
     }
 
     fun onAppClick(packageName: String) {
-        val cooldownUntil = AppBlockerServiceInfo.unlockedApps[packageName] ?: 0L
+        reloadDistractions()
+        reloadUnlockedApps()
+        val cooldownUntil = unlockedDistractions.value[packageName] ?: 0L
         val isDistraction = _distractions.value.contains(packageName)
 
+        Log.d("Distracting apps", _distractions.value.toString())
         if (isDistraction && (cooldownUntil == -1L || System.currentTimeMillis() > cooldownUntil)) {
             _selectedPackage.value = packageName
             _showCoinDialog.value = true
@@ -132,21 +144,21 @@ class AppListViewModel @Inject constructor(
     }
 
     fun onConfirmUnlockApp(coins: Int) {
-        val cooldownTime = (minutesPerFiveCoins.value * coins) * 60_000L
+        if (
+            AppBlockerServiceInfo.appBlockerService == null
+        ) {
+            startForegroundService(context, Intent(context, AppBlockerService::class.java))
+        }
+
+        val cooldownTime = (minutesPerFiveCoins.value * (coins/5)) * 60_000L
         val pkg = _selectedPackage.value
+        Log.d("Unlocking app $pkg","duration ${minutesPerFiveCoins.value * coins}")
         val intent = Intent().apply {
             action = INTENT_ACTION_UNLOCK_APP
             putExtra("selected_time", cooldownTime)
             putExtra("package_name", pkg)
         }
         context.sendBroadcast(intent)
-
-        if (!AppBlockerServiceInfo.isUsingAccessibilityService &&
-            AppBlockerServiceInfo.appBlockerService == null
-        ) {
-            startForegroundService(context, Intent(context, AppBlockerService::class.java))
-            AppBlockerServiceInfo.unlockedApps[pkg] = System.currentTimeMillis() + cooldownTime
-        }
 
         userRepository.useCoins(coins)
         launchApp(context, pkg)
@@ -219,7 +231,7 @@ class AppListViewModel @Inject constructor(
         val remainingFreePassesToday = prefs.getInt("freepass_count", 0) - 1
 
         prefs.edit {
-            putString("last_freepass_date", today)
+            putString("ladistracting_appsst_freepass_date", today)
             putInt("freepass_count", remainingFreePassesToday)
         }
 

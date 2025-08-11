@@ -68,8 +68,8 @@ import nethical.questphone.backend.BuildConfig
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatNumber
 import nethical.questphone.data.game.InventoryItem
-import nethical.questphone.data.game.UserInfo
-import nethical.questphone.data.game.xpToLevelUp
+import nethical.questphone.data.UserInfo
+import nethical.questphone.data.xpToLevelUp
 import java.io.File
 import javax.inject.Inject
 

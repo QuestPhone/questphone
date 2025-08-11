@@ -277,7 +277,7 @@ private fun InventoryItemInfoDialog(
                     }
 
                     if (reward.isDirectlyUsableFromInventory) {
-                        if (reward.category == Category.BOOSTERS && !isBoosterActive) {
+                        if (reward.category != Category.BOOSTERS || !isBoosterActive) {
                             Button(
                                 onClick = {
                                     onUseRequest()

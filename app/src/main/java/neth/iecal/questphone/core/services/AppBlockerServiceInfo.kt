@@ -14,7 +14,7 @@ object AppBlockerServiceInfo{
     val deepFocus = DeepFocus()
 
     // Store the unlock time for each app that is temporarily unlocked
-    val unlockedApps = mutableMapOf<String, Long>()
+    var unlockedApps = mutableMapOf<String, Long>()
 
 }
 

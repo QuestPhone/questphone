@@ -11,11 +11,11 @@ import nethical.questphone.backend.triggerProfileSync
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getFullTimeAfter
 import nethical.questphone.core.core.utils.isTimeOver
+import nethical.questphone.data.UserInfo
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.StreakFreezerReturn
-import nethical.questphone.data.game.UserInfo
-import nethical.questphone.data.game.xpToLevelUp
 import nethical.questphone.data.json
+import nethical.questphone.data.xpToLevelUp
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -103,6 +103,15 @@ class UserRepository @Inject constructor(
         return userInfo.inventory.getOrDefault(item, 0)
     }
 
+    fun updateBlockedAppsSet(set: Set<String>){
+        userInfo.blockedAndroidPackages = set
+        saveUserInfo()
+    }
+
+    fun updateUnlockedAppsSet(set: Map<String,Long>){
+        userInfo.unlockedAndroidPackages = set.toMutableMap()
+        saveUserInfo()
+    }
     fun deductFromInventory(item: InventoryItem, count: Int = 1) {
         if (getInventoryItemCount(item) > 0) {
             userInfo.inventory[item] = getInventoryItemCount(item) - count

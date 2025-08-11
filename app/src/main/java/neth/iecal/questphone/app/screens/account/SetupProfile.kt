@@ -63,7 +63,7 @@ import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
 import nethical.questphone.backend.Supabase
 import nethical.questphone.backend.repositories.UserRepository
-import nethical.questphone.data.game.UserInfo
+import nethical.questphone.data.UserInfo
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream

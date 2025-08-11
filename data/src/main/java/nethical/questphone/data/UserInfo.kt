@@ -1,4 +1,4 @@
-package nethical.questphone.data.game
+package nethical.questphone.data
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -6,6 +6,9 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import nethical.questphone.data.game.Achievements
+import nethical.questphone.data.game.InventoryItem
+import nethical.questphone.data.game.StreakData
 import kotlin.time.ExperimentalTime
 
 /**
@@ -27,6 +30,8 @@ data class UserInfo @OptIn(ExperimentalTime::class) constructor(
     var last_updated: Long = System.currentTimeMillis(),
     var created_on: Instant = Clock.System.now(),
     var streak : StreakData = StreakData(),
+    var blockedAndroidPackages: Set<String> = setOf(),
+    var unlockedAndroidPackages: MutableMap<String, Long> = mutableMapOf(),
     @Transient
     var needsSync: Boolean = true,
     @Transient

@@ -37,7 +37,7 @@ import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.data.game.InventoryItem
-import nethical.questphone.data.game.xpToRewardForQuest
+import nethical.questphone.data.xpToRewardForQuest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

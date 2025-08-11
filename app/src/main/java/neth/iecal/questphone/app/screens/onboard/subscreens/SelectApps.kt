@@ -36,28 +36,32 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.core.services.AppBlockerServiceInfo
 import neth.iecal.questphone.core.services.INTENT_ACTION_REFRESH_APP_BLOCKER
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.managers.reloadApps
 import nethical.questphone.core.core.utils.managers.sendRefreshRequest
 import nethical.questphone.data.AppInfo
+import javax.inject.Inject
 
 enum class SelectAppsModes{
     ALLOW_ADD, // only allow adding one app, block removing any apps
     ALLOW_REMOVE, // only allow removing one app, block adding any app
     ALLOW_ADD_AND_REMOVE // no restrictions
 }
-class SelectAppsViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class SelectAppsViewModel @Inject constructor (application: Application,
+                                               private val userRepository: UserRepository) : AndroidViewModel(application) {
 
     private val context: Context get() = getApplication<Application>().applicationContext
-    private val sharedPrefs = context.getSharedPreferences("distractions", Context.MODE_PRIVATE)
 
     val searchQuery = mutableStateOf("")
 
@@ -88,7 +92,7 @@ class SelectAppsViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun loadSelectedApps() {
-        _selectedApps.value = sharedPrefs.getStringSet("distracting_apps", emptySet()) ?: emptySet()
+        _selectedApps.value = userRepository.userInfo.blockedAndroidPackages
     }
 
     fun toggleApp(packageName: String) {
@@ -100,7 +104,8 @@ class SelectAppsViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun saveToPrefs() {
-        sharedPrefs.edit { putStringSet("distracting_apps", _selectedApps.value) }
+        userRepository.updateBlockedAppsSet(selectedApps.value)
+        Log.d("Saving distracting apps list",selectedApps.toString())
         sendRefreshRequest(context, INTENT_ACTION_REFRESH_APP_BLOCKER)
         AppBlockerServiceInfo.appBlockerService?.loadLockedApps()
     }
@@ -129,7 +134,7 @@ class SelectAppsViewModel(application: Application) : AndroidViewModel(applicati
 
 
 @Composable
-fun SelectApps( selectAppsModes: SelectAppsModes = SelectAppsModes.ALLOW_ADD_AND_REMOVE,viewModel: SelectAppsViewModel = viewModel(),) {
+fun SelectApps(selectAppsModes: SelectAppsModes = SelectAppsModes.ALLOW_ADD_AND_REMOVE, viewModel: SelectAppsViewModel = hiltViewModel(),) {
 
     val context = LocalContext.current
 

@@ -71,7 +71,7 @@ import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.core.core.utils.managers.sendRefreshRequest
 import nethical.questphone.data.game.InventoryItem
-import nethical.questphone.data.game.xpToRewardForQuest
+import nethical.questphone.data.xpToRewardForQuest
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.focus.DeepFocus
 import javax.inject.Inject

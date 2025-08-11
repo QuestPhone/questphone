@@ -22,7 +22,7 @@ import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.StreakFreezerReturn
 import nethical.questphone.data.game.xpFromStreak
-import nethical.questphone.data.game.xpToRewardForQuest
+import nethical.questphone.data.xpToRewardForQuest
 
 enum class DialogState { QUEST_COMPLETED, LEVEL_UP, STREAK_UP,STREAK_FREEZER_USED, STREAK_FAILED, NONE }
 

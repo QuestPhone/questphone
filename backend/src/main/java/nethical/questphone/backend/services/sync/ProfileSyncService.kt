@@ -20,7 +20,7 @@ import nethical.questphone.backend.Supabase
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.R
 import nethical.questphone.data.SyncStatus
-import nethical.questphone.data.game.UserInfo
+import nethical.questphone.data.UserInfo
 import javax.inject.Inject
 
 //Todo: Convert to worker

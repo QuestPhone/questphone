@@ -42,7 +42,7 @@ import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.data.game.InventoryItem
-import nethical.questphone.data.game.xpToRewardForQuest
+import nethical.questphone.data.xpToRewardForQuest
 import javax.inject.Inject
 
 @HiltViewModel

@@ -48,7 +48,7 @@ import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.data.game.InventoryItem
-import nethical.questphone.data.game.xpToRewardForQuest
+import nethical.questphone.data.xpToRewardForQuest
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.health.HealthQuest
 import nethical.questphone.data.quest.health.HealthTaskType

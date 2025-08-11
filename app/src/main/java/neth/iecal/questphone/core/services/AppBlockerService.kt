@@ -19,16 +19,20 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.MainActivity
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.R
 
 import nethical.questphone.core.core.utils.managers.getKeyboards
 import nethical.questphone.core.core.utils.managers.reloadApps
+import javax.inject.Inject
 
-class AppBlockerService() : Service() {
+@AndroidEntryPoint(Service::class)
+class AppBlockerService : Service() {
 
     private val TAG = "AppBockServiceFG"
     private lateinit var usageStatsManager: UsageStatsManager
@@ -36,9 +40,9 @@ class AppBlockerService() : Service() {
     private var timerRunnable: Runnable? = null
     private var lastForegroundPackage: String? = null
     private var isTimerRunning = false
-
-
-
+    private var timerRunningForPackage = ""
+    @Inject
+    lateinit var userRepository: UserRepository
     // Default locked apps - will be overridden by saved preferences
     private val lockedApps = mutableSetOf<String>()
 
@@ -62,6 +66,7 @@ class AppBlockerService() : Service() {
         createNotificationChannel()
         setupBroadcastListeners()
         loadLockedApps()
+        loadUnlockedAppsFromServer()
         if(AppBlockerServiceInfo.deepFocus.isRunning) turnDeepFocus()
         startForeground(NOTIFICATION_ID, createNotification())
         startMonitoringApps()
@@ -215,6 +220,7 @@ class AppBlockerService() : Service() {
 
     // Cleans up apps whose temporary unlock duration has expired
     private fun cleanUpExpiredUnlocks(currentTime: Long) {
+        loadUnlockedAppsFromServer()
         val expiredApps = mutableListOf<String>()
         for ((packageName, expiryTime) in AppBlockerServiceInfo.unlockedApps) {
             if (currentTime >= expiryTime) {
@@ -247,6 +253,9 @@ class AppBlockerService() : Service() {
             Log.d(TAG, "Lock condition met for: $detectedForegroundPackage (showing lock screen)")
             showLockScreenFor(detectedForegroundPackage)
             return true
+        }else {
+            val interval = AppBlockerServiceInfo.unlockedApps[detectedForegroundPackage]!! - System.currentTimeMillis()
+            startCooldownTimer(detectedForegroundPackage, interval.toLong())
         }
         return false
     }
@@ -335,18 +344,25 @@ class AppBlockerService() : Service() {
     }
 
     // unlockApp to set an expiry time
-    fun unlockApp(unlockedPackageName: String, duration: Int) {
+    fun unlockApp(unlockedPackageName: String, duration: Long) {
         if (!isAppUnlocked(unlockedPackageName)) {
             val expiryTime = System.currentTimeMillis() + duration
             AppBlockerServiceInfo.unlockedApps[unlockedPackageName] = expiryTime
-            Log.d(TAG, "App unlocked via PIN: $unlockedPackageName. Unlocked until: $expiryTime")
+            saveUnlockedAppsToServer()
+            Log.d(TAG, "App ked via PIN: $unlockedPackageName. Unlocked until: $expiryTime")
             isOverlayActive = false
             if (currentLockedPackage == unlockedPackageName) {
                 currentLockedPackage = null
             }
         }
     }
+    fun saveUnlockedAppsToServer(){
+        userRepository.updateUnlockedAppsSet( AppBlockerServiceInfo.unlockedApps)
+    }
 
+    fun loadUnlockedAppsFromServer(){
+        AppBlockerServiceInfo.unlockedApps = userRepository.userInfo.unlockedAndroidPackages
+    }
     fun isAppUnlocked(packageName:String):Boolean{
         return AppBlockerServiceInfo.unlockedApps.containsKey(packageName)
     }
@@ -362,13 +378,9 @@ class AppBlockerService() : Service() {
     }
 
     fun loadLockedApps() {
-        val sp = getSharedPreferences("distractions", MODE_PRIVATE)
-        val apps = sp.getStringSet("distracting_apps", emptySet<String>())
-
         lockedApps.clear()
-        if(apps?.isNotEmpty() == true){
-            lockedApps.addAll(apps)
-        }
+        lockedApps.addAll(userRepository.userInfo.blockedAndroidPackages)
+
         Log.d(TAG, "Loaded locked apps: $lockedApps")
     }
 
@@ -454,7 +466,7 @@ class AppBlockerService() : Service() {
                     loadLockedApps()
                 }
                 INTENT_ACTION_UNLOCK_APP -> {
-                    val interval = intent.getIntExtra("selected_time", 0)
+                    val interval = intent.getLongExtra("selected_time", 0)
                     val coolPackage = intent.getStringExtra("package_name") ?: ""
 
                     Log.d("AppBlockerServiceFG", "Received cooldown broadcast for $coolPackage, duration: $interval ms")
@@ -473,19 +485,20 @@ class AppBlockerService() : Service() {
         }
     }
 
-    private fun startCooldownTimer(packageName: String, durationMs: Long) {
+    private fun startCooldownTimer(packageName: String, duration: Long) {
         // Stop any existing timer first
+        if(timerRunningForPackage==packageName) return
         stopCooldownTimer()
 
-
         val startTime = SystemClock.uptimeMillis()
-        val endTime = startTime + durationMs
-        val totalSeconds = durationMs / 1000
+        val endTime = startTime + duration
+        val totalSeconds = duration
 
         // Show initial notification immediately
         updateTimerNotification(packageName, 0f, totalSeconds)
 
         isTimerRunning = true
+        timerRunningForPackage = packageName
         timerRunnable = object : Runnable {
             override fun run() {
                 val currentTime = SystemClock.uptimeMillis()
@@ -495,7 +508,7 @@ class AppBlockerService() : Service() {
                 // Convert to seconds for display and calculations
                 val remainingSeconds = remainingMs / 1000
 
-                val progress = elapsedMs.toFloat() / durationMs.toFloat()
+                val progress = elapsedMs.toFloat() / duration.toFloat()
 
                 if (remainingSeconds > 0) {
                     Log.d("AppBlockerService", "Updating notification: $packageName, progress: ${progress * 100}%, remaining: $remainingSeconds s")
@@ -526,6 +539,7 @@ class AppBlockerService() : Service() {
         }
         isTimerRunning = false
         timerRunnable = null
+        timerRunningForPackage = ""
         cancelTimerNotification()
     }
 
