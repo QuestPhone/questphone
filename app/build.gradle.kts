@@ -118,7 +118,7 @@ dependencies {
     implementation (libs.guava)
 
     implementation (libs.coil.compose)
-
+    implementation(libs.coil.gif)
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
