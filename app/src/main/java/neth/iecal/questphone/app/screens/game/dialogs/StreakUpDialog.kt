@@ -61,7 +61,7 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 
-data class Spark(
+private data class FireSpark(
     val startPos: Offset,
     val velocity: Offset,
     val color: Color,
@@ -141,7 +141,7 @@ fun StreakUpDialog(
                 else -> Color(0xFFFFFFFF) // White hot
             }
 
-            Spark(
+            FireSpark(
                 startPos = Offset.Zero,
                 velocity = Offset(
                     cos(angle) * speed,
