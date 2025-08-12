@@ -83,7 +83,7 @@ import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.components.NeuralMeshAsymmetrical
 import neth.iecal.questphone.app.screens.components.NeuralMeshSymmetrical
 import neth.iecal.questphone.app.screens.components.TopBarActions
-import neth.iecal.questphone.app.screens.game.dialogs.LevelUpDialog
+import neth.iecal.questphone.app.screens.game.dialogs.StreakFailedDialog
 import neth.iecal.questphone.app.screens.launcher.dialogs.LauncherDialog
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
@@ -95,6 +95,7 @@ import nethical.questphone.core.core.utils.managers.isSetToDefaultLauncher
 import nethical.questphone.core.core.utils.managers.openAccessibilityServiceScreen
 import nethical.questphone.core.core.utils.managers.openDefaultLauncherSettings
 import nethical.questphone.data.MeshStyles
+import nethical.questphone.data.game.StreakFreezerReturn
 
 data class SidePanelItem(
     val icon: Int,
