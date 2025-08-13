@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -256,22 +255,23 @@ fun StandardPageContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+
         Text(
             text = title,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp),
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 24.dp)
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Black
         )
+
 
         Text(
             text = description,
-            fontSize = 16.sp,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.ExtraLight,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 24.dp)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 

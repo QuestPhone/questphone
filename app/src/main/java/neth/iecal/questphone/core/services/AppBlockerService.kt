@@ -470,6 +470,7 @@ class AppBlockerService : Service() {
                     AppBlockerServiceInfo.deepFocus.exceptionApps = hashSetOf<String>()
                     AppBlockerServiceInfo.deepFocus.duration = 0
                     loadLockedApps()
+                    stopCooldownTimer()
                 }
                 INTENT_ACTION_UNLOCK_APP -> {
                     val interval = intent.getLongExtra("selected_time", 0)

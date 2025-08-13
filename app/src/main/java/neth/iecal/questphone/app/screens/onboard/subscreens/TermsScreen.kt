@@ -71,7 +71,7 @@ fun TermsScreen(isTosAccepted: MutableState<Boolean>) {
             )
 
             Text(
-                text = "You're one of the first to try QuestPhone — an app I've been building to help you take back control of your screen time in a fun, gamified way 🚀\n\n" +
+                text = "You're one of the first to try QuestPhone. An app I've been building to help you take back control of your screen time in a fun, gamified way 🚀\n\n" +
                         "Since we're still in beta, you might spot a few rough edges. I'd love your feedback if you do.\n\n" +
                         "Ready to begin your journey toward healthier digital habits? \n ~ Nethical",
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.87f),

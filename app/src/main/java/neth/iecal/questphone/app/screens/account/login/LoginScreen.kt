@@ -87,7 +87,7 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel(), onLoginSucess: ()->Unit
             Text(
                 text = "Quest Phone",
                 style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Black
                 ),
                 color = MaterialTheme.colorScheme.primary
             )
@@ -108,7 +108,6 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel(), onLoginSucess: ()->Unit
                 errorMessage?.let {
                     Text(
                         text = it,
-                        color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
@@ -203,7 +202,6 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel(), onLoginSucess: ()->Unit
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
                     Text("Continue")

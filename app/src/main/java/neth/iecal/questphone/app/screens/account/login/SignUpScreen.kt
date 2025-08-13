@@ -101,7 +101,7 @@ fun SignUpScreen(viewModel: LoginViewModel, onAnonymousSignInSuccess: () -> Unit
             Text(
                 text = "Quest Phone",
                 style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Black
                 ),
                 color = MaterialTheme.colorScheme.primary
             )
@@ -125,7 +125,6 @@ fun SignUpScreen(viewModel: LoginViewModel, onAnonymousSignInSuccess: () -> Unit
                 errorMessage?.let {
                     Text(
                         text = it,
-                        color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
@@ -236,7 +235,6 @@ fun SignUpScreen(viewModel: LoginViewModel, onAnonymousSignInSuccess: () -> Unit
                         if (isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary
                             )
                         } else {
                             Text("Sign Up")

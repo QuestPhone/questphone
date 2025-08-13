@@ -22,6 +22,7 @@ import androidx.navigation.NavHostController
 import neth.iecal.questphone.MainActivity
 import neth.iecal.questphone.app.screens.account.SetupProfileScreen
 import neth.iecal.questphone.app.screens.onboard.subscreens.BlockedAppsView
+import neth.iecal.questphone.app.screens.onboard.subscreens.CalculateLifeStats
 import neth.iecal.questphone.app.screens.onboard.subscreens.LoginOnboard
 import neth.iecal.questphone.app.screens.onboard.subscreens.NotificationPerm
 import neth.iecal.questphone.app.screens.onboard.subscreens.OverlayScreenPerm
@@ -55,17 +56,39 @@ fun OnBoarderView(navController: NavHostController) {
 
 
     val onboardingPages = mutableListOf(
-        OnboardingContent.StandardPage(
-            "What Are You Doing?",
-            "You’re not relaxing. You’re escaping.\n\nHours lost to apps that drain you.\n\nQuestPhone makes you earn screentime—by doing something real. Walk. Study. Breathe.\n\nEach day, you get less screen… until you don’t need it at all.\n\nStop feeding the machine. Start choosing yourself."
-        ),
-        OnboardingContent.StandardPage(
-            "How it works",
-            "Take control of your screen time like never before. Instead of mindless scrolling, you’ll earn your access by completing real-life Quests—like going for a walk, meditating, studying, or anything that helps you grow. Each quest rewards you with Coins and XP: spend 5 Coins to unlock your favorite distracting app for 10 minutes, and level up as you build better habits!\n" +
-                    "\n" +
-                    "It’s not just about restrictions—it’s a game. Stay motivated by collecting items, leveling up, and watching your progress unfold. QuestPhone makes self-discipline feel like an epic adventure."
-        ),
+
         OnboardingContent.CustomPage(
+            content = {
+                UsageAccessPerm()
+            }, onNextPressed = {
+                if(checkUsagePermission(context)){
+                    return@CustomPage true
+                }
+                val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                context.startActivity(intent)
+                return@CustomPage false
+
+            }
+        ),
+
+        OnboardingContent.CustomPage(
+            content = {
+                CalculateLifeStats()
+            }, onNextPressed = {
+                if(checkUsagePermission(context)){
+                    return@CustomPage true
+                }
+                val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                context.startActivity(intent)
+                return@CustomPage false
+
+            }
+        ),
+        OnboardingContent.StandardPage(
+            "We're here to save you",
+            "Those wasted years? We turn them into growth. Every time you want a distracting app, you’ll first complete a real-life Quest. Walk, study, meditate, anything that builds you up. Quests give you Coins and XP: spend 5 Coins for 10 mins of app time, level up, and watch your habits (and your life) transform."
+        ),
+                OnboardingContent.CustomPage(
             isNextEnabled = isNextEnabledLogin){ ->
             LoginOnboard(isNextEnabledLogin, navController)
         },
@@ -86,19 +109,6 @@ fun OnBoarderView(navController: NavHostController) {
                     return@CustomPage false
                 }
                 return@CustomPage true
-            }
-        ),
-        OnboardingContent.CustomPage(
-            content = {
-                UsageAccessPerm()
-            }, onNextPressed = {
-                if(checkUsagePermission(context)){
-                    return@CustomPage true
-                }
-                val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-                context.startActivity(intent)
-                return@CustomPage false
-
             }
         ),
         OnboardingContent.CustomPage(
