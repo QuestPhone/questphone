@@ -240,13 +240,15 @@ class FileDownloadWorker(
     }
 
     private fun showSuccessNotification(fileName: String, notificationId: Int) {
+        notificationManager.cancel(notificationId) // remove the ongoing download notification
         val successNotification = NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.stat_sys_download)
+            .setSmallIcon(R.drawable.stat_sys_download_done)
             .setContentTitle("Download Complete")
             .setContentText("$fileName has been successfully downloaded.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
-        notificationManager.notify(notificationId, successNotification.build())
+            .build()
+        notificationManager.notify(notificationId + 1, successNotification) // different ID so it doesn't get stuck
     }
 
     private fun showErrorNotification(fileName: String, notificationId: Int, error: String) {

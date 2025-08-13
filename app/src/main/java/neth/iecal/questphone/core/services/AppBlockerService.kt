@@ -626,7 +626,7 @@ class AppBlockerService : Service() {
     private fun cancelTimerNotification() {
         try {
             val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.cancel(NOTIFICATION_ID)
+            notificationManager.notify(NOTIFICATION_ID,createNotification())
             Log.d("AppBlockerService", "Notification cancelled")
         } catch (e: Exception) {
             Log.e("AppBlockerService", "Failed to cancel notification: ${e.message}")
