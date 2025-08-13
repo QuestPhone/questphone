@@ -132,6 +132,12 @@
             android:enabled="true"
             android:exported="false" />
 
+
+        <receiver
+            android:name="neth.iecal.questphone.core.services.AppBlockerReminderReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
         <receiver
             android:name=".core.utils.reminder.BootReceiver"
             android:enabled="true"

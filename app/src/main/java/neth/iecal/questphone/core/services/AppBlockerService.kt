@@ -1,6 +1,7 @@
 package neth.iecal.questphone.core.services
 
 import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -18,6 +19,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -26,9 +28,9 @@ import kotlinx.coroutines.launch
 import neth.iecal.questphone.MainActivity
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.R
-
 import nethical.questphone.core.core.utils.managers.getKeyboards
 import nethical.questphone.core.core.utils.managers.reloadApps
+import java.util.Date
 import javax.inject.Inject
 
 @AndroidEntryPoint(Service::class)
@@ -41,8 +43,10 @@ class AppBlockerService : Service() {
     private var lastForegroundPackage: String? = null
     private var isTimerRunning = false
     private var timerRunningForPackage = ""
+
     @Inject
     lateinit var userRepository: UserRepository
+
     // Default locked apps - will be overridden by saved preferences
     private val lockedApps = mutableSetOf<String>()
 
@@ -67,14 +71,14 @@ class AppBlockerService : Service() {
         setupBroadcastListeners()
         loadLockedApps()
         loadUnlockedAppsFromServer()
-        if(AppBlockerServiceInfo.deepFocus.isRunning) turnDeepFocus()
+        if (AppBlockerServiceInfo.deepFocus.isRunning) turnDeepFocus()
         startForeground(NOTIFICATION_ID, createNotification())
         startMonitoringApps()
-        AppBlockerServiceInfo.appBlockerService= this
+        AppBlockerServiceInfo.appBlockerService = this
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
-    private fun setupBroadcastListeners(){
+    private fun setupBroadcastListeners() {
         val filter = IntentFilter().apply {
             addAction(INTENT_ACTION_REFRESH_APP_BLOCKER)
             addAction(INTENT_ACTION_UNLOCK_APP)
@@ -82,7 +86,7 @@ class AppBlockerService : Service() {
             addAction(INTENT_ACTION_STOP_DEEP_FOCUS)
         }
 
-        Log.d("AppBlockerSrvieFg","registering reciever")
+        Log.d("AppBlockerSrvieFg", "registering reciever")
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 registerReceiver(refreshReceiver, filter, RECEIVER_EXPORTED)
@@ -244,7 +248,8 @@ class AppBlockerService : Service() {
 
         val isAppCurrentlyLocked = lockedApps.contains(detectedForegroundPackage)
         // Check if the app is currently temporarily unlocked (and not expired)
-        val isTemporarilyUnlocked = AppBlockerServiceInfo.unlockedApps.containsKey(detectedForegroundPackage)
+        val isTemporarilyUnlocked =
+            AppBlockerServiceInfo.unlockedApps.containsKey(detectedForegroundPackage)
 
         if (isAppCurrentlyLocked &&
             !isOverlayActive &&
@@ -253,11 +258,13 @@ class AppBlockerService : Service() {
             Log.d(TAG, "Lock condition met for: $detectedForegroundPackage (showing lock screen)")
             showLockScreenFor(detectedForegroundPackage)
             return true
-        }else {
+        } else {
             try {
-                val interval = AppBlockerServiceInfo.unlockedApps[detectedForegroundPackage]!! - System.currentTimeMillis()
+                val interval =
+                    AppBlockerServiceInfo.unlockedApps[detectedForegroundPackage]!! - System.currentTimeMillis()
                 startCooldownTimer(detectedForegroundPackage, interval.toLong())
-            }catch (_: Exception){}
+            } catch (_: Exception) {
+            }
         }
         return false
     }
@@ -288,7 +295,8 @@ class AppBlockerService : Service() {
         }
 
         // NEW: Check if the app is currently temporarily unlocked (and not expired)
-        val isCurrentlyTemporarilyUnlocked = AppBlockerServiceInfo.unlockedApps.containsKey(foregroundPackage)
+        val isCurrentlyTemporarilyUnlocked =
+            AppBlockerServiceInfo.unlockedApps.containsKey(foregroundPackage)
 
         // If the current foreground app is one that is temporarily unlocked, do nothing further.
         if (isCurrentlyTemporarilyUnlocked) {
@@ -358,14 +366,16 @@ class AppBlockerService : Service() {
             }
         }
     }
-    fun saveUnlockedAppsToServer(){
-        userRepository.updateUnlockedAppsSet( AppBlockerServiceInfo.unlockedApps)
+
+    fun saveUnlockedAppsToServer() {
+        userRepository.updateUnlockedAppsSet(AppBlockerServiceInfo.unlockedApps)
     }
 
-    fun loadUnlockedAppsFromServer(){
+    fun loadUnlockedAppsFromServer() {
         AppBlockerServiceInfo.unlockedApps = userRepository.getUnlockedPackages()
     }
-    fun isAppUnlocked(packageName:String):Boolean{
+
+    fun isAppUnlocked(packageName: String): Boolean {
         return AppBlockerServiceInfo.unlockedApps.containsKey(packageName)
     }
 
@@ -429,22 +439,24 @@ class AppBlockerService : Service() {
         return currentApp
     }
 
-    private fun turnDeepFocus(){
+    private fun turnDeepFocus() {
         CoroutineScope(Dispatchers.IO).launch {
             val pm = applicationContext.packageManager
             val result = reloadApps(pm, applicationContext)
 
-            if(result.isSuccess){
+            if (result.isSuccess) {
                 var allApps = result.getOrDefault(emptyList())
                 val keyboardApps = getKeyboards(applicationContext)
 
                 allApps = allApps.filter {
-                    !AppBlockerServiceInfo.deepFocus.exceptionApps.contains(it.packageName) && !keyboardApps.contains(it.packageName) && it.packageName != "launcher.launcher"
+                    !AppBlockerServiceInfo.deepFocus.exceptionApps.contains(it.packageName) && !keyboardApps.contains(
+                        it.packageName
+                    ) && it.packageName != "launcher.launcher"
                 }
 
                 lockedApps.clear()
                 lockedApps.addAll(allApps.map { it.packageName })
-                Log.d("AppBlockerServiceFg","Turning on FocusMode ${lockedApps.toString()}")
+                Log.d("AppBlockerServiceFg", "Turning on FocusMode ${lockedApps.toString()}")
 
             }
         }
@@ -452,19 +464,21 @@ class AppBlockerService : Service() {
 
     private val refreshReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            Log.d(TAG,intent?.action.toString())
+            Log.d(TAG, intent?.action.toString())
             if (intent == null) return
             when (intent.action) {
                 INTENT_ACTION_REFRESH_APP_BLOCKER -> loadLockedApps()
                 INTENT_ACTION_START_DEEP_FOCUS -> {
-                    AppBlockerServiceInfo.deepFocus.exceptionApps = intent.getStringArrayListExtra("exception")?.toHashSet()!!
+                    AppBlockerServiceInfo.deepFocus.exceptionApps =
+                        intent.getStringArrayListExtra("exception")?.toHashSet()!!
                     AppBlockerServiceInfo.deepFocus.isRunning = true
-                    AppBlockerServiceInfo.deepFocus.duration = intent.getLongExtra("duration",0L)
+                    AppBlockerServiceInfo.deepFocus.duration = intent.getLongExtra("duration", 0L)
                     startCooldownTimer("deepfocus", AppBlockerServiceInfo.deepFocus.duration)
                     Log.d("Turning deep focus", AppBlockerServiceInfo.deepFocus.duration.toString())
                     turnDeepFocus()
-
+                    setReminderInMinutes(AppBlockerServiceInfo.deepFocus.duration)
                 }
+
                 INTENT_ACTION_STOP_DEEP_FOCUS -> {
                     AppBlockerServiceInfo.deepFocus.isRunning = false
                     AppBlockerServiceInfo.deepFocus.exceptionApps = hashSetOf<String>()
@@ -472,29 +486,80 @@ class AppBlockerService : Service() {
                     loadLockedApps()
                     stopCooldownTimer()
                 }
+
                 INTENT_ACTION_UNLOCK_APP -> {
                     val interval = intent.getLongExtra("selected_time", 0)
                     val coolPackage = intent.getStringExtra("package_name") ?: ""
 
-                    Log.d("AppBlockerServiceFG", "Received cooldown broadcast for $coolPackage, duration: $interval ms")
+                    Log.d(
+                        "AppBlockerServiceFG",
+                        "Received cooldown broadcast for $coolPackage, duration: $interval ms"
+                    )
 
                     // Only proceed if we have a valid package and duration
                     if (coolPackage.isNotEmpty() && interval > 0) {
 
                         createNotificationChannel()
                         startCooldownTimer(coolPackage, interval.toLong())
-                        unlockApp(coolPackage,interval)
+                        unlockApp(coolPackage, interval)
+                        setReminderInMinutes(interval)
                     } else {
-                        Log.e("AppBlockerServiceFG", "Invalid cooldown parameters: package=$coolPackage, interval=$interval")
+                        Log.e(
+                            "AppBlockerServiceFG",
+                            "Invalid cooldown parameters: package=$coolPackage, interval=$interval"
+                        )
                     }
                 }
             }
         }
     }
 
+    private fun setReminderInMinutes(msFromNow: Long) {
+        val triggerTimeMillis = System.currentTimeMillis() + msFromNow
+
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        val intent = Intent(this, AppBlockerReminderReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this,
+            100, // Unique request code
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerTimeMillis,
+                    pendingIntent
+                )
+                Log.d(
+                    "NotificationScheduler",
+                    "Scheduled alarm in ${msFromNow/60_000L} minutes at ${Date(triggerTimeMillis)}"
+                )
+            } else {
+                Log.w(
+                    "NotificationScheduler",
+                    "Exact alarm permission not granted. Cannot schedule alarm."
+                )
+            }
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerTimeMillis,
+                pendingIntent
+            )
+            Log.d(
+                "NotificationScheduler",
+                "Scheduled alarm in $msFromNow minutes at ${Date(triggerTimeMillis)}"
+            )
+        }
+    }
+
     private fun startCooldownTimer(packageName: String, duration: Long) {
         // Stop any existing timer first
-        if(timerRunningForPackage==packageName) return
+        if (timerRunningForPackage == packageName) return
         stopCooldownTimer()
 
         val startTime = SystemClock.uptimeMillis()
@@ -517,8 +582,15 @@ class AppBlockerService : Service() {
 
                 val progress = elapsedMs.toFloat() / duration.toFloat()
 
+                if(remainingSeconds<10){
+                    Toast.makeText(this@AppBlockerService, "Remaining time: $remainingSeconds", Toast.LENGTH_SHORT).show()
+                }
+
                 if (remainingSeconds > 0) {
-                    Log.d("AppBlockerService", "Updating notification: $packageName, progress: ${progress * 100}%, remaining: $remainingSeconds s")
+                    Log.d(
+                        "AppBlockerService",
+                        "Updating notification: $packageName, progress: ${progress * 100}%, remaining: $remainingSeconds s"
+                    )
                     updateTimerNotification(packageName, progress, remainingSeconds)
                     handler.postDelayed(this, 1000)
                 } else {
@@ -552,7 +624,11 @@ class AppBlockerService : Service() {
 
 
     @SuppressLint("DefaultLocale")
-    private fun updateTimerNotification(packageName: String, progress: Float, remainingSeconds: Long) {
+    private fun updateTimerNotification(
+        packageName: String,
+        progress: Float,
+        remainingSeconds: Long
+    ) {
         try {
             val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
@@ -585,18 +661,20 @@ class AppBlockerService : Service() {
 
             // Get app name for better UX
 
-            val title = if(AppBlockerServiceInfo.deepFocus.isRunning) "Focus Session Ongoing" else {
-                val appName = try {
-                    packageManager.getApplicationInfo(packageName, 0)
-                        .loadLabel(packageManager).toString()
-                } catch (e: Exception) {
-                    Log.w("AppBlockerService", "Failed to get app name: ${e.message}")
-                    packageName
+            val title =
+                if (AppBlockerServiceInfo.deepFocus.isRunning) "Focus Session Ongoing" else {
+                    val appName = try {
+                        packageManager.getApplicationInfo(packageName, 0)
+                            .loadLabel(packageManager).toString()
+                    } catch (e: Exception) {
+                        Log.w("AppBlockerService", "Failed to get app name: ${e.message}")
+                        packageName
+                    }
+                    "Unlocked App $appName"
                 }
-                "Unlocked App $appName"
-            }
             // Build the notification
-            val builder = NotificationCompat.Builder(this,
+            val builder = NotificationCompat.Builder(
+                this,
                 NOTIFICATION_CHANNEL_ID
             )
                 .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
@@ -626,11 +704,18 @@ class AppBlockerService : Service() {
 
     private fun cancelTimerNotification() {
         try {
-            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.notify(NOTIFICATION_ID,createNotification())
+            startForeground(NOTIFICATION_ID, createNotification())
             Log.d("AppBlockerService", "Notification cancelled")
         } catch (e: Exception) {
             Log.e("AppBlockerService", "Failed to cancel notification: ${e.message}")
         }
+    }
+}
+
+class AppBlockerReminderReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        Toast.makeText(context,"Restarting Service", Toast.LENGTH_SHORT).show()
+        context.startForegroundService(Intent(context, AppBlockerService::class.java))
+
     }
 }
