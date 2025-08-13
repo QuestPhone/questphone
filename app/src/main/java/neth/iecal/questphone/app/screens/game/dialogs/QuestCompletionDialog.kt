@@ -2,8 +2,10 @@ package neth.iecal.questphone.app.screens.game.dialogs
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
@@ -23,12 +25,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import neth.iecal.questphone.R
 import nethical.questphone.core.core.utils.VibrationHelper
+import nethical.questphone.core.core.utils.managers.SoundManager
 
 
 @Composable
@@ -38,21 +44,30 @@ fun QuestCompletionDialog(coinReward: Int,xpReward:Int, onDismiss: () -> Unit) {
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Animation for coin
-            val bounceAnimation = remember {
-                Animatable(0f)
-            }
+            val bounceAnimation = remember { Animatable(0f) }
 
-            LaunchedEffect(key1 = true) {
-                bounceAnimation.animateTo(
-                    targetValue = 1f,
-                    animationSpec = spring(
-                        dampingRatio = 0.3f,
-                        stiffness = Spring.StiffnessLow
+            val context = LocalContext.current
+            val soundManager = SoundManager(context)
+            LaunchedEffect(Unit) {
+                VibrationHelper.vibrate(400)
+                soundManager.playSound(R.raw.quest_complete)
+                while (true) { // Infinite bounce loop
+                    bounceAnimation.animateTo(
+                        targetValue = 1f,
+                        animationSpec = spring(
+                            dampingRatio = 0.3f,
+                            stiffness = Spring.StiffnessLow
+                        )
                     )
-                )
+                    bounceAnimation.animateTo(
+                        targetValue = 0f,
+                        animationSpec = spring(
+                            dampingRatio = 0.3f,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    )
+                }
             }
-
             // Apply bounce animation to the coin image
             Image(
                 painter = painterResource(R.drawable.coin_icon),
@@ -66,17 +81,26 @@ fun QuestCompletionDialog(coinReward: Int,xpReward:Int, onDismiss: () -> Unit) {
 
             Spacer(modifier = Modifier.size(16.dp))
 
-            // Animated text appearance
             AnimatedVisibility(
                 visible = true,
-                enter = fadeIn() + expandVertically()
+                enter = fadeIn() + expandVertically(animationSpec = tween(1000, easing = LinearEasing))
             ) {
-                Text(
-                    text = "You earned $coinReward ${if (coinReward > 1) "coins" else "coin"} + $xpReward xp!",
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                Column {
+                    Text(
+                        text = "Quest Complete",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center,
+                        letterSpacing = 2.sp
+                    )
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        text = "You earned $coinReward ${if (coinReward > 1) "coins" else "coin"} + $xpReward xp!",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.size(8.dp))
