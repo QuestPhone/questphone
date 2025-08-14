@@ -2,6 +2,7 @@ package neth.iecal.questphone.app.screens.quest.setup.ai_snap
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,16 +46,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import neth.iecal.questphone.R
+import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
-import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
+import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.app.screens.quest.setup.ai_snap.model.ModelDownloadDialog
+import neth.iecal.questphone.data.IntegrationId
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
@@ -79,6 +86,7 @@ class SetAiSnapViewModelQuest @Inject constructor (questRepository: QuestReposit
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewModel: SetAiSnapViewModelQuest = hiltViewModel()) {
@@ -120,7 +128,31 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewM
         )
     }
 
-    Scaffold { paddingValues ->
+    Scaffold(
+        modifier = Modifier.safeDrawingPadding(),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        text = "AI Snap",
+                        style = MaterialTheme.typography.headlineLarge,
+                    )
+                },
+                actions = {
+                    Icon(
+                        painter = painterResource(R.drawable.outline_help_24),
+                        contentDescription = "Help",
+                        modifier = Modifier.clickable{
+                            navController.navigate("${RootRoute.IntegrationTutorial.route}${IntegrationId.AI_SNAP.name}")
+                        }.size(30.dp)
+                    )
+                }
+            )
+        }
+    ) { paddingValues ->
         Box(Modifier.padding(paddingValues)) {
             Column(
                 modifier = Modifier
@@ -132,19 +164,7 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewM
 
                 Column(
                     verticalArrangement = Arrangement.spacedBy(24.dp),
-                    modifier = Modifier.padding(top = 32.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "AI Snap",
-                            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                        )
-
-                    }
 
                     // Base quest configuration
                     CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState)

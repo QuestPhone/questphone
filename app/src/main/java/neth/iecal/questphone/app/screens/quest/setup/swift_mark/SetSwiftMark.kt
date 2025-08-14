@@ -1,5 +1,6 @@
 package neth.iecal.questphone.app.screens.quest.setup.swift_mark
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,13 +29,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
+import neth.iecal.questphone.R
+import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
-import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
+import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
+import neth.iecal.questphone.data.IntegrationId
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
@@ -79,12 +84,27 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, vi
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        text = "Swift Quest",
-                        style = MaterialTheme.typography.headlineLarge,
+                    TopAppBar(
+                        title = {
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp),
+                                text = "Swift Quest",
+                                style = MaterialTheme.typography.headlineLarge,
+                            )
+                        },
+                        actions = {
+                            Icon(
+                                painter = painterResource(R.drawable.outline_help_24),
+                                contentDescription = "Help",
+                                modifier = Modifier
+                                    .clickable {
+                                        navController.navigate("${RootRoute.IntegrationTutorial.route}${IntegrationId.SWIFT_MARK.name}")
+                                    }
+                                    .size(30.dp)
+                            )
+                        }
                     )
                 }
             )

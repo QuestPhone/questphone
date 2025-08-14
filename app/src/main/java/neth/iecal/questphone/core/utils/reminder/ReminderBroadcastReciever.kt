@@ -85,8 +85,8 @@ class ReminderBroadcastReceiver : HiltBroadcastReceiver() {
         // Create a PendingIntent for the notification content.
         // Use the reminderId as the request code to ensure uniqueness.
         val pendingIntent = PendingIntent.getActivity(
-            context,
-            reminderId,
+            context,4693,
+//            reminderId,
             mainActivityIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

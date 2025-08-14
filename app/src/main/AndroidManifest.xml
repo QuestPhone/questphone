@@ -114,18 +114,6 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <service
-            android:name="neth.iecal.questphone.core.services.LockScreenService"
-            android:exported="false"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/lockscreen_service_config" />
-        </service>
 
         <receiver
             android:name=".core.utils.reminder.ReminderBroadcastReceiver"

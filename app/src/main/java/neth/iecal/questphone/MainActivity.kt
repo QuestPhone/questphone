@@ -44,6 +44,7 @@ import neth.iecal.questphone.app.screens.quest.stats.specific.BaseQuestStatsView
 import neth.iecal.questphone.app.screens.quest.templates.SelectFromTemplates
 import neth.iecal.questphone.app.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
+import neth.iecal.questphone.app.screens.quest_docs.QuestTutorial
 import neth.iecal.questphone.app.theme.LauncherTheme
 import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
@@ -214,6 +215,11 @@ class MainActivity : ComponentActivity() {
 
                         composable(RootRoute.SetCoinRewardRatio.route){
                             SetCoinRewardRatio()
+                        }
+                        composable("${RootRoute.IntegrationTutorial.route}{name}"){ backStackEntry ->
+                            val id = backStackEntry.arguments?.getString("name")
+                            val url = IntegrationId.valueOf(id.toString()).docLink
+                            QuestTutorial(url)
                         }
                     }
                 }

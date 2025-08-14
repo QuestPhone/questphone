@@ -77,13 +77,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.LauncherDialogRoutes
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.components.NeuralMeshAsymmetrical
 import neth.iecal.questphone.app.screens.components.NeuralMeshSymmetrical
 import neth.iecal.questphone.app.screens.components.TopBarActions
-import neth.iecal.questphone.app.screens.game.dialogs.QuestCompletionDialog
+import neth.iecal.questphone.app.screens.launcher.dialogs.DonationsDialog
 import neth.iecal.questphone.app.screens.launcher.dialogs.LauncherDialog
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
@@ -144,6 +145,7 @@ fun HomeScreen(
         label = "offsetY"
     )
 
+    val showDonationDialog by viewModel.showDonationsDialog.collectAsState()
 
     val hapticFeedback = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -163,6 +165,11 @@ fun HomeScreen(
 
     BackHandler { }
 
+    if(showDonationDialog){
+        DonationsDialog {
+            viewModel.hideDonationDialog()
+        }
+    }
     Scaffold(
         modifier = Modifier.safeDrawingPadding(),
         topBar = {
@@ -222,18 +229,29 @@ fun HomeScreen(
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isDoubleTapToSleepEnabled) {
                                 performLockScreenAction()
                             } else {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Enable Accessibility Service to use double-tap to sleep.",
-                                        actionLabel = "Open",
-                                        duration = SnackbarDuration.Short
-                                    ).also { result ->
-                                        if (result == SnackbarResult.ActionPerformed) {
-                                            openAccessibilityServiceScreen(
-                                                context,
-                                                LockScreenService::class.java
-                                            )
+                                if(BuildConfig.IS_FDROID){
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Enable Accessibility Service to use double-tap to sleep.",
+                                            actionLabel = "Open",
+                                            duration = SnackbarDuration.Short
+                                        ).also { result ->
+                                            if (result == SnackbarResult.ActionPerformed) {
+                                                openAccessibilityServiceScreen(
+                                                    context,
+                                                    LockScreenService::class.java
+                                                )
+                                            }
                                         }
+                                    }
+                                }else {
+
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Double tap to sleep is only available on fdroid/gh release variant.",
+                                            actionLabel = "Okay",
+                                            duration = SnackbarDuration.Short
+                                        )
                                     }
                                 }
                             }

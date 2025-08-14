@@ -27,5 +27,6 @@ sealed class RootRoute(val route: String) {
     data object SetCoinRewardRatio : RootRoute("set_coin_reward_ratio/")
 
     data object SetIntegration : RootRoute("set_quest_integration/")
+    data object IntegrationTutorial : RootRoute("tutorial/")
 }
 

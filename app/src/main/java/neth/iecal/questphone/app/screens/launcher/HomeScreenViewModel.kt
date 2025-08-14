@@ -14,6 +14,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.until
 import neth.iecal.questphone.app.screens.game.handleStreakFreezers
 import neth.iecal.questphone.app.screens.game.showStreakUpDialog
 import neth.iecal.questphone.core.utils.managers.QuestHelper
@@ -55,6 +61,8 @@ class HomeScreenViewModel @Inject constructor(
     private val shortcutsSp = application.applicationContext.getSharedPreferences("shortcuts", MODE_PRIVATE)
 
 
+    val showDonationsDialog = MutableStateFlow(false)
+    val donationSp = application.getSharedPreferences("shows", MODE_PRIVATE)
 
     init {
         viewModelScope.launch {
@@ -66,6 +74,20 @@ class HomeScreenViewModel @Inject constructor(
                 delay(delayMillis)
             }
         }
+        val daysBeforeDonation = 3
+
+        val createdOn: Instant = userRepository.userInfo.created_on
+        val now = Clock.System.now()
+
+        val createdDate = createdOn.toLocalDateTime(TimeZone.UTC).date
+        val today = now.toLocalDateTime(TimeZone.UTC).date
+
+        val daysSinceCreation = createdDate.until(today, DateTimeUnit.DAY)
+
+        if (daysSinceCreation >= daysBeforeDonation) {
+            showDonationsDialog.value = !donationSp.contains("shown")
+        }
+
     }
 
     private fun loadSavedConfigs() {
@@ -136,6 +158,11 @@ class HomeScreenViewModel @Inject constructor(
         }
         shortcuts.clear()
         shortcuts.addAll(tempShortcuts)
+    }
+
+    fun hideDonationDialog(){
+        showDonationsDialog.value = false
+        donationSp.edit(commit = true) { putBoolean("shown", true) }
     }
 
 }

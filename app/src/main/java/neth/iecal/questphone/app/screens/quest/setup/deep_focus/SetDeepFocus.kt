@@ -1,6 +1,7 @@
 package neth.iecal.questphone.app.screens.quest.setup.deep_focus
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,14 +35,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import neth.iecal.questphone.R
+import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
-import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
+import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
+import neth.iecal.questphone.data.IntegrationId
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
@@ -131,6 +136,15 @@ fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController, vi
                             .padding(bottom = 8.dp),
                         text = "Deep Focus",
                         style = MaterialTheme.typography.headlineLarge,
+                    )
+                },
+                actions = {
+                    Icon(
+                        painter = painterResource(R.drawable.outline_help_24),
+                        contentDescription = "Help",
+                        modifier = Modifier.clickable{
+                            navController.navigate("${RootRoute.IntegrationTutorial.route}${IntegrationId.DEEP_FOCUS.name}")
+                        }.size(30.dp)
                     )
                 }
             )
