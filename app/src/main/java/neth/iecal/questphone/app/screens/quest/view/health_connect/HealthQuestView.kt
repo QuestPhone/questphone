@@ -84,8 +84,11 @@ class HealthQuestViewVM @Inject constructor (questRepository: QuestRepository,
         encodeToCommonQuest()
         saveQuestToDb()
     }
-    fun areAllPermissionGranted(granted:Set<String>){
+    fun checkPermissionHandlerResult(granted:Set<String>){
         hasRequiredPermissions.value = granted.containsAll(requiredPermissions)
+    }
+    suspend fun checkIfPermissionGranted(){
+        hasRequiredPermissions.value = healthManager.hasAllPermissions()
     }
 
     fun loadCurrentHealthProgress(){
@@ -103,6 +106,7 @@ class HealthQuestViewVM @Inject constructor (questRepository: QuestRepository,
                     }
                 }
             }
+            Log.d("health result", currentHealthProgress.value.toString())
         }
     }
 }
@@ -134,23 +138,23 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo, viewModel: HealthQuestView
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = PermissionController.createRequestPermissionResultContract(),
         onResult = { granted ->
-            viewModel.areAllPermissionGranted(granted)
+            viewModel.checkPermissionHandlerResult(granted)
             viewModel.loadCurrentHealthProgress()
         }
     )
 
 
     LaunchedEffect(Unit) {
+        viewModel.checkIfPermissionGranted()
+        viewModel.loadCurrentHealthProgress()
+
+        Log.d("health connect perm", hasRequiredPermissions.toString())
         val isHealthConnectAvailable = viewModel.healthManager.isAvailable()
         if (!isHealthConnectAvailable) {
             Log.d("HealthConnect", "Health Connect not available")
             return@LaunchedEffect
         }
 
-        viewModel.hasRequiredPermissions.value = viewModel.healthManager.hasAllPermissions()
-        if (hasRequiredPermissions){
-            viewModel.loadCurrentHealthProgress()
-        }
 
     }
 
