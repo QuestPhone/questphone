@@ -60,7 +60,7 @@ fun AiEvaluationScreen(
     onEvaluationComplete: () -> Unit
 ) {
     val context = LocalContext.current
-    val photoFile = File(context.getExternalFilesDir(null), "ai_snap_captured_image.jpg")
+    val photoFile = File(context.getExternalFilesDir(null), AI_SNAP_CROPPED_FILE_NAME)
 
     // State variables
     val currentStep by viewModel.currentStep.collectAsState()

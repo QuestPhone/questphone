@@ -126,11 +126,12 @@ class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
                 currentStep.value = EvaluationStep.INITIALIZING
 
 
-                val photoFile = File(application.getExternalFilesDir(null), "ai_snap_captured_image.jpg")
+                val photoFile = File(application.filesDir, AI_SNAP_CROPPED_FILE_NAME)
                 currentStep.value = EvaluationStep.LOADING_IMAGE
 
                 if (!photoFile.exists()) {
                     error.value = "Image file not found at ${photoFile.absolutePath}"
+                    Log.d("Not Found",photoFile.absolutePath)
                     return@launch
                 }
 
