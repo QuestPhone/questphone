@@ -110,7 +110,7 @@ fun CalculateLifeStats() {
                 )
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    text = "over the span of the next 54 years if you don't fix your habits TODAY!",
+                    text = "over the span of the next 54 years if you don't fix your habits TODAY!\n(Based on your screen time the last 7 days)",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Light,
                     textAlign = TextAlign.Center

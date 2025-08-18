@@ -205,6 +205,7 @@ class UserRepository @Inject constructor(
     fun calculateLevelUpInvRewards(): HashMap<InventoryItem, Int> {
         val rewards = hashMapOf<InventoryItem, Int>()
         rewards[InventoryItem.QUEST_SKIPPER] = 1
+        if(userInfo.level == 2) rewards[InventoryItem.REWARD_TIME_EDITOR] = 1
         if (userInfo.level % 2 == 0) rewards[InventoryItem.XP_BOOSTER] = 1
         if (userInfo.level % 5 == 0) rewards[InventoryItem.STREAK_FREEZER] = 1
         return rewards

@@ -15,8 +15,8 @@ enum class Availability(val displayName: String, val rarityValue: Int) {
 
 @Serializable
 enum class Category(val simpleName: String){
-    BOOSTERS("Boosters"),
     TOOLS("Tools"),
+    BOOSTERS("Boosters"),
 }
 
 @Serializable

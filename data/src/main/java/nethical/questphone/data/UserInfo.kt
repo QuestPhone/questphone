@@ -22,7 +22,7 @@ data class UserInfo @OptIn(ExperimentalTime::class) constructor(
     var full_name: String = "",
     var has_profile: Boolean = false,
     var xp : Int= 0,
-    var coins: Int = 500,
+    var coins: Int = 2,
     var level : Int = 1,
     val inventory: HashMap<InventoryItem, Int> = hashMapOf(Pair(InventoryItem.STREAK_FREEZER,2)),
     val achievements: List<Achievements> = listOf(Achievements.THE_EARLY_FEW),
