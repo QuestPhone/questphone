@@ -23,7 +23,7 @@ data class ReminderResult(
     val description: String
 )
 
-fun generateReminders(context: Context, quest: CommonQuestInfo) {
+fun generateQuestReminder(context: Context, quest: CommonQuestInfo) {
     val dao = ReminderDatabaseProvider.getInstance(context).reminderDao()
     val userId = Supabase.supabase.auth.currentAccessTokenOrNull().toString()
 
@@ -171,6 +171,7 @@ fun generateReminders(context: Context, quest: CommonQuestInfo) {
             Log.d("Reminder Set for $userId at ", unixToReadable(updated.timeMillis))
         }
     }
+
 }
 
 
@@ -190,3 +191,4 @@ fun getRandomReminderLine(context: Context): String? {
         null
     }
 }
+

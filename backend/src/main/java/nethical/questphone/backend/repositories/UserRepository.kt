@@ -177,12 +177,17 @@ class UserRepository @Inject constructor(
             userInfo.streak.longestStreak = maxOf(userInfo.streak.currentStreak, userInfo.streak.longestStreak)
             userInfo.streak.currentStreak = 0
             currentStreakState.value = userInfo.streak.currentStreak
+            updateStreakHistory(oldStreak)
             saveUserInfo()
             return StreakFreezerReturn(isOngoing = false,streakDaysLost = oldStreak)
         }
     }
 
-
+    private fun updateStreakHistory(oldStreak: Int){
+        val streakHistory = userInfo.streak.streakFailureHistory.toMutableMap()
+        streakHistory[getCurrentDate()] = oldStreak
+        userInfo.streak.streakFailureHistory = streakHistory
+    }
     fun continueStreak(): Boolean {
         val today = LocalDate.now()
         val lastCompleted = LocalDate.parse(userInfo.streak.lastCompletedDate)

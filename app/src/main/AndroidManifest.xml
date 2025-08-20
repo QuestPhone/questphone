@@ -119,6 +119,10 @@
             android:name=".core.utils.reminder.ReminderBroadcastReceiver"
             android:enabled="true"
             android:exported="false" />
+        <receiver
+            android:name=".core.utils.reminder.streak.StreakReminderReceiver"
+            android:enabled="true"
+            android:exported="false" />
 
 
         <receiver
@@ -127,7 +131,7 @@
             android:exported="false" />
 
         <receiver
-            android:name=".core.utils.reminder.BootReceiver"
+            android:name=".core.utils.receiver.BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

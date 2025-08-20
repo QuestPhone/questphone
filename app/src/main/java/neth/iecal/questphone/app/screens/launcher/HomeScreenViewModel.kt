@@ -23,6 +23,7 @@ import kotlinx.datetime.until
 import neth.iecal.questphone.app.screens.game.handleStreakFreezers
 import neth.iecal.questphone.app.screens.game.showStreakUpDialog
 import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.core.utils.scheduleDailyNotification
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
@@ -65,6 +66,7 @@ class HomeScreenViewModel @Inject constructor(
     val donationSp = application.getSharedPreferences("shows", MODE_PRIVATE)
 
     init {
+        scheduleDailyNotification(application,9,0)
         viewModelScope.launch {
             loadSavedConfigs()
             // Keep updating time every minute

@@ -1,10 +1,11 @@
-package neth.iecal.questphone.core.utils.reminder
+package neth.iecal.questphone.core.utils.receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
+import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
 import nethical.questphone.backend.repositories.QuestRepository
 import javax.inject.Inject
 

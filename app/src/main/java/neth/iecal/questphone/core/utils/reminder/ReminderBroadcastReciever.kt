@@ -48,7 +48,7 @@ class ReminderBroadcastReceiver : HiltBroadcastReceiver() {
                 withContext(Dispatchers.Main) {
                     if(quest!=null){
                         val isNotCompleted = quest.last_completed_on != getCurrentDate()
-                        generateReminders(context,quest)
+                        generateQuestReminder(context,quest)
                         if (reminderId.isNotEmpty()) {
                             if(isNotCompleted) {
                                 // Display the notification using the extracted details

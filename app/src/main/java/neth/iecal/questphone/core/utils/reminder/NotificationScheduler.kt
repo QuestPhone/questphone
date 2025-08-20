@@ -222,7 +222,7 @@ class NotificationScheduler(private val context: Context,val questRepository: Qu
                 if(it !in persistedReminders.map { it.quest_id }){
                     val quest = questRepository.getQuestById(it)
                     if(quest != null){
-                        generateReminders(context,quest)
+                        generateQuestReminder(context,quest)
                     }
                 }
             }
@@ -230,7 +230,7 @@ class NotificationScheduler(private val context: Context,val questRepository: Qu
                 if(it.timeMillis < System.currentTimeMillis()){
                     val quest = questRepository.getQuestById(it.quest_id)
                     if(quest != null){
-                        generateReminders(context,quest)
+                        generateQuestReminder(context,quest)
                     }
                 }
                 scheduleReminder(it)

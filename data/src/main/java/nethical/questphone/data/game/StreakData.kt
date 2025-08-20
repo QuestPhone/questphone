@@ -8,6 +8,7 @@ data class StreakData(
     var currentStreak: Int = 0,
     var longestStreak: Int = 0,
     var lastCompletedDate: String = "0001-01-01",
+    var streakFailureHistory : Map<String,Int> = emptyMap()
 )
 
 /**
