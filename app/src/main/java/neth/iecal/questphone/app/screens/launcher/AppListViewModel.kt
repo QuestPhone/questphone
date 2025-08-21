@@ -76,7 +76,7 @@ class AppListViewModel @Inject constructor(
     var remainingFreePassesToday = MutableStateFlow(0)
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             loadApps()
             initFreePasses()
             reloadDistractions()
@@ -84,7 +84,7 @@ class AppListViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loadApps() {
+     suspend fun loadApps() {
         val prefs = context.getSharedPreferences("minutes_per_5", Context.MODE_PRIVATE)
         minutesPerFiveCoins.value = prefs.getInt("minutes_per_5", 10)
 

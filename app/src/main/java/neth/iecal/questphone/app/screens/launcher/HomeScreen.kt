@@ -213,15 +213,14 @@ fun HomeScreen(
                         onVerticalDrag = { change, dragAmount ->
                             change.consume()
                             verticalDragOffset += dragAmount
-                        },
-                        onDragEnd = {
-                            // Negative value for swipe-up, adjust threshold as needed
-                            val swipeThreshold = -100f // Increased for more deliberate swipe
+                            val swipeThreshold = -50f // Increased for more deliberate swipe
                             if (verticalDragOffset < swipeThreshold) {
-                                navController.navigate(RootRoute.AppList.route)
+                                navController.navigate(RootRoute.AppList.route){
+                                    restoreState = true
+                                }
                                 hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             }
-                        }
+                        },
                     )
                 }
                 .pointerInput(Unit) {

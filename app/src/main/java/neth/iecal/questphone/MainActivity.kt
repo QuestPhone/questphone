@@ -2,16 +2,23 @@ package neth.iecal.questphone
 
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -24,7 +31,8 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.AndroidEntryPoint
-import neth.iecal.questphone.app.navigation.Navigator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.account.UserInfoScreen
 import neth.iecal.questphone.app.screens.game.RewardDialogMaker
@@ -47,6 +55,7 @@ import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
 import neth.iecal.questphone.app.screens.quest_docs.QuestTutorial
 import neth.iecal.questphone.app.theme.LauncherTheme
 import neth.iecal.questphone.core.services.AppBlockerService
+import neth.iecal.questphone.core.utils.receiver.AppInstallReceiver
 import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
 import neth.iecal.questphone.data.IntegrationId
 import nethical.questphone.backend.isOnline
@@ -64,6 +73,8 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var userRepository: UserRepository
     @Inject lateinit var questRepository: QuestRepository
     @Inject lateinit var statRepository: StatsRepository
+
+    private lateinit var appInstallReceiver: AppInstallReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,7 +124,6 @@ class MainActivity : ComponentActivity() {
                     val unSyncedStatsItems = remember { statRepository.getAllUnSyncedStats() }
                     val context = LocalContext.current
 
-                    val forceCurrentScreen = remember { derivedStateOf { Navigator.currentScreen } }
                     RewardDialogMaker(userRepository)
 
                     TheSystemDialog()
@@ -130,18 +140,34 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                    LaunchedEffect(forceCurrentScreen.value) {
-                        Log.d("MainActivity", "triggered screen change")
-                        if (forceCurrentScreen.value != null) {
-                            navController.navigate(forceCurrentScreen.value!!)
-                            Navigator.currentScreen = null
-                        }
-                    }
+
+                    val appListViewModel : AppListViewModel = hiltViewModel()
                     val homeScreenViewModel : HomeScreenViewModel = hiltViewModel()
                     val templatesViewModel: TemplatesViewModel = hiltViewModel()
+
+                    val scope = rememberCoroutineScope()
+                    DisposableEffect(Unit) {
+                        val receiver = AppInstallReceiver { packageName ->
+                            scope.launch(Dispatchers.IO) {
+                                appListViewModel.loadApps()
+                            }
+                        }
+
+                        val filter = IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply {
+                            addDataScheme("package")
+                        }
+
+                        context.registerReceiver(receiver, filter)
+
+                        onDispose {
+                            context.unregisterReceiver(receiver)
+                        }
+                    }
                     NavHost(
                         navController = navController,
                         startDestination = if(questId!=null) "${RootRoute.ViewQuest.route}${questId}" else RootRoute.HomeScreen.route,
+                        popEnterTransition = { fadeIn(animationSpec = tween(700)) },
+                        popExitTransition = { fadeOut(animationSpec = tween(700)) },
                     ) {
 
                         composable(RootRoute.UserInfo.route) {
@@ -162,7 +188,6 @@ class MainActivity : ComponentActivity() {
                             StoreScreen(navController)
                         }
                         composable(RootRoute.AppList.route) {
-                            val appListViewModel : AppListViewModel = hiltViewModel()
                             AppList(navController,appListViewModel)
                         }
 
