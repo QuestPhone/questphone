@@ -52,7 +52,7 @@ class ReminderBroadcastReceiver : HiltBroadcastReceiver() {
                         if (reminderId.isNotEmpty()) {
                             if(isNotCompleted) {
                                 // Display the notification using the extracted details
-                                showNotification(it, reminderId.hashCode(), title, description)
+                                showNotification(it, reminderId, title, description)
                                 Log.d("ReminderBroadcastReceiver", "Received alarm for reminder ID: $reminderId, Title: '$title'")
                             }
                         } else {
@@ -72,7 +72,7 @@ class ReminderBroadcastReceiver : HiltBroadcastReceiver() {
      * @param title The title of the notification.
      * @param description The body text of the notification.
      */
-    private fun showNotification(context: Context, reminderId: Int, title: String, description: String) {
+    private fun showNotification(context: Context, reminderId: String, title: String, description: String) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Create an Intent to open the main activity of the app when the notification is tapped.
@@ -81,7 +81,7 @@ class ReminderBroadcastReceiver : HiltBroadcastReceiver() {
         //   - FLAG_ACTIVITY_CLEAR_TASK: Clears any existing task associated with the activity.
         val mainActivityIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
+        }.putExtra("quest_id",reminderId)
         // Create a PendingIntent for the notification content.
         // Use the reminderId as the request code to ensure uniqueness.
         val pendingIntent = PendingIntent.getActivity(
@@ -93,7 +93,7 @@ class ReminderBroadcastReceiver : HiltBroadcastReceiver() {
 
         // Build the notification using NotificationCompat.Builder for backward compatibility.
         val notification = NotificationCompat.Builder(context, NotificationScheduler.REMINDER_CHANNEL_ID)
-            .setSmallIcon(R.drawable.baseline_info_24) // **IMPORTANT: Replace with your app's notification icon.**
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // **IMPORTANT: Replace with your app's notification icon.**
             // This icon must be monochrome for Android 5.0+
             .setContentTitle(title) // Set the notification title
             .setContentText(description) // Set the notification body text
@@ -101,6 +101,7 @@ class ReminderBroadcastReceiver : HiltBroadcastReceiver() {
             .setCategory(NotificationCompat.CATEGORY_REMINDER) // Categorize as a reminder
             .setContentIntent(pendingIntent) // Set the action when notification is clicked
             .setGroup(null) // avoid accidental grouping
+            .setOngoing(true)
             .setGroupSummary(false)
             .setAutoCancel(false) // Automatically dismisses the notification when tapped by the user
             .build()
@@ -108,7 +109,7 @@ class ReminderBroadcastReceiver : HiltBroadcastReceiver() {
         // Display the notification.
         // The notification ID is formed by adding a prefix to the reminder ID to ensure it's unique
         // and doesn't conflict with other possible notification IDs in your app.
-        notificationManager.notify(NotificationScheduler.REMINDER_NOTIFICATION_ID_PREFIX + reminderId, notification)
+        notificationManager.notify(NotificationScheduler.REMINDER_NOTIFICATION_ID_PREFIX + reminderId.hashCode(), notification)
         Log.d("ReminderBroadcastReceiver", "Notification displayed for ID: $reminderId.")
     }
 }

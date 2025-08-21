@@ -201,42 +201,45 @@ class NotificationScheduler(private val context: Context,val questRepository: Qu
         val dao = ReminderDatabaseProvider.getInstance(context).reminderDao()
         return dao.getAll()
     }
-    
+
     /**
      * Resets reminders that may have been deleted + generate reminders for the quests that have not been generated
      */
-    fun reloadAllReminders(){
-        Log.d("Rescheduling reminders", " Attempting to reschedule reminders...")
-        createNotificationChannel() // Ensure notification channel is recreated/exists
+    fun reloadAllReminders() {
+        Log.d("Rescheduling reminders", "Attempting to reschedule reminders...")
+        createNotificationChannel()
 
         val reminderDao = ReminderDatabaseProvider.getInstance(context).reminderDao()
 
         CoroutineScope(Dispatchers.Default).launch {
-            val persistedReminders: List<ReminderData> = reminderDao.getAllUpcoming()
+            val persistedReminders = reminderDao.getAllUpcoming()
+            val persistedQuestIds = persistedReminders.map { it.quest_id }.toSet()
 
             val allQuests = questRepository!!.getAllQuests().first()
-
             val allQuestIds = allQuests.map { it.id }.toSet()
 
-            allQuestIds.forEach {
-                if(it !in persistedReminders.map { it.quest_id }){
-                    val quest = questRepository.getQuestById(it)
-                    if(quest != null){
-                        generateQuestReminder(context,quest)
-                    }
+            // Generate reminders for quests that have no reminder yet
+            allQuestIds.forEach { questId ->
+                if (questId !in persistedQuestIds) {
+                    questRepository.getQuestById(questId)
+                        ?.let { generateQuestReminder(context, it) }
                 }
             }
-            persistedReminders.forEach {
-                if(it.timeMillis < System.currentTimeMillis()){
-                    val quest = questRepository.getQuestById(it.quest_id)
-                    if(quest != null){
-                        generateQuestReminder(context,quest)
-                    }
-                }
-                scheduleReminder(it)
-            }
-            Log.d("Rescheduling reminders", "Finished rescheduling ${persistedReminders.size} reminders.")
 
+            // Reschedule existing reminders
+            persistedReminders.forEach { reminder ->
+                if (reminder.timeMillis < System.currentTimeMillis()) {
+                    questRepository.getQuestById(reminder.quest_id)
+                        ?.let { generateQuestReminder(context, it) }
+                } else {
+                    scheduleReminder(reminder)
+                }
+            }
+
+            Log.d(
+                "Rescheduling reminders",
+                "Finished rescheduling ${persistedReminders.size} reminders."
+            )
         }
     }
 }

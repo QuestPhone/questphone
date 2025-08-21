@@ -88,6 +88,7 @@ import neth.iecal.questphone.app.screens.launcher.dialogs.DonationsDialog
 import neth.iecal.questphone.app.screens.launcher.dialogs.LauncherDialog
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
+import neth.iecal.questphone.app.theme.smoothRed
 import neth.iecal.questphone.core.services.LockScreenService
 import neth.iecal.questphone.core.services.performLockScreenAction
 import neth.iecal.questphone.core.utils.managers.QuestHelper
@@ -321,7 +322,7 @@ fun HomeScreen(
                             text = baseQuest.title,
                             fontWeight = FontWeight.ExtraLight,
                             fontSize = 23.sp,
-                            color = if (isFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                            color = if (isFailed && !isCompleted) smoothRed else MaterialTheme.colorScheme.onSurface,
                             textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                             modifier = Modifier.clickable(onClick = {
                                 navController.navigate(RootRoute.ViewQuest.route + baseQuest.id)

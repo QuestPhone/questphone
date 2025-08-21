@@ -68,6 +68,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val questId = intent.getStringExtra("quest_id")
         enableEdgeToEdge()
         val data = getSharedPreferences("onboard", MODE_PRIVATE)
         val notificationScheduler = NotificationScheduler(applicationContext,questRepository)
@@ -140,7 +141,7 @@ class MainActivity : ComponentActivity() {
                     val templatesViewModel: TemplatesViewModel = hiltViewModel()
                     NavHost(
                         navController = navController,
-                        startDestination = RootRoute.HomeScreen.route,
+                        startDestination = if(questId!=null) "${RootRoute.ViewQuest.route}${questId}" else RootRoute.HomeScreen.route,
                     ) {
 
                         composable(RootRoute.UserInfo.route) {
@@ -223,6 +224,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+
             }
         }
     }
