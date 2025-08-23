@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -17,6 +18,8 @@ import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
 import nethical.questphone.ai.padTokenIds
 import nethical.questphone.ai.preprocessBitmapToFloatBuffer
 import nethical.questphone.ai.tokenizeText
+import nethical.questphone.backend.Supabase
+import nethical.questphone.backend.TaskValidationClient
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
@@ -64,6 +67,9 @@ class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
 
     private lateinit var modelId: String
 
+    private var isOnlineInferencing = true
+
+    private val client = TaskValidationClient()
     init {
         viewModelScope.launch(Dispatchers.IO) {
             loadModel()
@@ -89,6 +95,11 @@ class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
             modelId = sp.getString("selected_one_shot_model", null) ?: run {
                 error.value = "No model selected"
                 return false
+            }
+            if(modelId == "online"){
+                isModelLoaded = true
+                return true
+
             }
 
             Log.d("Loading Model","Starting to load model $modelId ")
@@ -121,79 +132,96 @@ class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
     fun evaluateQuest(onEvaluationComplete: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             if (!isModelLoaded && !loadModel()) return@launch
+            if(!isOnlineInferencing) {
+                runOfflineInference { onEvaluationComplete() }
+            } else {
 
-            try {
-                currentStep.value = EvaluationStep.INITIALIZING
-
-
-                val photoFile = File(application.filesDir, AI_SNAP_CROPPED_FILE_NAME)
-                currentStep.value = EvaluationStep.LOADING_IMAGE
-
-                if (!photoFile.exists()) {
-                    error.value = "Image file not found at ${photoFile.absolutePath}"
-                    Log.d("Not Found",photoFile.absolutePath)
-                    return@launch
-                }
-
-                val bitmap = getBitmapFromPath(photoFile.absolutePath)
-
-                currentStep.value = EvaluationStep.PREPROCESSING
-
-                val queries = listOf(aiQuest.taskDescription)
-                val processedQueries = queries.map { "$it </s>" }
-
-                currentStep.value = EvaluationStep.TOKENIZING
-
-                val tokenIdsList = try {
-                    tokenizeText(application, processedQueries)
-                } catch (e: Exception) {
-                    error.value = "Tokenization failed: ${e.message}"
-                    return@launch
-                }
-
-                val imageTensor = OnnxTensor.createTensor(
-                    env,
-                    preprocessBitmapToFloatBuffer(bitmap!!),
-                    longArrayOf(1, 3, 224, 224)
-                )
-
-                val maxLength = 64
-                val padTokenId = 0
-                val paddedTokenIdsList = tokenIdsList.map { padTokenIds(it, maxLength, padTokenId) }
-                val flatTokenIds =
-                    paddedTokenIdsList.flatMap { it.asList() }.map { it.toLong() }.toLongArray()
-
-                val textTensor = OnnxTensor.createTensor(
-                    env,
-                    LongBuffer.wrap(flatTokenIds),
-                    longArrayOf(paddedTokenIdsList.size.toLong(), maxLength.toLong())
-                )
-
-                currentStep.value = EvaluationStep.EVALUATING
-
-                val inputs = mapOf(
-                    "pixel_values" to imageTensor,
-                    "input_ids" to textTensor
-                )
-
-                val output = modelSession?.run(inputs)
-                val logitsTensor = output?.get(0) as? OnnxTensor
-                val logitsArray = logitsTensor?.floatBuffer?.array() ?: return@launch
-
-                val probs = logitsArray.map { 1f / (1f + kotlin.math.exp(-it)) }
-                val sorted = queries.mapIndexed { i, q -> q to probs[i] }
-                    .sortedByDescending { it.second }
-
-                results.value = sorted
-                currentStep.value = EvaluationStep.COMPLETED
-
-                if (sorted[0].second > MINIMUM_ZERO_SHOT_THRESHOLD) {
-                    onEvaluationComplete()
-                }
-
-            } catch (e: Exception) {
-                error.value = "Evaluation failed: ${e.message}"
             }
+
+        }
+    }
+
+    private fun runOnlineInference(){
+
+        val photoFile = File(application.filesDir, AI_SNAP_CROPPED_FILE_NAME)
+        client.validateTask(photoFile,aiQuest.taskDescription, Supabase.supabase.auth.currentUserOrNull()!!.toString()) {
+            results.value = listOf("") it.isSuccess.toString()
+            currentStep.value = EvaluationStep.COMPLETED
+        }
+    }
+
+    private fun runOfflineInference(onEvaluationComplete: () -> Unit){
+        try {
+            currentStep.value = EvaluationStep.INITIALIZING
+
+
+            val photoFile = File(application.filesDir, AI_SNAP_CROPPED_FILE_NAME)
+            currentStep.value = EvaluationStep.LOADING_IMAGE
+
+            if (!photoFile.exists()) {
+                error.value = "Image file not found at ${photoFile.absolutePath}"
+                Log.d("Not Found",photoFile.absolutePath)
+                return
+            }
+
+            val bitmap = getBitmapFromPath(photoFile.absolutePath)
+
+            currentStep.value = EvaluationStep.PREPROCESSING
+
+            val queries = listOf(aiQuest.taskDescription)
+            val processedQueries = queries.map { "$it </s>" }
+
+            currentStep.value = EvaluationStep.TOKENIZING
+
+            val tokenIdsList = try {
+                tokenizeText(application, processedQueries)
+            } catch (e: Exception) {
+                error.value = "Tokenization failed: ${e.message}"
+                return
+            }
+
+            val imageTensor = OnnxTensor.createTensor(
+                env,
+                preprocessBitmapToFloatBuffer(bitmap!!),
+                longArrayOf(1, 3, 224, 224)
+            )
+
+            val maxLength = 64
+            val padTokenId = 0
+            val paddedTokenIdsList = tokenIdsList.map { padTokenIds(it, maxLength, padTokenId) }
+            val flatTokenIds =
+                paddedTokenIdsList.flatMap { it.asList() }.map { it.toLong() }.toLongArray()
+
+            val textTensor = OnnxTensor.createTensor(
+                env,
+                LongBuffer.wrap(flatTokenIds),
+                longArrayOf(paddedTokenIdsList.size.toLong(), maxLength.toLong())
+            )
+
+            currentStep.value = EvaluationStep.EVALUATING
+
+            val inputs = mapOf(
+                "pixel_values" to imageTensor,
+                "input_ids" to textTensor
+            )
+
+            val output = modelSession?.run(inputs)
+            val logitsTensor = output?.get(0) as? OnnxTensor
+            val logitsArray = logitsTensor?.floatBuffer?.array() ?: return
+
+            val probs = logitsArray.map { 1f / (1f + kotlin.math.exp(-it)) }
+            val sorted = queries.mapIndexed { i, q -> q to probs[i] }
+                .sortedByDescending { it.second }
+
+            results.value = sorted
+            currentStep.value = EvaluationStep.COMPLETED
+
+            if (sorted[0].second > MINIMUM_ZERO_SHOT_THRESHOLD) {
+                onEvaluationComplete()
+            }
+
+        } catch (e: Exception) {
+            error.value = "Evaluation failed: ${e.message}"
         }
     }
     override fun onCleared() {
