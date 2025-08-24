@@ -15,6 +15,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
@@ -32,6 +33,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.LongBuffer
 import javax.inject.Inject
+import kotlin.random.Random
 
 enum class EvaluationStep(val message: String, val progress: Float) {
     INITIALIZING("Initializing...", 0.1f),
@@ -87,7 +89,6 @@ class AiSnapQuestViewVM @Inject constructor(
 
     fun onAiSnapQuestDone(){
         saveQuestToDb()
-        isAiEvaluating.value = false
         isCameraScreen.value = false
     }
 
@@ -98,7 +99,7 @@ class AiSnapQuestViewVM @Inject constructor(
             currentStep.value = EvaluationStep.CHECKING_MODEL
             env = OrtEnvironment.getEnvironment()
             val sp = application.getSharedPreferences("models", Context.MODE_PRIVATE)
-            modelId = sp.getString("selected_one_shot_model", null) ?: run {
+            modelId = sp.getString("selected_one_shot_model", "online") ?: run {
                 error.value = "No model selected"
                 return false
             }
@@ -140,9 +141,9 @@ class AiSnapQuestViewVM @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             if (!isModelLoaded && !loadModel()) return@launch
             if(!isOnlineInferencing) {
-                runOfflineInference { onEvaluationComplete() }
+                runOfflineInference(onEvaluationComplete)
             } else {
-                runOnlineInference()
+                runOnlineInference(onEvaluationComplete)
             }
 
         }
@@ -152,12 +153,12 @@ class AiSnapQuestViewVM @Inject constructor(
         isAiEvaluating.value = true
         results.value = null
     }
-    private fun runOnlineInference() {
-        val photoFile = File(application.filesDir, AI_SNAP_CROPPED_FILE_NAME)
+    private suspend fun runOnlineInference(onEvaluationComplete: () -> Unit) {
 
-        currentStep.value = EvaluationStep.EVALUATING
+        currentStep.value = EvaluationStep.INITIALIZING
+        currentStep.value = EvaluationStep.LOADING_MODEL
+        val photoFile = File(application.filesDir, AI_SNAP_CROPPED_FILE_NAME)
         val compressedFile = resizeAndCompressImage(photoFile, 1080, 50)
-        // Now upload the compressed file
         client.validateTask(
             compressedFile,
             aiQuest.taskDescription,
@@ -166,7 +167,18 @@ class AiSnapQuestViewVM @Inject constructor(
         ) {
             results.value = it.getOrNull()
             currentStep.value = EvaluationStep.COMPLETED
+            if(results.value?.isValid == true) {
+                onEvaluationComplete()
+            }
         }
+        val allSteps = EvaluationStep.entries
+        var currentStepInt = 0
+        while(results.value != null){
+            delay(Random.nextInt(500,2000).toLong())
+            currentStep.value = EvaluationStep.valueOf( allSteps[currentStepInt].name)
+            if(currentStepInt != EvaluationStep.EVALUATING.ordinal) currentStepInt++
+        }
+
     }
 
 

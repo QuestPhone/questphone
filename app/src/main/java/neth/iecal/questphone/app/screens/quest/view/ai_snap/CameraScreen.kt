@@ -48,7 +48,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import neth.iecal.questphone.R
-import neth.iecal.questphone.app.screens.etc.ImageCropperScreen
 import neth.iecal.questphone.app.screens.quest.setup.ai_snap.model.ModelDownloadDialog
 
 const val AI_SNAP_CROPPED_FILE_NAME = "ai_snap_captured_image_cropped.jpeg"
@@ -86,12 +85,6 @@ fun CameraScreen(onPicClicked: ()->Unit) {
     BackHandler(imageBitmap.value!=null) {
         imageBitmap.value = null
     }
-
-    if (imageBitmap.value!=null) {
-        ImageCropperScreen(imageBitmap, AI_SNAP_CROPPED_FILE_NAME) {
-            onPicClicked()
-        }
-    } else {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -194,6 +187,7 @@ fun CameraScreen(onPicClicked: ()->Unit) {
                         // Take picture
                         takePicture(context, imageCapture, {
                             imageBitmap.value = it
+                            onPicClicked()
                         })
                     },
                     modifier = Modifier
@@ -213,7 +207,7 @@ fun CameraScreen(onPicClicked: ()->Unit) {
             }
         }
     }
-}private fun takePicture(
+private fun takePicture(
     context: Context,
     imageCapture: ImageCapture,
     onImageCaptured: (ImageBitmap) -> Unit

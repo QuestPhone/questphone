@@ -79,14 +79,18 @@ fun AppList(navController: NavController, viewModel: AppListViewModel) {
                    if(!pulledDownHard) {
                        pulledDownHard = true
                        viewModel.onSearchQueryChange("")
-                       keyboardController?.hide()
+                       if(textFieldLoaded) {
+                           keyboardController?.hide()
+                       }
                        navController.navigate(RootRoute.HomeScreen.route){
                            restoreState = true
                        }
                    }
                 }
                 if (available.y != 0f || available.x != 0f) {
-                    keyboardController?.hide()
+                    if(textFieldLoaded){
+                         keyboardController?.hide()
+                    }
                 }
                 return Offset.Zero
             }
@@ -157,8 +161,8 @@ fun AppList(navController: NavController, viewModel: AppListViewModel) {
                             .focusRequester(focusRequester)
                             .onGloballyPositioned {
                                 if (!textFieldLoaded) {
-                                    focusRequester.requestFocus()
                                     textFieldLoaded = true // stop cyclic recompositions
+                                    focusRequester.requestFocus()
                                 }
                             },
                         singleLine = true

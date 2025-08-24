@@ -38,6 +38,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import neth.iecal.questphone.BuildConfig
 import nethical.questphone.backend.fetchUrlContent
 import nethical.questphone.backend.worker.FileDownloadWorker
 
@@ -66,6 +67,12 @@ fun ModelDownloadDialog(
     LaunchedEffect(Unit) {
         currentModel = sp.getString("selected_one_shot_model", null)
 
+        if(currentModel==null && !BuildConfig.IS_FDROID) {
+            currentModel = "online"
+            sp.edit(commit = true) {
+                putString("selected_one_shot_model", "online")
+            }
+        }
         if (currentModel == null) modelDownloadDialogVisible.value = true
 
         val json = fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/models/refs/heads/main/model_data.json")
@@ -128,8 +135,8 @@ fun ModelDownloadDialog(
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
-                    Text("Download Model", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 20.dp))
-                    Text("Performing this quest requires more additional files to be downloaded. Please select any one from the below to continue.",  modifier = Modifier.padding(bottom = 20.dp))
+                    Text("Download Model", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 8.dp))
+                    Text("Performing this quest requires more additional files to be downloaded. Please select any one from the below to continue.", style = MaterialTheme.typography.labelSmall,  modifier = Modifier.padding(bottom = 20.dp))
 
                     if (isModelDownloading) {
                         Text(
@@ -163,6 +170,11 @@ fun ModelDownloadDialog(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable(enabled = !isModelDownloading) {
+                                            if(model.isOnline && neth.iecal.questphone.BuildConfig.IS_FDROID){
+                                                Toast.makeText(context,"Please download the app from playstore to access this",
+                                                    Toast.LENGTH_SHORT).show()
+                                                return@clickable
+                                            }
                                             if ((isDownloaded && !needsUpdate)|| model.isOnline ) {
                                                 sp.edit(commit = true) {
                                                     putString("selected_one_shot_model", model.id)
@@ -226,8 +238,6 @@ fun ModelDownloadDialog(
                                             }
 
                                             Column(horizontalAlignment = Alignment.End) {
-
-
                                                 if (isDownloaded) {
                                                     TextButton(
                                                         onClick = {

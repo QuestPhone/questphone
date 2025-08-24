@@ -69,9 +69,9 @@ fun AiSnapQuestView(
     }
 
     if(isAiEvaluating) {
-        AiEvaluationScreen({viewModel.isAiEvaluating.value = false}, viewModel) {
-            viewModel.onAiSnapQuestDone()
-        }
+        AiEvaluationScreen({
+            viewModel.isCameraScreen.value = false
+            viewModel.isAiEvaluating.value = false}, viewModel)
     } else if (isCameraScreen) {
         CameraScreen({
             viewModel.isAiEvaluating.value = true

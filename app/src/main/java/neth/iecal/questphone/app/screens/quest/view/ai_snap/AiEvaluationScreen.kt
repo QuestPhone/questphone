@@ -56,8 +56,7 @@ import java.io.File
 @Composable
 fun AiEvaluationScreen(
     onDismiss:()-> Unit,
-    viewModel: AiSnapQuestViewVM,
-    onEvaluationComplete: () -> Unit
+    viewModel: AiSnapQuestViewVM
 ) {
     val context = LocalContext.current
     val photoFile = File(context.getExternalFilesDir(null), AI_SNAP_CROPPED_FILE_NAME)
