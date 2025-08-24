@@ -7,12 +7,15 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.media.AudioAttributes
 import android.os.Build
 import android.util.Log
+import androidx.core.net.toUri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import neth.iecal.questphone.R
 import nethical.questphone.backend.ReminderData
 import nethical.questphone.backend.ReminderDatabaseProvider
 import nethical.questphone.backend.repositories.QuestRepository
@@ -46,6 +49,11 @@ class NotificationScheduler(private val context: Context,val questRepository: Qu
      * Creates the notification channel for reminders.
      */
     fun createNotificationChannel() {
+        val soundUri = "android.resource://${context.packageName}/${R.raw.notifcation}".toUri()
+        val attributes = AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .build()
         // Notification channels are only required for Android O (API 26) and above
         val channel = NotificationChannel(
             REMINDER_CHANNEL_ID,
@@ -56,6 +64,7 @@ class NotificationScheduler(private val context: Context,val questRepository: Qu
             enableLights(true) // Enable LED light for notifications
             lightColor = Color.GREEN // Set the LED light color
             enableVibration(true) // Enable vibration for notifications
+//            setSound(soundUri, attributes)
             // You can also set a custom vibration pattern if desired
             // vibrationPattern = longArrayOf(0, 1000, 500, 1000)
         }

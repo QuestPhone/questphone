@@ -5,11 +5,13 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.media.AudioAttributes
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
+import androidx.core.net.toUri
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.screens.game.DialogState
 import neth.iecal.questphone.app.screens.game.RewardDialogInfo
@@ -35,7 +37,7 @@ fun generateStreakReminder(userRepository: UserRepository, context: Context) {
     Log.d("last to last streak", lastToLast.toString())
     Log.d("days since last streak", gap.toString())
 
-    fun sendNextNotif(prefKey: String, filePath: String,title:String?=null) {
+    fun sendNextNotif(prefKey: String, filePath: String,title:String?=null,positive:Boolean = true) {
         val prefs = context.getSharedPreferences(prefKey, Context.MODE_PRIVATE)
         val lastSent = prefs.getInt("last_sent", -1)
         var index = lastSent + 1
@@ -49,9 +51,9 @@ fun generateStreakReminder(userRepository: UserRepository, context: Context) {
         prefs.edit(commit = true) { putInt("last_sent", index) }
         if (line != null) {
             if(title==null){
-            sendCustomNotifcation("Streak", "Streak", context, line)
+            sendCustomNotifcation("Streak", "Streak", context, line,positive)
             }else{
-                sendCustomNotifcationWithTitle("Streak", "Streak", context, line,title)
+                sendCustomNotifcationWithTitle("Streak", "Streak", context, line,title,positive)
 
             }
         }
@@ -64,10 +66,11 @@ fun generateStreakReminder(userRepository: UserRepository, context: Context) {
                 sendNextNotif(
                     "streak_freezers_notif",
                     "streak/streak_freezers.txt",
-                    "$streakFreezersUsed Streak Freezers Used"
+                    "$streakFreezersUsed Streak Freezers Used",
+                    true
                 )
             }else{
-                sendNextNotif("long_break_resumed", "streak/streak_resumed/long_break.txt")
+                sendNextNotif("long_break_resumed", "streak/streak_resumed/long_break.txt", positive = true)
             }
             return
         }
@@ -81,14 +84,14 @@ fun generateStreakReminder(userRepository: UserRepository, context: Context) {
             in 8..20 -> "mid_streak"
             else -> "long_streak"
         }
-        sendNextNotif("${level}_failed", "streak/streak_failed/$level.txt")
+        sendNextNotif("${level}_failed", "streak/streak_failed/$level.txt", positive = false)
         return
     }
 
     // Case 2: user resumed streak (current = 1)
     if (streakInfo.currentStreak == 1) {
         if (irregularity > 3) {
-            sendNextNotif("streak_irregular_notif", "streak/irregular.txt")
+            sendNextNotif("streak_irregular_notif", "streak/irregular.txt",positive = false)
             return
         }
         val level = when (lastToLast) {
@@ -96,13 +99,13 @@ fun generateStreakReminder(userRepository: UserRepository, context: Context) {
             in 8..20 -> "mid_break"
             else -> "long_break"
         }
-        sendNextNotif("${level}_resumed", "streak/streak_resumed/$level.txt")
+        sendNextNotif("${level}_resumed", "streak/streak_resumed/$level.txt", positive = true)
         return
     }
 
     // Case 3: user is continuing streak normally
     if (streakInfo.currentStreak > 1) {
-        sendNextNotif("streak_up_notif", "streak/streak_up.txt")
+        sendNextNotif("streak_up_notif", "streak/streak_up.txt",positive = true)
     }
 }
 
@@ -148,8 +151,20 @@ private fun calculateIrregularity(streakBreaks: Map<String, Int>): Double {
 }
 
 
-fun sendCustomNotifcation(channelId:String, channelName: String, context: Context, message: String) {
+fun sendCustomNotifcation(
+    channelId: String,
+    channelName: String,
+    context: Context,
+    message: String,
+    positive: Boolean
+) {
     // Create notification channel (required for Android 8+)
+
+    val soundUri = if(positive) "android.resource://${context.packageName}/raw/game_streak_up".toUri() else "android.resource://${context.packageName}/raw/streap_fail".toUri()
+    val attributes = AudioAttributes.Builder()
+        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+        .build()
     val channel = NotificationChannel(
         channelId,
         channelName,
@@ -159,6 +174,8 @@ fun sendCustomNotifcation(channelId:String, channelName: String, context: Contex
         enableLights(true)
         lightColor = 0xFFFFA500.toInt() // bright orange light
         enableVibration(true)
+        setSound(soundUri, attributes)
+
     }
     val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     manager.createNotificationChannel(channel)
@@ -190,8 +207,19 @@ fun sendCustomNotifcation(channelId:String, channelName: String, context: Contex
     NotificationManagerCompat.from(context).notify(System.currentTimeMillis().toInt(), notification)
 }
 
-fun sendCustomNotifcationWithTitle(channelId:String, channelName: String, context: Context, message: String,title: String) {
-    // Create notification channel (required for Android 8+)
+fun sendCustomNotifcationWithTitle(
+    channelId: String,
+    channelName: String,
+    context: Context,
+    message: String,
+    title: String,
+    positive: Boolean
+) {
+    val soundUri = if(positive) "android.resource://${context.packageName}/${R.raw.game_streak_up}".toUri() else "android.resource://${context.packageName}/${R.raw.streap_fail}".toUri()
+    val attributes = AudioAttributes.Builder()
+        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+        .build()
     val channel = NotificationChannel(
         channelId,
         channelName,
@@ -201,6 +229,8 @@ fun sendCustomNotifcationWithTitle(channelId:String, channelName: String, contex
         enableLights(true)
         lightColor = 0xFFFFA500.toInt() // bright orange light
         enableVibration(true)
+//        setSound(soundUri, attributes)
+
     }
     val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     manager.createNotificationChannel(channel)

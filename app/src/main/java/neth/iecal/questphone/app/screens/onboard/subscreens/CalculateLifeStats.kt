@@ -61,7 +61,7 @@ fun CalculateLifeStats() {
         // Perform heavy calculation off the main thread
         val calculatedYears = withContext(Dispatchers.IO) {
             val stats = ScreenUsageStatsHelper(context).getStatsForLast7Days()
-            var total7Days = 1.0
+            var total7Days = 0.1
             stats.forEach { total7Days += it.totalTime / (1000 * 60 * 60) }
             // Assuming a default age of 18 for this calculation
             yearsLost(total7Days, 18).toFloat()
