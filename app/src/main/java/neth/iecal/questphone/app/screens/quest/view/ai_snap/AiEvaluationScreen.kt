@@ -155,8 +155,8 @@ fun AiEvaluationScreen(
                         }
                     }
                 }
-                results.isNotEmpty() -> {
-                    val isSuccess = results[0].second > MINIMUM_ZERO_SHOT_THRESHOLD
+                results != null -> {
+                    val isSuccess = results!!.isValid
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
@@ -178,17 +178,19 @@ fun AiEvaluationScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Task Description: ${results[0].first}",
+                                text = "Result: ${isSuccess}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Match Rate: ${String.format("%.6f", results[0].second)}",
+                                text = "Reason: ${results?.reason}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-                            Button(onClick = { onDismiss() }) {
+                            Button(onClick = {
+                                viewModel.resetResults()
+                                onDismiss() }) {
                                 Text(text = if(isSuccess) "Close" else "Retake")
                             }
                         }

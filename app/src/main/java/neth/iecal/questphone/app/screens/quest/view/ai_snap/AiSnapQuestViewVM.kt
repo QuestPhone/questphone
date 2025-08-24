@@ -6,7 +6,10 @@ import ai.onnxruntime.OrtSession
 import ai.onnxruntime.OrtSession.SessionOptions
 import android.app.Application
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
+import androidx.core.graphics.scale
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,6 +29,7 @@ import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap
 import java.io.File
+import java.io.FileOutputStream
 import java.nio.LongBuffer
 import javax.inject.Inject
 
@@ -43,10 +47,11 @@ enum class EvaluationStep(val message: String, val progress: Float) {
 const val MINIMUM_ZERO_SHOT_THRESHOLD = 0.5
 
 @HiltViewModel
-class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
-                                            userRepository: UserRepository,
-                                            statsRepository: StatsRepository,
-                                            application: Application,
+class AiSnapQuestViewVM @Inject constructor(
+    questRepository: QuestRepository,
+    userRepository: UserRepository,
+    statsRepository: StatsRepository,
+    application: Application,
 ) : ViewQuestVM(
     questRepository, userRepository, statsRepository, application,
 ){
@@ -57,7 +62,7 @@ class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
 
     val currentStep = MutableStateFlow(EvaluationStep.INITIALIZING)
     val error = MutableStateFlow<String?>(null)
-    val results = MutableStateFlow<List<Pair<String, Float>>>(emptyList())
+    val results = MutableStateFlow<TaskValidationClient.ValidationResult?>(null)
     val isModelDownloaded = MutableStateFlow(true)
 
 
@@ -86,6 +91,7 @@ class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
         isCameraScreen.value = false
     }
 
+
     fun loadModel(): Boolean {
         return try {
             if (isModelLoaded) return true
@@ -98,6 +104,7 @@ class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
             }
             if(modelId == "online"){
                 isModelLoaded = true
+                isOnlineInferencing = true
                 return true
 
             }
@@ -135,20 +142,33 @@ class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
             if(!isOnlineInferencing) {
                 runOfflineInference { onEvaluationComplete() }
             } else {
-
+                runOnlineInference()
             }
 
         }
     }
 
-    private fun runOnlineInference(){
-
+    fun resetResults(){
+        isAiEvaluating.value = true
+        results.value = null
+    }
+    private fun runOnlineInference() {
         val photoFile = File(application.filesDir, AI_SNAP_CROPPED_FILE_NAME)
-        client.validateTask(photoFile,aiQuest.taskDescription, Supabase.supabase.auth.currentUserOrNull()!!.toString()) {
-            results.value = listOf("") it.isSuccess.toString()
+
+        currentStep.value = EvaluationStep.EVALUATING
+        val compressedFile = resizeAndCompressImage(photoFile, 1080, 50)
+        // Now upload the compressed file
+        client.validateTask(
+            compressedFile,
+            aiQuest.taskDescription,
+            aiQuest.features.joinToString(","),
+            Supabase.supabase.auth.currentUserOrNull()!!.toString()
+        ) {
+            results.value = it.getOrNull()
             currentStep.value = EvaluationStep.COMPLETED
         }
     }
+
 
     private fun runOfflineInference(onEvaluationComplete: () -> Unit){
         try {
@@ -213,7 +233,10 @@ class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
             val sorted = queries.mapIndexed { i, q -> q to probs[i] }
                 .sortedByDescending { it.second }
 
-            results.value = sorted
+            results.value = TaskValidationClient.ValidationResult(
+                sorted[0].second > MINIMUM_ZERO_SHOT_THRESHOLD,
+                sorted[0].second.toString()
+            )
             currentStep.value = EvaluationStep.COMPLETED
 
             if (sorted[0].second > MINIMUM_ZERO_SHOT_THRESHOLD) {
@@ -239,3 +262,29 @@ class AiSnapQuestViewVM @Inject constructor(questRepository: QuestRepository,
 
 
 }
+fun resizeAndCompressImage(file: File, maxSize: Int = 1080, quality: Int = 70): File {
+    val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+
+    // Maintain aspect ratio
+    val ratio = bitmap.width.toFloat() / bitmap.height.toFloat()
+    val width: Int
+    val height: Int
+    if (ratio > 1) {
+        width = maxSize
+        height = (maxSize / ratio).toInt()
+    } else {
+        height = maxSize
+        width = (maxSize * ratio).toInt()
+    }
+
+    val scaledBitmap = bitmap.scale(width, height)
+
+    val compressedFile = File(file.parent, "compressed_upload.jpg")
+    val out = FileOutputStream(compressedFile)
+    scaledBitmap.compress(Bitmap.CompressFormat.JPEG, quality, out)
+    out.flush()
+    out.close()
+
+    return compressedFile
+}
+

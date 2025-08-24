@@ -1,6 +1,7 @@
 package neth.iecal.questphone.app.screens.quest.setup.ai_snap.model
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,7 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
 import nethical.questphone.backend.fetchUrlContent
 import nethical.questphone.backend.worker.FileDownloadWorker
 
@@ -46,7 +48,8 @@ data class DownloadableModel(
     val id: String,
     val url: String,
     val version: String,
-    val isRecommended: Boolean = false
+    val isRecommended: Boolean = false,
+    val isOnline:Boolean = false
 )
 
 @Composable
@@ -67,7 +70,7 @@ fun ModelDownloadDialog(
 
         val json = fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/models/refs/heads/main/model_data.json")
         try {
-            val parsed = kotlinx.serialization.json.Json.decodeFromString(
+            val parsed = Json.decodeFromString(
                 ListSerializer(DownloadableModel.serializer()), json!!
             )
             modelStates = parsed.map { mutableStateOf(it) }
@@ -104,6 +107,7 @@ fun ModelDownloadDialog(
             }
 
         } catch (e: Exception) {
+            Log.d("Failed to load model", e.message.toString())
             Toast.makeText(context, "Failed to load model list", Toast.LENGTH_SHORT).show()
         }
     }
@@ -141,10 +145,10 @@ fun ModelDownloadDialog(
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.weight(1f, false)) {
                             items(modelStates) { modelState ->
                                 val model = modelState.value
-                                val isDownloaded = sp.getBoolean("is_downloaded_${model.id}", false)
+                                val isDownloaded = sp.getBoolean("is_downloaded_${model.id}", false) || model.isOnline
                                 val localVersion = sp.getString("version_${model.id}", null)
                                 val isSelected = currentModel == model.id
-                                val needsUpdate = localVersion != model.version && isDownloaded
+                                val needsUpdate = (localVersion != model.version && isDownloaded)
 
                                 Card(
                                     shape = RoundedCornerShape(12.dp),
@@ -159,7 +163,7 @@ fun ModelDownloadDialog(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable(enabled = !isModelDownloading) {
-                                            if (isDownloaded && !needsUpdate) {
+                                            if ((isDownloaded && !needsUpdate)|| model.isOnline ) {
                                                 sp.edit(commit = true) {
                                                     putString("selected_one_shot_model", model.id)
                                                 }
@@ -168,6 +172,7 @@ fun ModelDownloadDialog(
                                                 sp.edit(commit = true) {
                                                     putString("downloading", model.id)
                                                 }
+
                                                 isModelDownloading = true
                                                 val inputData = Data.Builder()
                                                     .putString(FileDownloadWorker.KEY_URL, model.url)

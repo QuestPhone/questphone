@@ -25,7 +25,8 @@ class TaskValidationClient {
 
     companion object {
         private const val TAG = "TaskValidationClient"
-        private const val BASE_URL = "http://ec2-3-83-89-169.compute-1.amazonaws.com:8000" // Use 10.0.2.2 for emulator localhost
+        private const val BASE_URL = "https://api.questphone.app"
+//        private const val BASE_URL = "http://localhost:8000" // Use 10.0.2.2 for emulator localhost
     }
 
     data class ValidationResult(
@@ -36,13 +37,15 @@ class TaskValidationClient {
     fun validateTask(
         imageFile: File,
         description: String,
+        features: String,
         token: String,
         callback: (Result<ValidationResult>) -> Unit
     ) {
         // Create multipart form data
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart("description", description)
+            .addFormDataPart("task_description", description)
+            .addFormDataPart("features", features)
 
             .addFormDataPart(
                 "image",
@@ -53,7 +56,7 @@ class TaskValidationClient {
 
         // Build the request
         val request = Request.Builder()
-            .url("$BASE_URL/validate-task/")
+            .url("$BASE_URL/valTask")
             .header("Authorization", "Bearer $token")
             .post(requestBody)
             .build()
@@ -69,7 +72,7 @@ class TaskValidationClient {
                 response.use {
                     if (!response.isSuccessful) {
                         val errorBody = response.body?.string() ?: "No error details"
-                        Log.e(TAG, "Server error: $errorBody")
+                        Log.e(TAG, "Server error: $errorBody $")
                         callback(Result.failure(IOException("Server error: ${response.code} - $errorBody")))
                         return
                     }
