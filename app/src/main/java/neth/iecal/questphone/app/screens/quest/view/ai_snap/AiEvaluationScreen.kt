@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import neth.iecal.questphone.R
@@ -59,7 +60,7 @@ fun AiEvaluationScreen(
     viewModel: AiSnapQuestViewVM
 ) {
     val context = LocalContext.current
-    val photoFile = File(context.getExternalFilesDir(null), AI_SNAP_CROPPED_FILE_NAME)
+    val photoFile = File(context.getExternalFilesDir(null), AI_SNAP_PIC)
 
     // State variables
     val currentStep by viewModel.currentStep.collectAsState()
@@ -87,7 +88,8 @@ fun AiEvaluationScreen(
             text = viewModel.commonQuestInfo.title,
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.primary ,
-            modifier = Modifier.padding(bottom= 8.dp)
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom= 8.dp).fillMaxWidth()
 
         )
 

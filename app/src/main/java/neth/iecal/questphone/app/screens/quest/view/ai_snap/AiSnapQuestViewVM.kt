@@ -157,7 +157,7 @@ class AiSnapQuestViewVM @Inject constructor(
 
         currentStep.value = EvaluationStep.INITIALIZING
         currentStep.value = EvaluationStep.LOADING_MODEL
-        val photoFile = File(application.filesDir, AI_SNAP_CROPPED_FILE_NAME)
+        val photoFile = File(application.filesDir, AI_SNAP_PIC)
         val compressedFile = resizeAndCompressImage(photoFile, 1080, 50)
         client.validateTask(
             compressedFile,
@@ -187,7 +187,7 @@ class AiSnapQuestViewVM @Inject constructor(
             currentStep.value = EvaluationStep.INITIALIZING
 
 
-            val photoFile = File(application.filesDir, AI_SNAP_CROPPED_FILE_NAME)
+            val photoFile = File(application.filesDir, AI_SNAP_PIC)
             currentStep.value = EvaluationStep.LOADING_IMAGE
 
             if (!photoFile.exists()) {

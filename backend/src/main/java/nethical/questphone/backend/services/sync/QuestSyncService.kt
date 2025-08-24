@@ -36,14 +36,7 @@ class QuestSyncService : Service() {
     companion object {
         private const val NOTIFICATION_ID = 1043
         private const val CHANNEL_ID = "quest_sync_channel"
-        private const val EXTRA_IS_FIRST_TIME = "is_first_time"
-
-        fun start(context: Context, isFirstTime: Boolean = false) {
-            val intent = Intent(context, QuestSyncService::class.java).apply {
-                putExtra(EXTRA_IS_FIRST_TIME, isFirstTime)
-            }
-            context.startForegroundService(intent)
-        }
+         const val EXTRA_IS_FIRST_TIME = "is_first_time"
 
         fun stop(context: Context) {
             val intent = Intent(context, QuestSyncService::class.java)

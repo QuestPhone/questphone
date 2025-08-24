@@ -2,6 +2,7 @@ package nethical.questphone.backend
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
@@ -10,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nethical.questphone.backend.services.sync.ProfileSyncService
 import nethical.questphone.backend.services.sync.QuestSyncService
+import nethical.questphone.backend.services.sync.QuestSyncService.Companion.EXTRA_IS_FIRST_TIME
 import nethical.questphone.backend.services.sync.StatsSyncService
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -45,7 +47,11 @@ fun Context.isOnline(): Boolean {
 
 
 fun triggerQuestSync(context: Context, isFirstSync: Boolean = false) {
-    QuestSyncService.start(context, isFirstSync)
+
+    val intent = Intent(context, QuestSyncService::class.java).apply {
+        putExtra(EXTRA_IS_FIRST_TIME, isFirstSync)
+    }
+    context.startForegroundService(intent)
 }
 
 fun triggerProfileSync(context: Context, isFirstLoginSync:Boolean = false) {

@@ -2,6 +2,7 @@ package neth.iecal.questphone.app.screens.quest.view.ai_snap
 
 import android.Manifest
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -49,8 +50,10 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.screens.quest.setup.ai_snap.model.ModelDownloadDialog
+import java.io.File
+import java.io.FileOutputStream
 
-const val AI_SNAP_CROPPED_FILE_NAME = "ai_snap_captured_image_cropped.jpeg"
+const val AI_SNAP_PIC = "ai_snap_captured_image_cropped.jpeg"
 
 @Composable
 fun CameraScreen(onPicClicked: ()->Unit) {
@@ -218,6 +221,10 @@ private fun takePicture(
             override fun onCaptureSuccess(imageProxy: ImageProxy) {
                 // Convert ImageProxy to Bitmap
                 val bitmap = imageProxy.toBitmap()
+                val file = File(context.filesDir, AI_SNAP_PIC)
+                FileOutputStream(file).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                }
 
                 // Convert Bitmap to ImageBitmap (for Compose)
                 val imageBitmap = bitmap.asImageBitmap()
