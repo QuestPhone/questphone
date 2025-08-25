@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -234,9 +235,9 @@ fun SelectFromTemplates(
                         template = template,
                         modifier = Modifier.padding(horizontal = 16.dp),
                         onClick = {
-                            if(template.integration.isLoginRequired && viewModel.isAnonymous){
+                            if (template.integration.isLoginRequired && viewModel.isAnonymous) {
                                 showLoginRequiredDialog.value = true
-                            }else {
+                            } else {
                                 viewModel.selectTemplate(template)
                                 navController.navigate(RootRoute.SetupTemplate.route)
                             }
@@ -266,81 +267,88 @@ fun SelectFromTemplates(
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
+                                Button(
+                                    onClick = {
+                                        viewModel.loadTemplates()
+                                    },
+                                ) {
+                                    Text("Retry")
+                                }
                             }
                         }
                     }
-                }
 
-                // Bottom padding
-                item {
-                    if (isLoading) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            CircularProgressIndicator(
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "Loading templates...",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                    // Bottom padding
+                    item {
+                        if (isLoading) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "Loading templates...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.height(16.dp))
+
                         }
-                    }else {
-                        Spacer(modifier = Modifier.height(16.dp))
-
                     }
                 }
+
+
             }
-
-
         }
     }
 }
 
-@Composable
-private fun CustomQuestCard(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
+    @Composable
+    fun CustomQuestCard(
+        onClick: () -> Unit,
+        modifier: Modifier = Modifier
     ) {
-        Row(
-            modifier = Modifier
+        Card(
+            modifier = modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .clickable { onClick() },
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add custom quest",
-                modifier = Modifier.size(24.dp)
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Create Custom Quest",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add custom quest",
+                    modifier = Modifier.size(24.dp)
                 )
 
-                Text(
-                    text = "Build your own quest from scratch",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Create Custom Quest",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+
+                    Text(
+                        text = "Build your own quest from scratch",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
             }
         }
     }
-}
 
 @Composable
 private fun ActivityCard(

@@ -90,7 +90,8 @@ class TemplatesViewModel @Inject constructor(
         }
     }
 
-    private fun loadTemplates() {
+
+    fun loadTemplates() {
         viewModelScope.launch {
             val response =
                 fetchUrlContent("https://raw.githubusercontent.com/QuestPhone/quest-templates/refs/heads/main/all.json")
