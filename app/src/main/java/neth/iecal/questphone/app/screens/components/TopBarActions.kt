@@ -14,11 +14,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import neth.iecal.questphone.R
+import neth.iecal.questphone.app.theme.LocalAppColors
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,7 +33,7 @@ fun TopBarActions(coins: Int,streak: Int,isCoinsVisible: Boolean = false, isStre
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .background(
-                        color = Color(0xFF2A2A2A),
+                        color = LocalAppColors.current.toolBoxContainer,
                         shape = RoundedCornerShape(16.dp)
                     )
                     .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -46,7 +46,6 @@ fun TopBarActions(coins: Int,streak: Int,isCoinsVisible: Boolean = false, isStre
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = coins.toString(),
-                    color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -58,7 +57,7 @@ fun TopBarActions(coins: Int,streak: Int,isCoinsVisible: Boolean = false, isStre
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .background(
-                        color = Color(0xFF2A2A2A),
+                        color = LocalAppColors.current.toolBoxContainer,
                         shape = RoundedCornerShape(16.dp)
                     )
                     .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -71,7 +70,6 @@ fun TopBarActions(coins: Int,streak: Int,isCoinsVisible: Boolean = false, isStre
                 Spacer(Modifier.size(4.dp))
                 Text(
                     text = streak.toString(),
-                    color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
 

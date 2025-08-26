@@ -9,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -52,6 +53,7 @@ fun NeuralMeshAsymmetrical(modifier: Modifier = Modifier) {
     Box(modifier = modifier) {
         val infiniteTransition = rememberInfiniteTransition(label = "infinite_rotation")
 
+        val onPrimary = MaterialTheme.colorScheme.onPrimary
         val angleY by infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 2f * PI.toFloat(),
@@ -121,8 +123,8 @@ fun NeuralMeshAsymmetrical(modifier: Modifier = Modifier) {
                 Pair(Offset(projectedX, projectedY), scale)
             }
 
-            drawConnections(transformedNodes, edges)
-            drawNodes(transformedNodes)
+            drawConnections(transformedNodes, edges, onPrimary)
+            drawNodes(transformedNodes,onPrimary)
         }
     }
 }
@@ -206,12 +208,12 @@ private fun projectPoint(point: APoint3D, centerX: Float, centerY: Float): Tripl
 /**
  * Draws the nodes on the canvas.
  */
-private fun DrawScope.drawNodes(projectedNodes: List<Pair<Offset, Float>>) {
+private fun DrawScope.drawNodes(projectedNodes: List<Pair<Offset, Float>>,color: Color) {
     projectedNodes.forEach { (offset, scale) ->
         val radius = 5f * scale
 
         drawCircle(
-            color = Color.White, // Bright cyan for a digital look
+            color = color, // Bright cyan for a digital look
             radius = radius,
             center = offset,
         )
@@ -221,13 +223,13 @@ private fun DrawScope.drawNodes(projectedNodes: List<Pair<Offset, Float>>) {
 /**
  * Draws the connections between nodes.
  */
-private fun DrawScope.drawConnections(projectedNodes: List<Pair<Offset, Float>>, AEdges: List<AEdge>) {
+private fun DrawScope.drawConnections(projectedNodes: List<Pair<Offset, Float>>, AEdges: List<AEdge>, color: Color) {
     AEdges.forEach { edge ->
         val (p1, scale1) = projectedNodes[edge.node1]
         val (p2, scale2) = projectedNodes[edge.node2]
 
         drawLine(
-            color = Color.White, // Light blue for connections
+            color = color, // Light blue for connections
             start = p1,
             end = p2,
             strokeWidth = 1.5f * ((scale1 + scale2) / 2f),

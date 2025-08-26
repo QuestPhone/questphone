@@ -9,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -44,6 +45,7 @@ fun NeuralMeshSymmetrical(modifier: Modifier = Modifier) {
     Box( modifier = modifier) {
 
         val infiniteTransition = rememberInfiniteTransition(label = "infinite_rotation")
+        val onPrimary = MaterialTheme.colorScheme.onPrimary
 
         val angleY by infiniteTransition.animateFloat(
             initialValue = 0f,
@@ -109,10 +111,10 @@ fun NeuralMeshSymmetrical(modifier: Modifier = Modifier) {
             }
 
             // Draw connections (lines) first, so nodes are drawn on top.
-            drawConnections(transformedNodes)
+            drawConnections(transformedNodes,onPrimary)
 
             // Draw the nodes (circles).
-            drawNodes(transformedNodes)
+            drawNodes(transformedNodes,onPrimary)
         }
     }
 }
@@ -164,7 +166,7 @@ private fun projectPoint(point: SPoint3D, centerX: Float, centerY: Float): Tripl
  * A DrawScope extension function to draw the nodes on the canvas.
  * @param projectedNodes A list of pairs, each containing the 2D offset and scale of a node.
  */
-private fun DrawScope.drawNodes(projectedNodes: List<Pair<Offset, Float>>) {
+private fun DrawScope.drawNodes(projectedNodes: List<Pair<Offset, Float>>,color: Color) {
     projectedNodes.forEach { (offset, scale) ->
         // The node's size and opacity are based on its depth (scale).
         // Nodes further away (smaller scale) are smaller and more transparent.
@@ -172,7 +174,7 @@ private fun DrawScope.drawNodes(projectedNodes: List<Pair<Offset, Float>>) {
         val alpha = (scale - 0.5f).coerceIn(0f, 1f) * 2f // Amplify alpha for better visibility
 
         drawCircle(
-            color = Color.White,
+            color = color,
             radius = radius,
             center = offset,
             alpha = alpha
@@ -184,7 +186,7 @@ private fun DrawScope.drawNodes(projectedNodes: List<Pair<Offset, Float>>) {
  * A DrawScope extension function to draw the connections between nodes.
  * @param projectedNodes A list of pairs, each containing the 2D offset and scale of a node.
  */
-private fun DrawScope.drawConnections(projectedNodes: List<Pair<Offset, Float>>) {
+private fun DrawScope.drawConnections(projectedNodes: List<Pair<Offset, Float>>,color: Color) {
     // To create a well-connected web, we connect each node to its nearest neighbors.
     val maxConnections = 4
 

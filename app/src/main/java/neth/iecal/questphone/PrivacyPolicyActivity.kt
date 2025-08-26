@@ -14,16 +14,24 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import neth.iecal.questphone.app.theme.LauncherTheme
+import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsExtraColorScheme
 
 class PrivacyPolicyActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
-            LauncherTheme {
+            var currentTheme by remember { mutableStateOf(CherryBlossomsExtraColorScheme) }
+
+            LauncherTheme(currentTheme) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(modifier = Modifier.padding(innerPadding)) {
                         PrivacyPolicyScreen()

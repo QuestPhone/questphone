@@ -64,7 +64,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -88,6 +87,7 @@ import neth.iecal.questphone.app.screens.launcher.dialogs.DonationsDialog
 import neth.iecal.questphone.app.screens.launcher.dialogs.LauncherDialog
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
+import neth.iecal.questphone.app.theme.LocalAppColors
 import neth.iecal.questphone.app.theme.smoothRed
 import neth.iecal.questphone.core.services.LockScreenService
 import neth.iecal.questphone.core.services.performLockScreenAction
@@ -181,6 +181,7 @@ fun HomeScreen(
 
         },
 
+        containerColor = MaterialTheme.colorScheme.surface,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState)}) { innerPadding ->
 
         if (isAppSelectorVisible) {
@@ -337,7 +338,7 @@ fun HomeScreen(
                     }
                     item {
                         Text(
-                            text = "✦✦✦✦✦",
+                            text = "*.·:·.✧ ✦ ✧.·:·.* ",
                             fontWeight = FontWeight.ExtraLight,
                             fontSize = 15.sp,
                             modifier = Modifier.clickable(onClick = {
@@ -382,7 +383,7 @@ fun HomeScreen(
                 LazyColumn(
                     modifier = Modifier
                         .background(
-                            color = Color(0xFF2A2A2A),
+                            color = LocalAppColors.current.toolBoxContainer,
                             shape = RoundedCornerShape(16.dp)
                         )
                         .padding(15.dp),

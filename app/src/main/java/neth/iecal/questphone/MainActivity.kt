@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,10 +14,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -54,6 +54,7 @@ import neth.iecal.questphone.app.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
 import neth.iecal.questphone.app.screens.quest_docs.QuestTutorial
 import neth.iecal.questphone.app.theme.LauncherTheme
+import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsExtraColorScheme
 import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.core.utils.receiver.AppInstallReceiver
 import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
@@ -104,6 +105,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}
+            var currentTheme by remember { mutableStateOf(CherryBlossomsExtraColorScheme) }
 
             LaunchedEffect(Unit) {
                 isUserOnboarded.value = data.getBoolean("onboard",false)
@@ -116,7 +118,7 @@ class MainActivity : ComponentActivity() {
                 notificationScheduler.createNotificationChannel()
                 notificationScheduler.reloadAllReminders()
             }
-            LauncherTheme {
+            LauncherTheme(currentTheme) {
                 Surface {
                     val navController = rememberNavController()
 

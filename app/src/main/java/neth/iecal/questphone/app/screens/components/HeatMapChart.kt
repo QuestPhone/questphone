@@ -338,10 +338,10 @@ fun ContributionCell(
 fun getContributionColor(level: Int): Color {
     return when (level) {
         0 -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) // No quests
-        1 -> MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-        2 -> MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-        3 -> MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-        4 -> MaterialTheme.colorScheme.primary // Max contribution
+        1 -> MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f)
+        2 -> MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+        3 -> MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+        4 -> MaterialTheme.colorScheme.onPrimary // Max contribution
         else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     }
 }
