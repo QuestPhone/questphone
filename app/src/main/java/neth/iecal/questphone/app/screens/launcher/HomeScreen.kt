@@ -83,6 +83,7 @@ import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.components.NeuralMeshAsymmetrical
 import neth.iecal.questphone.app.screens.components.NeuralMeshSymmetrical
 import neth.iecal.questphone.app.screens.components.TopBarActions
+import neth.iecal.questphone.app.screens.effects.SakuraTree
 import neth.iecal.questphone.app.screens.launcher.dialogs.DonationsDialog
 import neth.iecal.questphone.app.screens.launcher.dialogs.LauncherDialog
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SelectAppsDialog
@@ -172,6 +173,7 @@ fun HomeScreen(
             viewModel.hideDonationDialog()
         }
     }
+
     Scaffold(
         modifier = Modifier.safeDrawingPadding(),
         topBar = {
@@ -264,6 +266,8 @@ fun HomeScreen(
                     )
                 }
         ) {
+            SakuraTree(innerPadding = innerPadding)
+
             Column(
                 Modifier.padding(8.dp)
             ) {
@@ -338,7 +342,7 @@ fun HomeScreen(
                     }
                     item {
                         Text(
-                            text = "*.·:·.✧ ✦ ✧.·:·.* ",
+                            text = "✿✿✿✿✿✿✿",
                             fontWeight = FontWeight.ExtraLight,
                             fontSize = 15.sp,
                             modifier = Modifier.clickable(onClick = {
@@ -483,6 +487,8 @@ fun HomeScreen(
                             .calculateBottomPadding() * 2
                     )
             )
+
         }
+
     }
 }
