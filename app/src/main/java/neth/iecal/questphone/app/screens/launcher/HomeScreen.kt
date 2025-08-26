@@ -134,6 +134,7 @@ fun HomeScreen(
     )
 
     var isAllQuestsDialogVisible by remember { mutableStateOf(false) }
+    var isScreenSwitched by remember { mutableStateOf(false) }
 
     val infiniteTransition = rememberInfiniteTransition(label = "floating")
     val swipeIconAnimation by infiniteTransition.animateFloat(
@@ -215,10 +216,13 @@ fun HomeScreen(
                             verticalDragOffset += dragAmount
                             val swipeThreshold = -50f // Increased for more deliberate swipe
                             if (verticalDragOffset < swipeThreshold) {
-                                navController.navigate(RootRoute.AppList.route){
-                                    restoreState = true
+                                if (!isScreenSwitched) {
+                                    isScreenSwitched = true
+                                    navController.navigate(RootRoute.AppList.route) {
+                                        restoreState = true
+                                    }
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                                 }
-                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             }
                         },
                     )
