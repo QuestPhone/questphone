@@ -69,6 +69,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.components.TopBarActions
+import neth.iecal.questphone.app.theme.customThemes.BaseTheme
+import neth.iecal.questphone.app.theme.themes
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.game.Category
 import nethical.questphone.data.game.InventoryItem
@@ -80,13 +82,16 @@ class StoreViewModel @Inject constructor(
 ): ViewModel() {
     var coins = userRepository.coinsState
 
-    var selectedCategory by mutableStateOf<Category>(Category.BOOSTERS)
+    var selectedCategory by mutableStateOf<Category>(Category.TOOLS)
         private set
 
     private val _items = InventoryItem.entries
 
     val items: List<InventoryItem>
         get() = _items.toList()
+
+    var isSelectingTheme = false
+        private set
 
     fun hasEnoughCoinsToPurchaseItem(item: InventoryItem): Boolean {
         val userCoins = userRepository.userInfo.coins
@@ -102,6 +107,7 @@ class StoreViewModel @Inject constructor(
     }
 
     fun selectCategory(category: Category) {
+        isSelectingTheme = category == Category.Theme
         selectedCategory = category
     }
 
@@ -176,10 +182,14 @@ fun StoreScreen(
                 onCategorySelected = { viewModel.selectCategory(it) }
             )
 
-            StoreItemsList(
-                items = viewModel.getItemsByCategory(viewModel.selectedCategory),
-                onItemClick = { selectedItem = it },
-            )
+            if(viewModel.isSelectingTheme) {
+                StoreThemeList {  }
+            }else{
+                StoreItemsList(
+                    items = viewModel.getItemsByCategory(viewModel.selectedCategory),
+                    onItemClick = { selectedItem = it },
+                )
+            }
 
             // Purchase dialog
             selectedItem?.let { item ->
@@ -311,6 +321,25 @@ private fun StoreItemsList(
         }
     }
 }
+@Composable
+private fun StoreThemeList(
+    onItemClick: () -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(themes.keys.toList()) { i ->
+            themes[i]?.let {
+                StoreThemeCard(
+                    theme = it,
+                    onClick = { onItemClick() },
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun StoreItemCard(
@@ -390,6 +419,87 @@ private fun StoreItemCard(
         }
     }
 }
+
+
+@Composable
+private fun StoreThemeCard(
+    theme: BaseTheme,
+    onClick: () -> Unit,
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF1A1A1A)
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Item preview/icon
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF2A2A2A)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.outline_help_24),
+                    contentDescription = theme.name
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Item details
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = theme.name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+
+                Text(
+                    text = theme.description,
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Price or actions
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.coin_icon),
+                    contentDescription = "Coins",
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "${theme.price}",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 private fun PurchaseDialog(

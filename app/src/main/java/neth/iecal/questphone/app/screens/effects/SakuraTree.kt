@@ -1,9 +1,7 @@
 package neth.iecal.questphone.app.screens.effects
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,9 +18,9 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 @Composable
-fun SakuraTree(vm: SakuraTreeViewModel = viewModel(),innerPadding: PaddingValues) {
+fun SakuraTree(vm: SakuraTreeViewModel = viewModel()) {
     // Draw once, no animations
-    Canvas(modifier = Modifier.fillMaxSize().zIndex(-1f).padding(top = innerPadding.calculateTopPadding())) {
+    Canvas(modifier = Modifier.fillMaxSize().zIndex(-1f)) {
         vm.generate(size.width, size.height)
 
         vm.branchList?.forEach { branch ->
@@ -40,7 +38,6 @@ fun SakuraTree(vm: SakuraTreeViewModel = viewModel(),innerPadding: PaddingValues
     }
 }
 
-// ---------------- ViewModel ----------------
 class SakuraTreeViewModel : ViewModel() {
     var branchList: List<SimpleBranch>? by mutableStateOf(null)
         private set

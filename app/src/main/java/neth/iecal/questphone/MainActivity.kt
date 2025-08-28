@@ -54,7 +54,7 @@ import neth.iecal.questphone.app.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
 import neth.iecal.questphone.app.screens.quest_docs.QuestTutorial
 import neth.iecal.questphone.app.theme.LauncherTheme
-import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsExtraColorScheme
+import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsTheme
 import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.core.utils.receiver.AppInstallReceiver
 import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
@@ -103,9 +103,11 @@ class MainActivity : ComponentActivity() {
             WorkManager.getInstance(applicationContext).enqueue(downloadWork)
         }
 
+        val cherryBlossomsTheme = CherryBlossomsTheme()
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}
-            var currentTheme by remember { mutableStateOf(CherryBlossomsExtraColorScheme) }
+            var currentTheme by remember { mutableStateOf(cherryBlossomsTheme.getExtraColorScheme()) }
+            var currentThemeView by remember { mutableStateOf(cherryBlossomsTheme.getThemeView()) }
 
             LaunchedEffect(Unit) {
                 isUserOnboarded.value = data.getBoolean("onboard",false)
@@ -118,7 +120,7 @@ class MainActivity : ComponentActivity() {
                 notificationScheduler.createNotificationChannel()
                 notificationScheduler.reloadAllReminders()
             }
-            LauncherTheme(currentTheme) {
+            LauncherTheme(currentTheme,currentThemeView) {
                 Surface {
                     val navController = rememberNavController()
 

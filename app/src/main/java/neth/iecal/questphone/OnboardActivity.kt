@@ -23,7 +23,7 @@ import neth.iecal.questphone.app.screens.account.SetupNewPassword
 import neth.iecal.questphone.app.screens.onboard.OnBoarderView
 import neth.iecal.questphone.app.screens.onboard.subscreens.TermsScreen
 import neth.iecal.questphone.app.theme.LauncherTheme
-import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsExtraColorScheme
+import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsTheme
 import nethical.questphone.backend.Supabase
 
 
@@ -34,6 +34,7 @@ class OnboardActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
+        val cherryBlossomsTheme = CherryBlossomsTheme()
         setContent {
             val data = getSharedPreferences("onboard", MODE_PRIVATE)
             val isUserOnboarded = remember {mutableStateOf(true)}
@@ -50,7 +51,8 @@ class OnboardActivity : ComponentActivity() {
 
             val isPetDialogVisible = remember { mutableStateOf(true) }
             val isLoginResetPassword = remember { mutableStateOf(false) }
-            var currentTheme by remember { mutableStateOf(CherryBlossomsExtraColorScheme) }
+            var currentTheme by remember { mutableStateOf(cherryBlossomsTheme.getExtraColorScheme()) }
+            var currentThemeView by remember { mutableStateOf(cherryBlossomsTheme.getThemeView()) }
 
             val isTosAccepted = remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {
@@ -71,7 +73,7 @@ class OnboardActivity : ComponentActivity() {
             else if (!isTosAccepted.value) RootRoute.TermsScreen.route
             else RootRoute.OnBoard.route
 
-            LauncherTheme(currentTheme) {
+            LauncherTheme(currentTheme,currentThemeView) {
                 Surface {
                     val navController = rememberNavController()
 //

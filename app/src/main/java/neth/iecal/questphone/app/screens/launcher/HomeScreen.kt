@@ -83,12 +83,12 @@ import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.components.NeuralMeshAsymmetrical
 import neth.iecal.questphone.app.screens.components.NeuralMeshSymmetrical
 import neth.iecal.questphone.app.screens.components.TopBarActions
-import neth.iecal.questphone.app.screens.effects.SakuraTree
 import neth.iecal.questphone.app.screens.launcher.dialogs.DonationsDialog
 import neth.iecal.questphone.app.screens.launcher.dialogs.LauncherDialog
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
 import neth.iecal.questphone.app.theme.LocalAppColors
+import neth.iecal.questphone.app.theme.LocalThemeView
 import neth.iecal.questphone.app.theme.smoothRed
 import neth.iecal.questphone.core.services.LockScreenService
 import neth.iecal.questphone.core.services.performLockScreenAction
@@ -266,7 +266,7 @@ fun HomeScreen(
                     )
                 }
         ) {
-            SakuraTree(innerPadding = innerPadding)
+            LocalThemeView.current?.composeView?.invoke()
 
             Column(
                 Modifier.padding(8.dp)

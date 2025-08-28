@@ -21,17 +21,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import neth.iecal.questphone.app.theme.LauncherTheme
-import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsExtraColorScheme
+import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsTheme
 
 class PrivacyPolicyActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        val cherryBlossomsTheme = CherryBlossomsTheme()
         setContent {
-            var currentTheme by remember { mutableStateOf(CherryBlossomsExtraColorScheme) }
+            var currentTheme by remember { mutableStateOf(cherryBlossomsTheme.getExtraColorScheme()) }
+            var currentThemeView by remember { mutableStateOf(cherryBlossomsTheme.getThemeView()) }
 
-            LauncherTheme(currentTheme) {
+            LauncherTheme(currentTheme,currentThemeView) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(modifier = Modifier.padding(innerPadding)) {
                         PrivacyPolicyScreen()
