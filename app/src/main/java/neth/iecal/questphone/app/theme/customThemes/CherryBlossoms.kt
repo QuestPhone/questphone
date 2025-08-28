@@ -47,4 +47,6 @@ class CherryBlossomsTheme(): BaseTheme {
         get() = "Cherry Blossoms"
     override val description: String
         get() = "Kimi wa nawa kim"
+    override val expandQuestsText: String
+        get() = "✿✿✿✿✿✿✿"
 }

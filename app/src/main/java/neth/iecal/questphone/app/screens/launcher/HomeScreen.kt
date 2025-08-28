@@ -32,8 +32,8 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -52,7 +52,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,6 +63,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -126,11 +127,31 @@ fun HomeScreen(
     var isAppSelectorVisible by remember { mutableStateOf(false) }
 
     val sidePanelItems = listOf<SidePanelItem>(
-        SidePanelItem(R.drawable.profile_d,{navController?.navigate(RootRoute.UserInfo.route)},"Profile"),
-        SidePanelItem(R.drawable.notification_up,{ Toast.makeText(context,"Coming soon!", Toast.LENGTH_SHORT).show()},"Notifications"),
-        SidePanelItem(R.drawable.store,{navController?.navigate(RootRoute.Store.route)},"Store"),
-        SidePanelItem(nethical.questphone.data.R.drawable.quest_analytics,{navController?.navigate(RootRoute.ListAllQuest.route)},"Quest Analytics"),
-        SidePanelItem(nethical.questphone.data.R.drawable.quest_adderpng,{navController?.navigate(RootRoute.SelectTemplates.route)},"Add Quest")
+        SidePanelItem(
+            R.drawable.profile_d,
+            { navController?.navigate(RootRoute.UserInfo.route) },
+            "Profile"
+        ),
+        SidePanelItem(
+            R.drawable.notification_up,
+            { Toast.makeText(context, "Coming soon!", Toast.LENGTH_SHORT).show() },
+            "Notifications"
+        ),
+        SidePanelItem(
+            R.drawable.store,
+            { navController?.navigate(RootRoute.Store.route) },
+            "Store"
+        ),
+        SidePanelItem(
+            nethical.questphone.data.R.drawable.quest_analytics,
+            { navController?.navigate(RootRoute.ListAllQuest.route) },
+            "Quest Analytics"
+        ),
+        SidePanelItem(
+            nethical.questphone.data.R.drawable.quest_adderpng,
+            { navController?.navigate(RootRoute.SelectTemplates.route) },
+            "Add Quest"
+        )
     )
 
     var isAllQuestsDialogVisible by remember { mutableStateOf(false) }
@@ -154,8 +175,10 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
 
     val isDoubleTapToSleepEnabled = remember(context) {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isAccessibilityServiceEnabled(context,
-            LockScreenService::class.java)
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isAccessibilityServiceEnabled(
+            context,
+            LockScreenService::class.java
+        )
     }
 
 
@@ -166,25 +189,18 @@ fun HomeScreen(
     }
 
 
-    BackHandler(navController!=null) { }
+    BackHandler(navController != null) { }
 
-    if(showDonationDialog){
+    if (showDonationDialog) {
         DonationsDialog {
             viewModel.hideDonationDialog()
         }
     }
 
     Scaffold(
-        modifier = Modifier.safeDrawingPadding(),
-        topBar = {
-            TopAppBar({}, actions = {
-                TopBarActions(coins,streak, true, true)
-            })
-
-        },
-
+        contentWindowInsets = WindowInsets(0),
         containerColor = LocalCustomTheme.current.getRootColorScheme().surface,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState)}) { innerPadding ->
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { innerPadding ->
 
         if (isAppSelectorVisible) {
             SelectAppsDialog(
@@ -195,7 +211,7 @@ fun HomeScreen(
                     isAppSelectorVisible = false
                 })
         }
-        if(isAllQuestsDialogVisible){
+        if (isAllQuestsDialogVisible) {
             LauncherDialog(
                 onDismiss = { isAllQuestsDialogVisible = false },
                 rootNavController = navController,
@@ -236,7 +252,7 @@ fun HomeScreen(
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isDoubleTapToSleepEnabled) {
                                 performLockScreenAction()
                             } else {
-                                if(BuildConfig.IS_FDROID){
+                                if (BuildConfig.IS_FDROID) {
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
                                             message = "Enable Accessibility Service to use double-tap to sleep.",
@@ -251,7 +267,7 @@ fun HomeScreen(
                                             }
                                         }
                                     }
-                                }else {
+                                } else {
 
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
@@ -267,228 +283,265 @@ fun HomeScreen(
                 }
         ) {
             LocalCustomTheme.current.ThemeObjects(innerPadding)
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(Modifier.padding(WindowInsets.statusBarsIgnoringVisibility.asPaddingValues())) {
+                    TopBarActions(coins,streak, true, true)
 
-            Column(
-                Modifier.padding(8.dp)
-            ) {
-                Box(Modifier
-                    .combinedClickable(onClick = {}, onLongClick = {
-                        viewModel.toggleMeshStyle()
-
-                    })){
-                    when(meshStyle){
-                        MeshStyles.SYMMETRICAL -> NeuralMeshSymmetrical(modifier = Modifier.size(200.dp))
-                        MeshStyles.ASYMMETRICAL -> NeuralMeshAsymmetrical(modifier = Modifier.size(200.dp))
-                        MeshStyles.USER_STATS_HEATMAP -> {
-                            Column (modifier = Modifier.height(200.dp),
-                                verticalArrangement = Arrangement.Center){
-                                HeatMapChart(Modifier.padding(8.dp))
-                            }
-                        }
-                    }
-                }
-                Spacer(Modifier.size(12.dp))
-                Text(
-                    time,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Black
-                )
-                Text(
-                    "Today's Quests",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Black
-                )
-                Spacer(Modifier.height(12.dp))
-
-                if(questList.isEmpty()){
-                    TextButton(onClick = {
-                        navController?.navigate(RootRoute.SelectTemplates.route)
-                    }) {
-                        Row {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "Add Quests")
-                            Spacer(Modifier.size(4.dp))
-                            Text(
-                                text = "Add Quests",
-                                fontWeight = FontWeight.ExtraLight,
-                                fontSize = 23.sp)
-                        }
-                    }
-                }
-
-                LazyColumn(
-                    contentPadding = PaddingValues(vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    userScrollEnabled = false,
-
+                    Column(
+                        Modifier.padding(8.dp)
                     ) {
-                    items(questList.size) { index ->
-                        val baseQuest = questList[index]
-                        val isFailed = QuestHelper.isTimeOver(baseQuest)
 
-                        val isCompleted = completedQuests.contains(baseQuest.id)
-                        Text(
-                            text = baseQuest.title,
-                            fontWeight = FontWeight.ExtraLight,
-                            fontSize = 23.sp,
-                            color = if (isFailed && !isCompleted) smoothRed else MaterialTheme.colorScheme.onSurface,
-                            textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
-                            modifier = Modifier.clickable(onClick = {
-                                navController?.navigate(RootRoute.ViewQuest.route + baseQuest.id)
-                            },
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = ripple(bounded = false)
-                            )
-                        )
-                    }
-                    item {
-                        Text(
-                            text = "✿✿✿✿✿✿✿",
-                            fontWeight = FontWeight.ExtraLight,
-                            fontSize = 15.sp,
-                            modifier = Modifier.clickable(onClick = {
-                                isAllQuestsDialogVisible  = true
-                            },
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = ripple(bounded = false))
-                        )
+                        Box(
+                            Modifier
+                                .combinedClickable(onClick = {}, onLongClick = {
+                                    viewModel.toggleMeshStyle()
 
-                        if(!isSetToDefaultLauncher(context)) {
-                            Spacer(Modifier.size(8.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable(onClick = {
-                                openDefaultLauncherSettings(context)
-                            })) {
-                                Icon(
-                                    painter = painterResource(R.drawable.baseline_info_24),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(30.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                })
+                        ) {
+                            when (meshStyle) {
+                                MeshStyles.SYMMETRICAL -> NeuralMeshSymmetrical(
+                                    modifier = Modifier.size(
+                                        200.dp
+                                    )
                                 )
-                                Spacer(Modifier.size(8.dp))
+
+                                MeshStyles.ASYMMETRICAL -> NeuralMeshAsymmetrical(
+                                    modifier = Modifier.size(
+                                        200.dp
+                                    )
+                                )
+
+                                MeshStyles.USER_STATS_HEATMAP -> {
+                                    Column(
+                                        modifier = Modifier.height(200.dp),
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        HeatMapChart(Modifier.padding(8.dp))
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(Modifier.size(12.dp))
+                        Text(
+                            time,
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(
+                            "Today's Quests",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Black
+                        )
+                        Spacer(Modifier.height(12.dp))
+
+                        if (questList.isEmpty()) {
+                            TextButton(onClick = {
+                                navController?.navigate(RootRoute.SelectTemplates.route)
+                            }) {
+                                Row {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Add Quests"
+                                    )
+                                    Spacer(Modifier.size(4.dp))
+                                    Text(
+                                        text = "Add Quests",
+                                        fontWeight = FontWeight.ExtraLight,
+                                        fontSize = 23.sp
+                                    )
+                                }
+                            }
+                        }
+
+                        LazyColumn(
+                            contentPadding = PaddingValues(vertical = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            userScrollEnabled = false,
+
+                            ) {
+                            items(questList.size) { index ->
+                                val baseQuest = questList[index]
+                                val isFailed = QuestHelper.isTimeOver(baseQuest)
+
+                                val isCompleted = completedQuests.contains(baseQuest.id)
                                 Text(
-                                    text = "Set QuestPhone as your default launcher for the best experience",
-                                    fontSize = 15.sp,
+                                    text = baseQuest.title,
+                                    fontWeight = FontWeight.ExtraLight,
+                                    fontSize = 23.sp,
+                                    color = if (isFailed && !isCompleted) smoothRed else MaterialTheme.colorScheme.onSurface,
+                                    textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
+                                    modifier = Modifier.clickable(
+                                        onClick = {
+                                            navController?.navigate(RootRoute.ViewQuest.route + baseQuest.id)
+                                        },
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple(bounded = false)
+                                    )
                                 )
+                            }
+                            item {
+                                Text(
+                                    text = LocalCustomTheme.current.expandQuestsText,
+                                    fontWeight = FontWeight.ExtraLight,
+                                    fontSize = 15.sp,
+                                    modifier = Modifier.clickable(
+                                        onClick = {
+                                            isAllQuestsDialogVisible = true
+                                        },
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple(bounded = false)
+                                    )
+                                )
+
+                                if (!isSetToDefaultLauncher(context)) {
+                                    Spacer(Modifier.size(8.dp))
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.clickable(onClick = {
+                                            openDefaultLauncherSettings(context)
+                                        })
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.baseline_info_24),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(30.dp),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(Modifier.size(8.dp))
+                                        Text(
+                                            text = "Set QuestPhone as your default launcher for the best experience",
+                                            fontSize = 15.sp,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(
-                        start = 8.dp,
-                        bottom = WindowInsets.navigationBars.asPaddingValues()
-                            .calculateBottomPadding() + 8.dp
-                    ),
-                horizontalAlignment = Alignment.End
-            ) {
-                LazyColumn(
+                Column(
                     modifier = Modifier
-                        .background(
-                            color = LocalCustomTheme.current.getExtraColorScheme().toolBoxContainer,
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .padding(15.dp),
-                    userScrollEnabled = false,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-
-                    items(sidePanelItems) {
-                        Box(
-                            modifier = Modifier
-                                .size(35.dp)
-                                .clickable(
-                                    onClick = { it.onClick() },
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(bounded = false)
-
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = painterResource(it.icon),
-                                contentDescription = it.contentDesc,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(
-                        end = 8.dp,
-                        bottom = WindowInsets.navigationBars.asPaddingValues()
-                            .calculateBottomPadding() + 8.dp
-                    ),
-                horizontalAlignment = Alignment.End
-            ) {
-                if(shortcuts.isEmpty()){
-                    TextButton(onClick = {
-                        isAppSelectorVisible = true
-                    }) {
-                        Row {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "Add Shortcuts")
-                            Spacer(Modifier.size(4.dp))
-                            Text(
-                                text = "Add Shortcuts",
-                                fontWeight = FontWeight.ExtraLight,
-                                fontSize = 23.sp)
-                        }
-                    }
-                }
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                        .align(Alignment.BottomStart)
+                        .padding(
+                            start = 8.dp,
+                            bottom = WindowInsets.navigationBars.asPaddingValues()
+                                .calculateBottomPadding() + 8.dp
+                        ),
                     horizontalAlignment = Alignment.End
                 ) {
-                    itemsIndexed(shortcuts) { index, it ->
-                        val name = try {
-                            val appInfo = context.packageManager.getApplicationInfo(it, 0)
-                            appInfo.loadLabel(context.packageManager).toString()
-                        } catch (_: Exception) {
-                            it
-                        }
+                    LazyColumn(
+                        modifier = Modifier
+                            .background(
+                                color = LocalCustomTheme.current.getExtraColorScheme().toolBoxContainer,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .padding(15.dp),
+                        userScrollEnabled = false,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
 
-                        Text(
-                            text = name,
-                            fontWeight = FontWeight.ExtraLight,
-                            fontSize = 23.sp,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier
-                                .wrapContentWidth()
-                                .combinedClickable(onClick = {
-                                    val intent =
-                                        context.packageManager.getLaunchIntentForPackage(
-                                            it
-                                        )
-                                    intent?.let { context.startActivity(it) }
-                                }, onLongClick = {
-                                    isAppSelectorVisible = true
-                                })
-                        )
+
+                        items(sidePanelItems) {
+                            Box(
+                                modifier = Modifier
+                                    .size(35.dp)
+                                    .clickable(
+                                        onClick = { it.onClick() },
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple(bounded = false)
+
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(it.icon),
+                                    contentDescription = it.contentDesc,
+                                    modifier = Modifier.size(28.dp),
+                                    colorFilter = ColorFilter.tint(
+                                        LocalCustomTheme.current.getRootColorScheme().primary.copy(alpha = 0.5f),
+                                        blendMode = BlendMode.Modulate // keeps underlying shading
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
+
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(
+                            end = 8.dp,
+                            bottom = WindowInsets.navigationBars.asPaddingValues()
+                                .calculateBottomPadding() + 8.dp
+                        ),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    if (shortcuts.isEmpty()) {
+                        TextButton(onClick = {
+                            isAppSelectorVisible = true
+                        }) {
+                            Row {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Add Shortcuts"
+                                )
+                                Spacer(Modifier.size(4.dp))
+                                Text(
+                                    text = "Add Shortcuts",
+                                    fontWeight = FontWeight.ExtraLight,
+                                    fontSize = 23.sp
+                                )
+                            }
+                        }
+                    }
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        itemsIndexed(shortcuts) { index, it ->
+                            val name = try {
+                                val appInfo = context.packageManager.getApplicationInfo(it, 0)
+                                appInfo.loadLabel(context.packageManager).toString()
+                            } catch (_: Exception) {
+                                it
+                            }
+
+                            Text(
+                                text = name,
+                                fontWeight = FontWeight.ExtraLight,
+                                fontSize = 23.sp,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                                    .combinedClickable(onClick = {
+                                        val intent =
+                                            context.packageManager.getLaunchIntentForPackage(
+                                                it
+                                            )
+                                        intent?.let { context.startActivity(it) }
+                                    }, onLongClick = {
+                                        isAppSelectorVisible = true
+                                    })
+                            )
+                        }
+                    }
+                }
+
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowUp,
+                    contentDescription = "Swipe up",
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset(y = swipeIconAnimation.dp)
+                        .padding(
+                            bottom = WindowInsets.navigationBarsIgnoringVisibility.asPaddingValues()
+                                .calculateBottomPadding() * 2
+                        )
+                )
+
             }
 
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowUp,
-                contentDescription = "Swipe up",
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .offset(y = swipeIconAnimation.dp)
-                    .padding(
-                        bottom = WindowInsets.navigationBarsIgnoringVisibility.asPaddingValues()
-                            .calculateBottomPadding() * 2
-                    )
-            )
-
         }
-
     }
 }

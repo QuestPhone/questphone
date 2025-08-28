@@ -13,6 +13,7 @@ interface BaseTheme  {
     val price: Int
         get() = 500
     val description:String
-
+    val expandQuestsText: String
+        get() = "View More"
 
 }

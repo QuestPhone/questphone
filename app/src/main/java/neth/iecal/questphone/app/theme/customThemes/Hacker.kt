@@ -5,6 +5,8 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import neth.iecal.questphone.app.screens.theme_animations.MatrixRain
 import neth.iecal.questphone.app.theme.data.CustomColor
 
 class HackerTheme(): BaseTheme {
@@ -19,7 +21,7 @@ class HackerTheme(): BaseTheme {
             tertiary = Color(0xFF8A2BE2),      // Cyber purple
             onTertiary = Color.White,
 
-            background = Color(0xFF0A0A0A),    // Almost pure black 🕶️
+            background = Color(0xFF0A0A0A),    // Almost pure black
             onBackground = Color(0xFF00FF9F),  // Green glow text
 
             surface = Color(0xFF111111),       // Slightly lighter black (for cards)
@@ -32,12 +34,19 @@ class HackerTheme(): BaseTheme {
 
     override fun getExtraColorScheme(): CustomColor {
         return CustomColor(
-            toolBoxContainer = Color(0xFF2A2A2A)
+            toolBoxContainer = Color(0xFF1A1F1D)
         )
     }
 
     @Composable
-    override fun ThemeObjects(innerPaddingValues: PaddingValues) {}
+    override fun ThemeObjects(innerPaddingValues: PaddingValues) {
+        MatrixRain(
+            textSizeDp = 16.dp,
+            densityFactor = 0.7f,
+            fps = 20,
+            maxTrail = 22,
+        )
+    }
 
     override val name: String
         get() = "Hacker"
@@ -45,4 +54,6 @@ class HackerTheme(): BaseTheme {
     override val description: String
         get() = "Kimi wa nawa kim"
 
+    override val expandQuestsText: String
+        get() = "▓▒░▓▒░▓▒░"
 }
