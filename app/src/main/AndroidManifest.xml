@@ -9,31 +9,24 @@
         android:required="false" />
 
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.VIBRATE" />
-
     <uses-permission android:name="android.permission.health.READ_STEPS" />
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
     <uses-permission android:name="android.permission.health.READ_DISTANCE" />
     <uses-permission android:name="android.permission.health.READ_SLEEP" />
     <uses-permission android:name="android.permission.health.READ_HYDRATION" />
-
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
-
-    <uses-permission
-        android:name="android.permission.FOREGROUND_SERVICE" />
-
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
@@ -41,24 +34,28 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:usesCleartextTraffic="true"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Launcher"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <activity
+            android:name=".ThemePreview"
+            android:exported="false"
+            android:label="@string/title_activity_theme_preview"
+            android:theme="@style/Theme.Launcher" />
         <activity
             android:name=".OnboardActivity"
             android:exported="true"
-            android:theme="@style/Theme.Launcher" >
-
+            android:theme="@style/Theme.Launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
             <intent-filter android:label="Sign Up">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -72,9 +69,9 @@
         </activity>
         <activity
             android:name=".MainActivity"
+            android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleTop"
-            android:excludeFromRecents="true"
             android:taskAffinity=""
             android:theme="@style/Theme.Launcher">
             <intent-filter>
@@ -83,7 +80,6 @@
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-
         </activity>
         <activity
             android:name=".PrivacyPolicyActivity"
@@ -107,14 +103,11 @@
             </intent-filter>
         </activity-alias>
 
-
-
         <service
-            android:name="neth.iecal.questphone.core.services.AppBlockerService"
+            android:name=".core.services.AppBlockerService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
-
 
         <receiver
             android:name=".core.utils.reminder.ReminderBroadcastReceiver"
@@ -124,13 +117,10 @@
             android:name=".core.utils.reminder.streak.StreakReminderReceiver"
             android:enabled="true"
             android:exported="false" />
-
-
         <receiver
-            android:name="neth.iecal.questphone.core.services.AppBlockerReminderReceiver"
+            android:name=".core.services.AppBlockerReminderReceiver"
             android:enabled="true"
             android:exported="false" />
-
         <receiver
             android:name=".core.utils.receiver.BootReceiver"
             android:enabled="true"
@@ -138,10 +128,12 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".core.utils.receiver.NewDayReceiver"
+        <receiver
+            android:name=".core.utils.receiver.NewDayReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.DATE_CHANGED" />

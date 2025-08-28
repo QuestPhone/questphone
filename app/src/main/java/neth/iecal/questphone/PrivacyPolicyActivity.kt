@@ -30,10 +30,9 @@ class PrivacyPolicyActivity : ComponentActivity() {
 
         val cherryBlossomsTheme = CherryBlossomsTheme()
         setContent {
-            var currentTheme by remember { mutableStateOf(cherryBlossomsTheme.getExtraColorScheme()) }
-            var currentThemeView by remember { mutableStateOf(cherryBlossomsTheme.getThemeView()) }
+            var currentTheme by remember { mutableStateOf(cherryBlossomsTheme) }
 
-            LauncherTheme(currentTheme,currentThemeView) {
+            LauncherTheme(currentTheme) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(modifier = Modifier.padding(innerPadding)) {
                         PrivacyPolicyScreen()

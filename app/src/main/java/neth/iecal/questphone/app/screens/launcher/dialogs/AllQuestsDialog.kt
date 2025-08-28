@@ -54,8 +54,8 @@ import androidx.navigation.NavController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.core.utils.managers.QuestHelper
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.core.core.utils.formatHour
@@ -98,7 +98,7 @@ class AllQuestDialogViewModel @Inject constructor(
 
 @Composable
 fun AllQuestsDialog(
-    rootNavController: NavController,
+    rootNavController: NavController?,
     viewModel: AllQuestDialogViewModel = hiltViewModel(),
     onDismiss: () -> Unit,
     ) {
@@ -266,7 +266,7 @@ fun AllQuestsDialog(
                                         modifier = Modifier.clickable(
                                             onClick = {
                                                 onDismiss()
-                                                rootNavController.navigate(RootRoute.ViewQuest.route + baseQuest.id)
+                                                rootNavController?.navigate(RootRoute.ViewQuest.route + baseQuest.id)
                                             },
                                             interactionSource = remember { MutableInteractionSource() },
                                             indication = ripple(bounded = false)

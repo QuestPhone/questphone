@@ -18,7 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import neth.iecal.questphone.R
-import neth.iecal.questphone.app.theme.LocalAppColors
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,7 +33,7 @@ fun TopBarActions(coins: Int,streak: Int,isCoinsVisible: Boolean = false, isStre
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .background(
-                        color = LocalAppColors.current.toolBoxContainer,
+                        color = LocalCustomTheme.current.getExtraColorScheme().toolBoxContainer,
                         shape = RoundedCornerShape(16.dp)
                     )
                     .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -57,7 +57,7 @@ fun TopBarActions(coins: Int,streak: Int,isCoinsVisible: Boolean = false, isStre
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .background(
-                        color = LocalAppColors.current.toolBoxContainer,
+                        color = LocalCustomTheme.current.getExtraColorScheme().toolBoxContainer,
                         shape = RoundedCornerShape(16.dp)
                     )
                     .padding(horizontal = 12.dp, vertical = 6.dp)

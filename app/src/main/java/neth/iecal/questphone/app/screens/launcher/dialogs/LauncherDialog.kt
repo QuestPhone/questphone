@@ -15,7 +15,7 @@ fun LauncherDialog(
     coins: Int = 0,
     onDismiss: () -> Unit,
     pkgName: String = "",
-    rootNavController: NavController,
+    rootNavController: NavController?,
     minutesPerFiveCoins :Int = 0,
     unlockApp: (Int) -> Unit = {},
     startDestination: String,

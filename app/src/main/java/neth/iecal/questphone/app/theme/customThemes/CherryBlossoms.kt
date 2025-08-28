@@ -1,11 +1,12 @@
 package neth.iecal.questphone.app.theme.customThemes
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import neth.iecal.questphone.app.screens.effects.SakuraTree
+import neth.iecal.questphone.app.screens.theme_animations.SakuraTree
 import neth.iecal.questphone.app.theme.data.CustomColor
-import neth.iecal.questphone.app.theme.data.ThemeView
 
 class CherryBlossomsTheme(): BaseTheme {
     override fun getRootColorScheme(): ColorScheme {
@@ -37,12 +38,9 @@ class CherryBlossomsTheme(): BaseTheme {
         )
     }
 
-    override fun getThemeView(): ThemeView {
-        return ThemeView(
-            {
-                SakuraTree()
-            }
-        )
+    @Composable
+    override fun ThemeObjects(innerPadding: PaddingValues) {
+        SakuraTree(innerPadding = innerPadding)
     }
 
     override val name: String

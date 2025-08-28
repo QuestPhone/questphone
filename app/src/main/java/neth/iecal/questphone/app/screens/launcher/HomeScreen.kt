@@ -87,8 +87,7 @@ import neth.iecal.questphone.app.screens.launcher.dialogs.DonationsDialog
 import neth.iecal.questphone.app.screens.launcher.dialogs.LauncherDialog
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SelectAppsDialog
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
-import neth.iecal.questphone.app.theme.LocalAppColors
-import neth.iecal.questphone.app.theme.LocalThemeView
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.app.theme.smoothRed
 import neth.iecal.questphone.core.services.LockScreenService
 import neth.iecal.questphone.core.services.performLockScreenAction
@@ -110,7 +109,7 @@ data class SidePanelItem(
 )
 @Composable
 fun HomeScreen(
-    navController: NavController,
+    navController: NavController?,
     viewModel: HomeScreenViewModel,
 ) {
     val context = LocalContext.current
@@ -127,11 +126,11 @@ fun HomeScreen(
     var isAppSelectorVisible by remember { mutableStateOf(false) }
 
     val sidePanelItems = listOf<SidePanelItem>(
-        SidePanelItem(R.drawable.profile_d,{navController.navigate(RootRoute.UserInfo.route)},"Profile"),
+        SidePanelItem(R.drawable.profile_d,{navController?.navigate(RootRoute.UserInfo.route)},"Profile"),
         SidePanelItem(R.drawable.notification_up,{ Toast.makeText(context,"Coming soon!", Toast.LENGTH_SHORT).show()},"Notifications"),
-        SidePanelItem(R.drawable.store,{navController.navigate(RootRoute.Store.route)},"Store"),
-        SidePanelItem(nethical.questphone.data.R.drawable.quest_analytics,{navController.navigate(RootRoute.ListAllQuest.route)},"Quest Analytics"),
-        SidePanelItem(nethical.questphone.data.R.drawable.quest_adderpng,{navController.navigate(RootRoute.SelectTemplates.route)},"Add Quest")
+        SidePanelItem(R.drawable.store,{navController?.navigate(RootRoute.Store.route)},"Store"),
+        SidePanelItem(nethical.questphone.data.R.drawable.quest_analytics,{navController?.navigate(RootRoute.ListAllQuest.route)},"Quest Analytics"),
+        SidePanelItem(nethical.questphone.data.R.drawable.quest_adderpng,{navController?.navigate(RootRoute.SelectTemplates.route)},"Add Quest")
     )
 
     var isAllQuestsDialogVisible by remember { mutableStateOf(false) }
@@ -166,7 +165,8 @@ fun HomeScreen(
         viewModel.filterQuests()
     }
 
-    BackHandler { }
+
+    BackHandler(navController!=null) { }
 
     if(showDonationDialog){
         DonationsDialog {
@@ -183,7 +183,7 @@ fun HomeScreen(
 
         },
 
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = LocalCustomTheme.current.getRootColorScheme().surface,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState)}) { innerPadding ->
 
         if (isAppSelectorVisible) {
@@ -221,7 +221,7 @@ fun HomeScreen(
                             if (verticalDragOffset < swipeThreshold) {
                                 if (!isScreenSwitched) {
                                     isScreenSwitched = true
-                                    navController.navigate(RootRoute.AppList.route) {
+                                    navController?.navigate(RootRoute.AppList.route) {
                                         restoreState = true
                                     }
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -266,7 +266,7 @@ fun HomeScreen(
                     )
                 }
         ) {
-            LocalThemeView.current?.composeView?.invoke()
+            LocalCustomTheme.current.ThemeObjects(innerPadding)
 
             Column(
                 Modifier.padding(8.dp)
@@ -302,7 +302,7 @@ fun HomeScreen(
 
                 if(questList.isEmpty()){
                     TextButton(onClick = {
-                        navController.navigate(RootRoute.SelectTemplates.route)
+                        navController?.navigate(RootRoute.SelectTemplates.route)
                     }) {
                         Row {
                             Icon(imageVector = Icons.Default.Add, contentDescription = "Add Quests")
@@ -333,7 +333,7 @@ fun HomeScreen(
                             color = if (isFailed && !isCompleted) smoothRed else MaterialTheme.colorScheme.onSurface,
                             textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                             modifier = Modifier.clickable(onClick = {
-                                navController.navigate(RootRoute.ViewQuest.route + baseQuest.id)
+                                navController?.navigate(RootRoute.ViewQuest.route + baseQuest.id)
                             },
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = ripple(bounded = false)
@@ -387,7 +387,7 @@ fun HomeScreen(
                 LazyColumn(
                     modifier = Modifier
                         .background(
-                            color = LocalAppColors.current.toolBoxContainer,
+                            color = LocalCustomTheme.current.getExtraColorScheme().toolBoxContainer,
                             shape = RoundedCornerShape(16.dp)
                         )
                         .padding(15.dp),

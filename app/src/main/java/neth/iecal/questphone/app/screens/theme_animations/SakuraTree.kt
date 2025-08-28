@@ -1,7 +1,14 @@
-package neth.iecal.questphone.app.screens.effects
+package neth.iecal.questphone.app.screens.theme_animations
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,27 +24,30 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SakuraTree(vm: SakuraTreeViewModel = viewModel()) {
+fun SakuraTree(vm: SakuraTreeViewModel = viewModel(),innerPadding: PaddingValues) {
     // Draw once, no animations
-    Canvas(modifier = Modifier.fillMaxSize().zIndex(-1f)) {
-        vm.generate(size.width, size.height)
+    Box(Modifier.padding(innerPadding)) {
+        Canvas(modifier = Modifier.fillMaxSize().zIndex(-1f).padding(WindowInsets.statusBarsIgnoringVisibility.asPaddingValues())) {
+            vm.generate(size.width, size.height)
 
-        vm.branchList?.forEach { branch ->
-            drawLine(
-                brush = branch.brush,
-                start = branch.start,
-                end = branch.end,
-                strokeWidth = branch.strokeWidth
-            )
-        }
+            vm.branchList?.forEach { branch ->
+                drawLine(
+                    brush = branch.brush,
+                    start = branch.start,
+                    end = branch.end,
+                    strokeWidth = branch.strokeWidth
+                )
+            }
 
-        vm.blossoms.forEach {
-            drawCircle(it.color, it.radius, it.center)
+            vm.blossoms.forEach {
+                drawCircle(it.color, it.radius, it.center)
+            }
         }
     }
-}
 
+}
 class SakuraTreeViewModel : ViewModel() {
     var branchList: List<SimpleBranch>? by mutableStateOf(null)
         private set

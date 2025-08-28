@@ -1,5 +1,6 @@
 package neth.iecal.questphone.app.screens.game
 
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -48,13 +49,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -67,6 +68,7 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.R
+import neth.iecal.questphone.ThemePreview
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.theme.customThemes.BaseTheme
@@ -128,7 +130,7 @@ fun StoreScreen(
     navController: NavController,
     viewModel: StoreViewModel = hiltViewModel()
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
     var selectedItem by remember { mutableStateOf<InventoryItem?>(null) }
     var showSuccessMessage by remember { mutableStateOf<String?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -183,7 +185,11 @@ fun StoreScreen(
             )
 
             if(viewModel.isSelectingTheme) {
-                StoreThemeList {  }
+                StoreThemeList {
+                    val intent = Intent(context, ThemePreview::class.java)
+                    intent.putExtra("themeId",it)
+                    context.startActivity(intent)
+                }
             }else{
                 StoreItemsList(
                     items = viewModel.getItemsByCategory(viewModel.selectedCategory),
@@ -323,7 +329,7 @@ private fun StoreItemsList(
 }
 @Composable
 private fun StoreThemeList(
-    onItemClick: () -> Unit,
+    onItemClick: (String) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -334,7 +340,7 @@ private fun StoreThemeList(
             themes[i]?.let {
                 StoreThemeCard(
                     theme = it,
-                    onClick = { onItemClick() },
+                    onClick = { onItemClick(i) },
                 )
             }
         }

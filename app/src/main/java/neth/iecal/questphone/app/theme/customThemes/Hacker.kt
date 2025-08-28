@@ -1,10 +1,11 @@
 package neth.iecal.questphone.app.theme.customThemes
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import neth.iecal.questphone.app.theme.data.CustomColor
-import neth.iecal.questphone.app.theme.data.ThemeView
 
 class HackerTheme(): BaseTheme {
     override fun getRootColorScheme(): ColorScheme {
@@ -35,9 +36,8 @@ class HackerTheme(): BaseTheme {
         )
     }
 
-    override fun getThemeView(): ThemeView? {
-        return null
-    }
+    @Composable
+    override fun ThemeObjects(innerPaddingValues: PaddingValues) {}
 
     override val name: String
         get() = "Hacker"

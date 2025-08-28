@@ -1,16 +1,18 @@
 package neth.iecal.questphone.app.theme.customThemes
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ColorScheme
+import androidx.compose.runtime.Composable
 import neth.iecal.questphone.app.theme.data.CustomColor
-import neth.iecal.questphone.app.theme.data.ThemeView
 
 interface BaseTheme  {
     fun getRootColorScheme() : ColorScheme
     fun getExtraColorScheme() : CustomColor
-    fun getThemeView(): ThemeView?
+    @Composable fun ThemeObjects(innerPadding: PaddingValues)
     val name: String
     val price: Int
         get() = 500
     val description:String
+
 
 }

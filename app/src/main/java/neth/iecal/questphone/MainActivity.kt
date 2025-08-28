@@ -106,8 +106,7 @@ class MainActivity : ComponentActivity() {
         val cherryBlossomsTheme = CherryBlossomsTheme()
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}
-            var currentTheme by remember { mutableStateOf(cherryBlossomsTheme.getExtraColorScheme()) }
-            var currentThemeView by remember { mutableStateOf(cherryBlossomsTheme.getThemeView()) }
+            var currentTheme by remember { mutableStateOf(cherryBlossomsTheme) }
 
             LaunchedEffect(Unit) {
                 isUserOnboarded.value = data.getBoolean("onboard",false)
@@ -120,7 +119,7 @@ class MainActivity : ComponentActivity() {
                 notificationScheduler.createNotificationChannel()
                 notificationScheduler.reloadAllReminders()
             }
-            LauncherTheme(currentTheme,currentThemeView) {
+            LauncherTheme(currentTheme) {
                 Surface {
                     val navController = rememberNavController()
 

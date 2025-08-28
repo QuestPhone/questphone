@@ -51,8 +51,7 @@ class OnboardActivity : ComponentActivity() {
 
             val isPetDialogVisible = remember { mutableStateOf(true) }
             val isLoginResetPassword = remember { mutableStateOf(false) }
-            var currentTheme by remember { mutableStateOf(cherryBlossomsTheme.getExtraColorScheme()) }
-            var currentThemeView by remember { mutableStateOf(cherryBlossomsTheme.getThemeView()) }
+            var currentTheme by remember { mutableStateOf(cherryBlossomsTheme) }
 
             val isTosAccepted = remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {
@@ -73,7 +72,7 @@ class OnboardActivity : ComponentActivity() {
             else if (!isTosAccepted.value) RootRoute.TermsScreen.route
             else RootRoute.OnBoard.route
 
-            LauncherTheme(currentTheme,currentThemeView) {
+            LauncherTheme(currentTheme) {
                 Surface {
                     val navController = rememberNavController()
 //
