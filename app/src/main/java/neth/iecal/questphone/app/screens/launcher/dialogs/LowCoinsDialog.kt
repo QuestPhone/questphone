@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -22,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.createBitmap
 import androidx.navigation.NavController
 import neth.iecal.questphone.app.navigation.LauncherDialogRoutes
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 
 
 @Composable
@@ -40,6 +40,8 @@ fun LowCoinsDialog(
         appIconDrawable.draw(canvas)
         bitmap.asImageBitmap()
     }
+    val textColor = LocalCustomTheme.current.getExtraColorScheme().dialogText
+
     Column(
         modifier = Modifier.padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -54,7 +56,7 @@ fun LowCoinsDialog(
         )
         Text(
             text = "Balance: $coins coins",
-            color = Color.White,
+            color = textColor,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -66,7 +68,7 @@ fun LowCoinsDialog(
         }
         Text(
             text = "You're too broke to use $appName right now. ",
-            color = Color.White,
+            color = textColor,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .padding(bottom = 16.dp)
@@ -86,7 +88,7 @@ fun LowCoinsDialog(
 
         Text(
             text = "Just let me in for a while",
-            color = Color.White,
+            color = textColor,
             textAlign = TextAlign.Center,
             textDecoration = TextDecoration.Underline,
             modifier = Modifier

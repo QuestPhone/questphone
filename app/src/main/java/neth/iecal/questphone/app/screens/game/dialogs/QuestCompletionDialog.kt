@@ -33,12 +33,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import neth.iecal.questphone.R
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.managers.SoundManager
 
 
 @Composable
 fun QuestCompletionDialog(coinReward: Int,xpReward:Int, onDismiss: () -> Unit) {
+    val textColor = LocalCustomTheme.current.getExtraColorScheme().dialogText
+
     Dialog(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier.padding(24.dp),
@@ -90,6 +93,7 @@ fun QuestCompletionDialog(coinReward: Int,xpReward:Int, onDismiss: () -> Unit) {
                         text = "Quest Complete",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Black,
+                        color = textColor,
                         textAlign = TextAlign.Center,
                         letterSpacing = 2.sp
                     )
@@ -97,6 +101,7 @@ fun QuestCompletionDialog(coinReward: Int,xpReward:Int, onDismiss: () -> Unit) {
                     Text(
                         text = "You earned $coinReward ${if (coinReward > 1) "coins" else "coin"} + $xpReward xp!",
                         textAlign = TextAlign.Center,
+                        color = textColor,
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )

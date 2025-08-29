@@ -53,7 +53,7 @@ fun NeuralMeshAsymmetrical(modifier: Modifier = Modifier) {
     Box(modifier = modifier) {
         val infiniteTransition = rememberInfiniteTransition(label = "infinite_rotation")
 
-        val onPrimary = MaterialTheme.colorScheme.onPrimary
+        val onSurface = MaterialTheme.colorScheme.onSurface
         val angleY by infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 2f * PI.toFloat(),
@@ -123,8 +123,8 @@ fun NeuralMeshAsymmetrical(modifier: Modifier = Modifier) {
                 Pair(Offset(projectedX, projectedY), scale)
             }
 
-            drawConnections(transformedNodes, edges, onPrimary)
-            drawNodes(transformedNodes,onPrimary)
+            drawConnections(transformedNodes, edges, onSurface)
+            drawNodes(transformedNodes,onSurface)
         }
     }
 }

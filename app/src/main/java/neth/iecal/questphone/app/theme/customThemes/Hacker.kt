@@ -34,7 +34,8 @@ class HackerTheme(): BaseTheme {
 
     override fun getExtraColorScheme(): CustomColor {
         return CustomColor(
-            toolBoxContainer = Color(0xFF1A1F1D)
+            toolBoxContainer = Color(0xFF1A1F1D),
+            heatMapCells = Color(0xFF00FF9F)
         )
     }
 

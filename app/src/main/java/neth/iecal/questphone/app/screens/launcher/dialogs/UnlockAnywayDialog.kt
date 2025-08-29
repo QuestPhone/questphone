@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 
 @Composable
 fun FreePassInfo(
@@ -37,6 +38,8 @@ fun FreePassInfo(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+
+    val textColor = LocalCustomTheme.current.getExtraColorScheme().dialogText
 
     Surface(
         modifier = Modifier
@@ -58,14 +61,14 @@ fun FreePassInfo(
                 text = "You have $remainingFreePassesToday free ${if (remainingFreePassesToday == 1) "pass" else "passes"} today for this app. Each pass gives 10 minutes of app usage",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.White
+                color = textColor
             )
 
             Text(
                 text = "These free passes adapt to how consistent and committed you’ve been.\n" +
                         "Keep up the grind, or the boosts slow down. And so does your progress. \uD83D\uDC40",
                 fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.85f),
+                color = textColor.copy(alpha = 0.85f),
                 lineHeight = 18.sp,
                 textAlign = TextAlign.Center
             )
@@ -84,7 +87,6 @@ fun FreePassInfo(
                     "🔥 Start a Quest",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
                 )
             }
 

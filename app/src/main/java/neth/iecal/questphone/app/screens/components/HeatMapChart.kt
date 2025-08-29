@@ -49,6 +49,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
 import javax.inject.Inject
@@ -336,12 +337,13 @@ fun ContributionCell(
 
 @Composable
 fun getContributionColor(level: Int): Color {
+    val cell = LocalCustomTheme.current.getExtraColorScheme().heatMapCells
     return when (level) {
         0 -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) // No quests
-        1 -> MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f)
-        2 -> MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
-        3 -> MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-        4 -> MaterialTheme.colorScheme.onPrimary // Max contribution
+        1 -> cell.copy(alpha = 0.3f)
+        2 -> cell.copy(alpha = 0.5f)
+        3 -> cell.copy(alpha = 0.7f)
+        4 -> cell // Max contribution
         else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     }
 }

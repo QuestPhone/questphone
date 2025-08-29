@@ -45,7 +45,7 @@ fun NeuralMeshSymmetrical(modifier: Modifier = Modifier) {
     Box( modifier = modifier) {
 
         val infiniteTransition = rememberInfiniteTransition(label = "infinite_rotation")
-        val onPrimary = MaterialTheme.colorScheme.onPrimary
+        val onSurface = MaterialTheme.colorScheme.onSurface
 
         val angleY by infiniteTransition.animateFloat(
             initialValue = 0f,
@@ -111,10 +111,10 @@ fun NeuralMeshSymmetrical(modifier: Modifier = Modifier) {
             }
 
             // Draw connections (lines) first, so nodes are drawn on top.
-            drawConnections(transformedNodes,onPrimary)
+            drawConnections(transformedNodes,onSurface)
 
             // Draw the nodes (circles).
-            drawNodes(transformedNodes,onPrimary)
+            drawNodes(transformedNodes,onSurface)
         }
     }
 }
@@ -206,7 +206,7 @@ private fun DrawScope.drawConnections(projectedNodes: List<Pair<Offset, Float>>,
             val alpha = ((scale1 + scale2) / 2f - 0.5f).coerceIn(0f, 1f) * 1.5f
 
             drawLine(
-                color = Color.White,
+                color = color,
                 start = p1,
                 end = p2,
                 strokeWidth = 1.2f * ((scale1 + scale2) / 2f), // Thinner lines for distant connections

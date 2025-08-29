@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.screens.quest.view.components.MdPad
 import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.app.theme.smoothYellow
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.core.core.utils.VibrationHelper
@@ -84,6 +85,7 @@ fun AiSnapQuestView(
 
         Scaffold(
             Modifier.safeDrawingPadding(),
+            containerColor = LocalCustomTheme.current.getRootColorScheme().surface,
             topBar = {
                 TopAppBar(
                     title = {},

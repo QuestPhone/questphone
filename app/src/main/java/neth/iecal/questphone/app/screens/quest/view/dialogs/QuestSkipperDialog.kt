@@ -18,12 +18,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.data.game.InventoryItem
 
 @Composable
 fun QuestSkipperDialog(viewModel: ViewQuestVM) {
     val isDialogVisible by viewModel.isQuestSkippedDialogVisible.collectAsState()
+    val textColor = LocalCustomTheme.current.getExtraColorScheme().dialogText
+
     if (isDialogVisible) {
         Dialog(onDismissRequest = { viewModel.isQuestSkippedDialogVisible.value = false }) {
             Surface(modifier = Modifier.padding(8.dp)) {
@@ -33,6 +36,7 @@ fun QuestSkipperDialog(viewModel: ViewQuestVM) {
                 ) {
                     Text(
                         text = "Do you want to use a QUEST SKIPPER to skip this quest for today?",
+                        color = textColor,
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold,
                     )

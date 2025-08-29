@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import neth.iecal.questphone.R
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.managers.SoundManager
 import nethical.questphone.data.game.InventoryItem
@@ -66,6 +67,7 @@ fun LevelUpDialog(
     coinReward: Int
 ) {
     val context = LocalContext.current
+    val textColor = LocalCustomTheme.current.getExtraColorScheme().dialogText
 
     val previousLevel = newLevel - 1
 
@@ -157,7 +159,7 @@ fun LevelUpDialog(
                                 text = previousLevel.toString(),
                                 fontSize = 120.sp,
                                 fontWeight = FontWeight.Black,
-                                color = Color.White.copy(alpha = (1f - animatedOffset * 1.2f).coerceAtLeast(0f)),
+                                color = textColor.copy(alpha = (1f - animatedOffset * 1.2f).coerceAtLeast(0f)),
                                 lineHeight = 120.sp,
                                 modifier = Modifier.offset(y = (-offsetY * 0.8f).dp)
                             )
@@ -183,7 +185,7 @@ fun LevelUpDialog(
                                     text = newLevel.toString(),
                                     fontSize = 120.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White.copy(alpha = (animatedOffset * 1.1f).coerceAtMost(1f)),
+                                    color = textColor.copy(alpha = (animatedOffset * 1.1f).coerceAtMost(1f)),
                                     lineHeight = 120.sp,
                                     modifier = Modifier.offset(y = (textHeight.value * 1.5f - offsetY).dp)
                                 )

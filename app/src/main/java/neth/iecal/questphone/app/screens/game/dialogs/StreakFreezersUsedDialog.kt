@@ -48,6 +48,7 @@ import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.managers.SoundManager
 import nethical.questphone.data.game.StreakData
@@ -89,6 +90,7 @@ fun StreakFreezersUsedDialog(
             repeatMode = RepeatMode.Reverse
         ), label = "shimmer_alpha"
     )
+    val textColor = LocalCustomTheme.current.getExtraColorScheme().dialogText
 
     LaunchedEffect(Unit) {
         launch {
@@ -126,6 +128,7 @@ fun StreakFreezersUsedDialog(
     }
 
     Dialog(onDismissRequest = onDismiss) {
+
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -185,7 +188,7 @@ fun StreakFreezersUsedDialog(
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Black,
                             textAlign = TextAlign.Center,
-                            letterSpacing = 2.sp
+                            letterSpacing = 2.sp,
                         )
 
                         Text(

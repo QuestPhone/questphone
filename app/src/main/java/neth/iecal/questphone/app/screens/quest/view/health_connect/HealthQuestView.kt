@@ -38,6 +38,7 @@ import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
 import neth.iecal.questphone.app.screens.quest.view.components.MdPad
 import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.app.theme.smoothYellow
 import neth.iecal.questphone.core.utils.managers.HealthConnectManager
 import neth.iecal.questphone.core.utils.managers.HealthConnectManager.Companion.requiredPermissions
@@ -171,6 +172,7 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo, viewModel: HealthQuestView
     } else {
 
         Scaffold( Modifier.safeDrawingPadding(),
+            containerColor = LocalCustomTheme.current.getRootColorScheme().surface,
             topBar = {
                 TopAppBar(
                     title = {},

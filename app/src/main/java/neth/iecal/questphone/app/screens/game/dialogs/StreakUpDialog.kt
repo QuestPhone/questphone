@@ -129,6 +129,7 @@ fun StreakUpDialog(
 
     val jitter = remember { mutableStateOf(0f) }
 
+
     // Enhanced spark system for realistic sparks
     val sparks = remember {
         mutableStateOf((0..24).map {

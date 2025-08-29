@@ -27,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import neth.iecal.questphone.R
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 
 @Composable
 fun UnlockAppDialog(
@@ -39,7 +40,7 @@ fun UnlockAppDialog(
     val context = LocalContext.current
     val maxSpendableCoins = coins - (coins % 5)
     var coinsToSpend by remember { mutableIntStateOf(5) }
-
+    val textColor = LocalCustomTheme.current.getExtraColorScheme().dialogText
 
 
     Column(
@@ -76,6 +77,7 @@ fun UnlockAppDialog(
 
         Text(
             text = "Open $appName?",
+            color = textColor,
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
             modifier = Modifier.padding(bottom = 16.dp, top = 16.dp)
         )
@@ -100,7 +102,7 @@ fun UnlockAppDialog(
 
             Text(
                 text = "$coinsToSpend",
-                color = Color.White,
+                color = textColor,
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
 

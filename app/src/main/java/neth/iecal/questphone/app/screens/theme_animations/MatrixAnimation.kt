@@ -100,8 +100,6 @@ fun MatrixRain(
                 ).toCharArray()
     }
 
-    // Mutable state stored in primitive arrays for speed.
-
 
     var columns by remember { mutableStateOf<Columns?>(null) }
 

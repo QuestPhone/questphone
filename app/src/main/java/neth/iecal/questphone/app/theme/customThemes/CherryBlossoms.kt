@@ -34,7 +34,8 @@ class CherryBlossomsTheme(): BaseTheme {
 
     override fun getExtraColorScheme(): CustomColor {
         return CustomColor(
-            toolBoxContainer = Color.White.copy(alpha = 0.3f)
+            toolBoxContainer = Color.White.copy(alpha = 0.3f),
+            heatMapCells = Color(0xFF4A0E1F)
         )
     }
 

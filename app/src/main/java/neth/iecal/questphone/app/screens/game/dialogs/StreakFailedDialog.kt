@@ -34,15 +34,14 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.managers.SoundManager
 import nethical.questphone.data.game.StreakFreezerReturn
@@ -65,6 +64,7 @@ fun StreakFailedDialog(
     var countdownFinished by remember { mutableStateOf(false) }
     var shakeScale by remember { mutableFloatStateOf(1f) }
     var glowIntensity by remember { mutableFloatStateOf(0f) }
+    val textColor = LocalCustomTheme.current.getExtraColorScheme().dialogText
 
     // Start the countdown animation
     val soundManager = remember { SoundManager(context) }
@@ -203,6 +203,7 @@ fun StreakFailedDialog(
                                     text = currentNumber.toString(),
                                     fontSize = 120.sp,
                                     fontWeight = FontWeight.Bold,
+
                                     color = when {
                                         currentNumber == 0 -> Color(0xFFFF0000)
                                         currentNumber <= 3 -> Color(0xFFFF4444)
@@ -228,26 +229,14 @@ fun StreakFailedDialog(
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Color(0xFFFF4444),
-                                style = TextStyle(
-                                    shadow = Shadow(
-                                        color = Color(0xFF000000),
-                                        offset = Offset(4f, 4f),
-                                        blurRadius = 8f
-                                    )
-                                )
+
                             )
                         } else {
                             Text(
                                 text = "LOSING STREAK...",
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                style = TextStyle(
-                                    shadow = Shadow(
-                                        color = Color(0xFF000000),
-                                        offset = Offset(4f, 4f),
-                                        blurRadius = 8f
-                                    )
-                                )
+                                color = textColor
                             )
                         }
 
@@ -256,17 +245,18 @@ fun StreakFailedDialog(
                         if (countdownFinished) {
                             Text(
                                 text = "You lost your $streakDaysLost day streak!",
-                                color = Color.White,
+                                color = textColor,
                                 textAlign = TextAlign.Center,
                                 fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
+
                             )
 
                             Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
                                 text = "Don't worry, you can rise again....",
-                                color = Color.White,
+                                color = textColor,
                                 textAlign = TextAlign.Center,
                                 fontSize = 14.sp,
                                 modifier = Modifier.padding(bottom = 16.dp)
@@ -274,7 +264,7 @@ fun StreakFailedDialog(
                         } else {
                             Text(
                                 text = "Watch your ${streakDaysLost} day streak disappear...",
-                                color = Color.White,
+                                color = textColor,
                                 textAlign = TextAlign.Center,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium
