@@ -1,5 +1,7 @@
 package neth.iecal.questphone.app.screens.theme_animations
 
+import android.app.Application
+import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -18,16 +20,74 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.content.edit
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.AndroidViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import nethical.questphone.backend.repositories.UserRepository
+import javax.inject.Inject
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
+@HiltViewModel
+class SakuraTreeViewModel
+@Inject constructor (application: Application,
+                     private val userRepository: UserRepository) : AndroidViewModel(application) {
+
+    var branchList: List<SimpleBranch>? by mutableStateOf(null)
+        private set
+    var blossoms: List<Blossom> = emptyList()
+    private var generatedStreak: Int = -1
+    private val sp = application.getSharedPreferences("sakuraTreeSeed", Context.MODE_PRIVATE)
+
+    fun getSeed(streak: Int): Long {
+        if(streak==0) {
+            if (sp.getInt("lastStreak", 1) != 0) {
+                sp.edit(commit = true) { putLong("seed", Random.nextLong()) }
+            }
+        }
+        sp.edit { putInt("lastStreak",streak) }
+
+        return sp.getLong("seed",Random.nextLong())
+    }
+
+    fun generate(width: Float, height: Float, streak: Int = userRepository.userInfo.streak.currentStreak) {
+        if (branchList != null && streak == generatedStreak) return
+
+        val rand = Random(getSeed(streak)) // Fixed seed for consistent tree structure
+        val maxStreak = 30 // Cap significant growth at streak 30
+        val effectiveStreak = streak.coerceAtMost(maxStreak)
+        val extraBlossoms = if (streak > maxStreak) (streak - maxStreak).coerceAtMost(10) else 0
+
+        val root = generateTree(
+            rand = rand,
+            start = Offset(width, height), // bottom-right corner
+            length = height * (0.2f + (effectiveStreak / 100f)),
+            angle = -120f + if (streak > maxStreak) (streak - maxStreak) * 0.5f else 0f, // Slight angle tweak for higher streaks
+            depth = 6 + effectiveStreak / 2,
+            extraBlossoms = extraBlossoms
+        )
+
+        val branches = mutableListOf<SimpleBranch>()
+        val blossomsTemp = mutableListOf<Blossom>()
+        flattenTree(root, branches, blossomsTemp)
+
+        branchList = branches
+        blossoms = blossomsTemp
+        generatedStreak = streak
+    }
+
+    private fun flattenTree(b: Branch, list: MutableList<SimpleBranch>, bls: MutableList<Blossom>) {
+        list.add(SimpleBranch(b.start, b.end, b.strokeWidth))
+        bls.addAll(b.blossoms)
+        b.children.forEach { flattenTree(it, list, bls) }
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SakuraTree(vm: SakuraTreeViewModel = viewModel(),innerPadding: PaddingValues) {
-    // Draw once, no animations
+fun SakuraTree(vm: SakuraTreeViewModel = hiltViewModel(), innerPadding: PaddingValues, streak: Int = 3) {
     Box(Modifier.padding(innerPadding)) {
         Canvas(modifier = Modifier.fillMaxSize().zIndex(-1f).padding(WindowInsets.statusBarsIgnoringVisibility.asPaddingValues())) {
             vm.generate(size.width, size.height)
@@ -46,75 +106,46 @@ fun SakuraTree(vm: SakuraTreeViewModel = viewModel(),innerPadding: PaddingValues
             }
         }
     }
-
-}
-class SakuraTreeViewModel : ViewModel() {
-    var branchList: List<SimpleBranch>? by mutableStateOf(null)
-        private set
-    var blossoms: List<Blossom> = emptyList()
-
-    fun generate(width: Float, height: Float) {
-        if (branchList != null) return
-
-        val root = generateTree(
-            start = Offset(width, height), // bottom-right corner
-            length = height * 0.35f,
-            angle = -120f,                 // grow leftwards
-            depth = 12
-        )
-
-        val branches = mutableListOf<SimpleBranch>()
-        val blossomsTemp = mutableListOf<Blossom>()
-        flattenTree(root, branches, blossomsTemp)
-
-        branchList = branches
-        blossoms = blossomsTemp
-    }
-
-    private fun flattenTree(b: Branch, list: MutableList<SimpleBranch>, bls: MutableList<Blossom>) {
-        list.add(SimpleBranch(b.start, b.end, b.strokeWidth))
-        bls.addAll(b.blossoms)
-        b.children.forEach { flattenTree(it, list, bls) }
-    }
 }
 
 // ---------------- Tree Generation ----------------
-private fun generateTree(start: Offset, length: Float, angle: Float, depth: Int): Branch {
+private fun generateTree(rand: Random, start: Offset, length: Float, angle: Float, depth: Int, extraBlossoms: Int): Branch {
     if (depth == 0) return Branch(start, start, 0f)
 
     val endX = start.x + length * cos(Math.toRadians(angle.toDouble())).toFloat()
     val endY = start.y + length * sin(Math.toRadians(angle.toDouble())).toFloat()
     val end = Offset(endX, endY)
 
-    val strokeWidth = Random.nextInt(3, 8).toFloat()
+    val strokeWidth = rand.nextInt(3, 8).toFloat()
     val children = mutableListOf<Branch>()
     val blossoms = mutableListOf<Blossom>()
 
     if (depth > 3) {
-        val angleVariation = Random.nextInt(-45, 45)
+        val angleVariation = rand.nextInt(-45, 45)
         val newAngle1 = angle + angleVariation
         val newAngle2 = angle - angleVariation
-        val newLength = length * Random.nextFloat(0.5f, 0.8f)
-        children.add(generateTree(end, newLength, newAngle1, depth - 1))
-        children.add(generateTree(end, newLength, newAngle2, depth - 1))
+        val newLength = length * rand.nextFloat(0.5f, 0.8f)
+        children.add(generateTree(rand, end, newLength, newAngle1, depth - 1, extraBlossoms))
+        children.add(generateTree(rand, end, newLength, newAngle2, depth - 1, extraBlossoms))
     }
 
-    if (depth <= 3 && Random.nextFloat() < 0.8f) {
+    if (depth <= 3 && rand.nextFloat() < 0.8f) {
         val blossomColor = Color(
-            red = 0.9f + Random.nextFloat() * 0.1f,
-            green = 0.3f + Random.nextFloat() * 0.2f,
-            blue = 0.6f + Random.nextFloat() * 0.2f,
+            red = 0.9f + rand.nextFloat() * 0.1f,
+            green = 0.3f + rand.nextFloat() * 0.2f,
+            blue = 0.6f + rand.nextFloat() * 0.2f,
             alpha = 1f
         )
-        blossoms.add(Blossom(end, Random.nextInt(8, 20).toFloat(), blossomColor))
+        blossoms.add(Blossom(end, rand.nextInt(8, 20).toFloat(), blossomColor))
 
-        repeat(Random.nextInt(3, 7)) {
-            val petalX = end.x + Random.nextInt(-50, 50)
-            val petalY = end.y + Random.nextInt(-50, 20)
+        val petalCount = rand.nextInt(3, 7) + if (extraBlossoms > 0) rand.nextInt(0, extraBlossoms) else 0
+        repeat(petalCount) {
+            val petalX = end.x + rand.nextInt(-50, 50)
+            val petalY = end.y + rand.nextInt(-50, 20)
             blossoms.add(
                 Blossom(
                     center = Offset(petalX.toFloat(), petalY.toFloat()),
-                    radius = Random.nextInt(5, 12).toFloat(),
+                    radius = rand.nextInt(5, 12).toFloat(),
                     color = blossomColor.copy(alpha = 0.7f)
                 )
             )
@@ -135,7 +166,7 @@ data class SimpleBranch(
     val strokeWidth: Float,
     val brush: Brush = Brush.linearGradient(
         listOf(Color(0xFF8B4513), Color(0xFF5C4033))
-    )
+    ),
 )
 
 data class Branch(
@@ -143,11 +174,11 @@ data class Branch(
     val end: Offset,
     val strokeWidth: Float,
     val children: List<Branch> = emptyList(),
-    val blossoms: List<Blossom> = emptyList()
+    val blossoms: List<Blossom> = emptyList(),
 )
 
 data class Blossom(
     val center: Offset,
     val radius: Float,
-    val color: Color
+    val color: Color,
 )

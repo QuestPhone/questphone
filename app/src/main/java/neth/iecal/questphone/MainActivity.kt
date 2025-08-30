@@ -54,6 +54,7 @@ import neth.iecal.questphone.app.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
 import neth.iecal.questphone.app.screens.quest_docs.QuestTutorial
 import neth.iecal.questphone.app.theme.LauncherTheme
+import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsTheme
 import neth.iecal.questphone.app.theme.customThemes.HackerTheme
 import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.core.utils.receiver.AppInstallReceiver
@@ -103,7 +104,7 @@ class MainActivity : ComponentActivity() {
             WorkManager.getInstance(applicationContext).enqueue(downloadWork)
         }
 
-        val cherryBlossomsTheme = HackerTheme()
+        val cherryBlossomsTheme = CherryBlossomsTheme()
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}
             var currentTheme by remember { mutableStateOf(cherryBlossomsTheme) }
