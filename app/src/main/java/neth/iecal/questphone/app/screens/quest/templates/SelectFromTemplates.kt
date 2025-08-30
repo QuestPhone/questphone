@@ -308,7 +308,7 @@ fun SelectFromTemplates(
 }
 
     @Composable
-    fun CustomQuestCard(
+    private fun CustomQuestCard(
         onClick: () -> Unit,
         modifier: Modifier = Modifier
     ) {

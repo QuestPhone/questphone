@@ -6,7 +6,7 @@ import neth.iecal.questphone.app.theme.customThemes.HackerTheme
 import neth.iecal.questphone.app.theme.customThemes.PitchBlackTheme
 
 val themes: Map<String, BaseTheme> = mapOf(
-    "CherryBlossoms" to CherryBlossomsTheme(),
-    "hacker" to HackerTheme(),
-    "pitchBlack" to PitchBlackTheme()
+    "Cherry Blossoms" to CherryBlossomsTheme(),
+    "Hacker" to HackerTheme(),
+    "Pitch Black" to PitchBlackTheme()
 )

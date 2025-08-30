@@ -15,6 +15,7 @@ sealed class RootRoute(val route: String) {
     data object OnBoard : RootRoute("onboard/")
     data object ResetPass : RootRoute("reset_pass/")
     data object Store : RootRoute("store/")
+    data object Customize : RootRoute("customize/")
     data object UserInfo : RootRoute("userInfo/")
     data object QuestStats : RootRoute("questStats/")
 

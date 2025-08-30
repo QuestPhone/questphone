@@ -1,11 +1,6 @@
 package neth.iecal.questphone.app.screens.game
 
 import android.content.Intent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,8 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -53,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -95,7 +87,14 @@ class StoreViewModel @Inject constructor(
     var isSelectingTheme = false
         private set
 
+    var themeList  by mutableStateOf( themes.keys.toList().filter { !userRepository.userInfo.purchasedThemes.contains(it) })
+        private set
+
     fun hasEnoughCoinsToPurchaseItem(item: InventoryItem): Boolean {
+        val userCoins = userRepository.userInfo.coins
+        return userCoins >= item.price
+    }
+    fun hasEnoughCoinsToPurchaseItem(item: BaseTheme): Boolean {
         val userCoins = userRepository.userInfo.coins
         return userCoins >= item.price
     }
@@ -122,6 +121,12 @@ class StoreViewModel @Inject constructor(
         return true
     }
 
+    fun purchaseTheme(item: BaseTheme){
+        userRepository.userInfo.purchasedThemes.add(item.name)
+        userRepository.useCoins(item.price)
+        themeList = themeList.filter{ it != item.name}
+    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -132,7 +137,8 @@ fun StoreScreen(
 ) {
     val context = LocalContext.current
     var selectedItem by remember { mutableStateOf<InventoryItem?>(null) }
-    var showSuccessMessage by remember { mutableStateOf<String?>(null) }
+    var selectedThemeItem by remember { mutableStateOf<BaseTheme?>(null) }
+    var showSuccessMessage by remember { mutableStateOf<Triple<String, String, ()-> Unit>?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coins by viewModel.coins.collectAsState()
     // auto dismiss message
@@ -140,13 +146,13 @@ fun StoreScreen(
         LaunchedEffect(message) {
             val result = snackbarHostState
                 .showSnackbar(
-                    message = message,
-                    actionLabel = "Inventory",
+                    message = message.first,
+                    actionLabel = message.second,
                 )
             when (result) {
                 SnackbarResult.Dismissed -> {}
                 SnackbarResult.ActionPerformed -> {
-                    navController.navigate(RootRoute.UserInfo.route)
+                    message.third.invoke()
                 }
             }
         }
@@ -185,10 +191,10 @@ fun StoreScreen(
             )
 
             if(viewModel.isSelectingTheme) {
-                StoreThemeList {
-                    val intent = Intent(context, ThemePreview::class.java)
-                    intent.putExtra("themeId",it)
-                    context.startActivity(intent)
+                StoreThemeList(
+                    viewModel.themeList
+                ) {
+                    selectedThemeItem = themes[it]!!
                 }
             }else{
                 StoreItemsList(
@@ -201,55 +207,40 @@ fun StoreScreen(
             selectedItem?.let { item ->
                 PurchaseDialog(
                     item = item,
-                    hasEnoughCoins = viewModel.hasEnoughCoinsToPurchaseItem(selectedItem!!),
+                    hasEnoughCoins = viewModel.hasEnoughCoinsToPurchaseItem(item),
                     userCoins = coins,
                     inventoryCount = viewModel.getItemInventoryCount(selectedItem!!),
                     onDismiss = { selectedItem = null },
                     onPurchase = {
                         if (viewModel.makeItemPurchase(item)) {
-                            showSuccessMessage = "Successfully purchased ${item.simpleName}!"
+                            showSuccessMessage = Triple( "Successfully purchased ${item.simpleName}!", "Inventory", {
+                                navController.navigate(RootRoute.UserInfo.route)
+                            })
                         }
                     }
                 )
             }
 
-            AnimatedVisibility(
-                visible = showSuccessMessage != null,
-                enter = fadeIn() + slideInVertically(),
-                exit = fadeOut() + slideOutVertically()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFF4CAF50)
-                        ),
-                        modifier = Modifier.shadow(8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "Success",
-                                tint = Color.White
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = showSuccessMessage ?: "",
-                                color = Color.White,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
+            selectedThemeItem?.let {item ->
+                PurchaseThemeDialog(
+                    item = item,
+                    hasEnoughCoins = viewModel.hasEnoughCoinsToPurchaseItem(item),
+                    userCoins = coins,
+                    onDismiss = { selectedThemeItem = null },
+                    onPurchase = {
+                        viewModel.purchaseTheme(item)
+                        showSuccessMessage = Triple( "Successfully purchased ${item.name}!", "Customize", {
+                            navController.navigate(RootRoute.UserInfo.route)
+                        })
+                    },
+                    onPreview = {
+                        val intent = Intent(context, ThemePreview::class.java)
+                        intent.putExtra("themeId",item.name)
+                        context.startActivity(intent)
                     }
-                }
+                )
             }
+
         }
     }
 }
@@ -329,6 +320,7 @@ private fun StoreItemsList(
 }
 @Composable
 private fun StoreThemeList(
+    themesKeys: List<String>,
     onItemClick: (String) -> Unit,
 ) {
     LazyColumn(
@@ -336,7 +328,7 @@ private fun StoreThemeList(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(themes.keys.toList()) { i ->
+        items(themesKeys) { i ->
             themes[i]?.let {
                 StoreThemeCard(
                     theme = it,
@@ -456,7 +448,7 @@ private fun StoreThemeCard(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(R.drawable.outline_help_24),
+                    painter = painterResource(R.drawable.customize),
                     contentDescription = theme.name
                 )
             }
@@ -599,6 +591,133 @@ private fun PurchaseDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "$inventoryCount",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+
+                // Not enough coins message
+                if (!hasEnoughCoins) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "You need ${item.price - userCoins} more coins!",
+                        color = Color(0xFFFF5252),
+                        fontSize = 16.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color.White
+                        ),
+                        border = BorderStroke(1.dp, Color.Gray)
+                    ) {
+                        Text("Cancel")
+                    }
+
+                    Button(
+                        onClick = { onPurchase()
+                                  onDismiss()},
+                        modifier = Modifier.weight(1f),
+                        enabled = hasEnoughCoins,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFE091FF),
+                            contentColor = Color.Black,
+                            disabledContainerColor = Color(0xFF4A4A4A),
+                            disabledContentColor = Color.Gray
+                        )
+                    ) {
+                        Text("Purchase")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PurchaseThemeDialog(
+    item: BaseTheme,
+    hasEnoughCoins: Boolean,
+    userCoins: Int,
+    onDismiss: () -> Unit,
+    onPurchase: () -> Unit,
+    onPreview: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF1A1A1A)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Purchase ${item.name}?",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+                OutlinedButton(
+                    onClick = onPreview,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.White
+                    ),
+                    border = BorderStroke(1.dp, Color.Gray)
+                ) {
+                    Text("Preview")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = item.description,
+                    fontSize = 16.sp,
+                    color = Color.LightGray,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Price
+                Row(
+                    modifier = Modifier
+                        .background(
+                            color = Color(0xFF2A2A2A),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.coin_icon),
+                        contentDescription = "Coins",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "${item.price}",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp

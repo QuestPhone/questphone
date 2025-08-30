@@ -14,11 +14,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -39,6 +37,7 @@ import neth.iecal.questphone.app.screens.game.RewardDialogMaker
 import neth.iecal.questphone.app.screens.game.StoreScreen
 import neth.iecal.questphone.app.screens.launcher.AppList
 import neth.iecal.questphone.app.screens.launcher.AppListViewModel
+import neth.iecal.questphone.app.screens.launcher.CustomizeScreen
 import neth.iecal.questphone.app.screens.launcher.HomeScreen
 import neth.iecal.questphone.app.screens.launcher.HomeScreenViewModel
 import neth.iecal.questphone.app.screens.onboard.subscreens.SelectApps
@@ -54,8 +53,7 @@ import neth.iecal.questphone.app.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
 import neth.iecal.questphone.app.screens.quest_docs.QuestTutorial
 import neth.iecal.questphone.app.theme.LauncherTheme
-import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsTheme
-import neth.iecal.questphone.app.theme.customThemes.HackerTheme
+import neth.iecal.questphone.app.theme.themes
 import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.core.utils.receiver.AppInstallReceiver
 import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
@@ -104,10 +102,10 @@ class MainActivity : ComponentActivity() {
             WorkManager.getInstance(applicationContext).enqueue(downloadWork)
         }
 
-        val cherryBlossomsTheme = CherryBlossomsTheme()
+        val currentTheme = themes[userRepository.userInfo.equippedTheme]!!
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}
-            var currentTheme by remember { mutableStateOf(cherryBlossomsTheme) }
+            var currentTheme = remember { mutableStateOf(currentTheme) }
 
             LaunchedEffect(Unit) {
                 isUserOnboarded.value = data.getBoolean("onboard",false)
@@ -120,7 +118,7 @@ class MainActivity : ComponentActivity() {
                 notificationScheduler.createNotificationChannel()
                 notificationScheduler.reloadAllReminders()
             }
-            LauncherTheme(currentTheme) {
+            LauncherTheme(currentTheme.value) {
                 Surface {
                     val navController = rememberNavController()
 
@@ -190,6 +188,10 @@ class MainActivity : ComponentActivity() {
 
                         composable(RootRoute.Store.route) {
                             StoreScreen(navController)
+                        }
+
+                        composable(RootRoute.Customize.route) {
+                            CustomizeScreen(navController, currentTheme = currentTheme)
                         }
                         composable(RootRoute.AppList.route) {
                             AppList(navController,appListViewModel)

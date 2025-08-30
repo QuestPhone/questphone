@@ -8,10 +8,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,7 +21,7 @@ import neth.iecal.questphone.app.screens.account.SetupNewPassword
 import neth.iecal.questphone.app.screens.onboard.OnBoarderView
 import neth.iecal.questphone.app.screens.onboard.subscreens.TermsScreen
 import neth.iecal.questphone.app.theme.LauncherTheme
-import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsTheme
+import neth.iecal.questphone.app.theme.customThemes.PitchBlackTheme
 import nethical.questphone.backend.Supabase
 
 
@@ -34,7 +32,7 @@ class OnboardActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
-        val cherryBlossomsTheme = CherryBlossomsTheme()
+        val pitchBlackTheme = PitchBlackTheme()
         setContent {
             val data = getSharedPreferences("onboard", MODE_PRIVATE)
             val isUserOnboarded = remember {mutableStateOf(true)}
@@ -51,7 +49,6 @@ class OnboardActivity : ComponentActivity() {
 
             val isPetDialogVisible = remember { mutableStateOf(true) }
             val isLoginResetPassword = remember { mutableStateOf(false) }
-            var currentTheme by remember { mutableStateOf(cherryBlossomsTheme) }
 
             val isTosAccepted = remember { mutableStateOf(false) }
             LaunchedEffect(Unit) {
@@ -72,7 +69,7 @@ class OnboardActivity : ComponentActivity() {
             else if (!isTosAccepted.value) RootRoute.TermsScreen.route
             else RootRoute.OnBoard.route
 
-            LauncherTheme(currentTheme) {
+            LauncherTheme(pitchBlackTheme) {
                 Surface {
                     val navController = rememberNavController()
 //

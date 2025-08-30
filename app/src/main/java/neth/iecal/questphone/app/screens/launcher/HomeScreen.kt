@@ -1,7 +1,6 @@
 package neth.iecal.questphone.app.screens.launcher
 
 import android.os.Build
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -133,9 +132,9 @@ fun HomeScreen(
             "Profile"
         ),
         SidePanelItem(
-            R.drawable.notification_up,
-            { Toast.makeText(context, "Coming soon!", Toast.LENGTH_SHORT).show() },
-            "Notifications"
+            R.drawable.customize,
+            { navController?.navigate(RootRoute.Customize.route) },
+            "Customize"
         ),
         SidePanelItem(
             R.drawable.store,

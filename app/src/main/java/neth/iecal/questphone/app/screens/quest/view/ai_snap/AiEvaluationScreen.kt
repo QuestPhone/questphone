@@ -87,7 +87,6 @@ fun AiEvaluationScreen(
         Text(
             text = viewModel.commonQuestInfo.title,
             style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary ,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom= 8.dp).fillMaxWidth()
 
