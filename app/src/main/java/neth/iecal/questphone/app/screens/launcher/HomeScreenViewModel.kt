@@ -98,7 +98,7 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun getHomeWidget(): @Composable ((Modifier) -> Unit)? {
-        return homeWidgets[userRepository.userInfo.equippedWidget]
+        return homeWidgets[userRepository.userInfo.customization_info.equippedWidget]
     }
 
     suspend fun filterQuests(){

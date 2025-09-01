@@ -87,10 +87,10 @@ class StoreViewModel @Inject constructor(
         get() = _items.toList()
 
 
-    var themeList  by mutableStateOf( themes.keys.toList().filter { !userRepository.userInfo.purchasedThemes.contains(it) })
+    var themeList  by mutableStateOf( themes.keys.toList().filter { !userRepository.userInfo.customization_info.purchasedThemes.contains(it) })
         private set
 
-    var homeWidgetList by mutableStateOf(homeWidgets.toList().filter { !userRepository.userInfo.purchaseWidgets.contains(it.first) })
+    var homeWidgetList by mutableStateOf(homeWidgets.toList().filter { !userRepository.userInfo.customization_info.purchasedWidgets.contains(it.first) })
 
     fun hasEnoughCoins(price:Int): Boolean {
         val userCoins = userRepository.userInfo.coins
@@ -126,13 +126,13 @@ class StoreViewModel @Inject constructor(
     }
 
     fun purchaseTheme(item: BaseTheme){
-        userRepository.userInfo.purchasedThemes.add(item.name)
+        userRepository.userInfo.customization_info.purchasedThemes.add(item.name)
         userRepository.useCoins(item.price)
         themeList = themeList.filter{ it != item.name}
     }
 
     fun purchaseWidget(item: String){
-        userRepository.userInfo.purchaseWidgets.add(item)
+        userRepository.userInfo.customization_info.purchasedWidgets.add(item)
         userRepository.useCoins(HOME_WIDGET_PRICE)
         homeWidgetList = homeWidgetList.filter { item != it.first }
     }

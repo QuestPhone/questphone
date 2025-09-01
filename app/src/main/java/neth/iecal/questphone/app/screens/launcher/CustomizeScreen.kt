@@ -80,14 +80,14 @@ class CustomizeViewModel @Inject constructor(
     var selectedCategory by mutableStateOf<CustomizeCategory>(CustomizeCategory.THEME)
         private set
 
-    var purchasedThemes by mutableStateOf(userRepository.userInfo.purchasedThemes.toList())
-    var purchasedWidgets by mutableStateOf(userRepository.userInfo.purchaseWidgets.toList())
-    var equippedTheme by mutableStateOf(userRepository.userInfo.equippedTheme)
-    var equippedWidget by mutableStateOf(userRepository.userInfo.equippedWidget)
+    var purchasedThemes by mutableStateOf(userRepository.userInfo.customization_info.purchasedThemes.toList())
+    var purchasedWidgets by mutableStateOf(userRepository.userInfo.customization_info.purchasedWidgets.toList())
+    var equippedTheme by mutableStateOf(userRepository.userInfo.customization_info.equippedTheme)
+    var equippedWidget by mutableStateOf(userRepository.userInfo.customization_info.equippedWidget)
 
     fun equipTheme(theme: String){
         equippedTheme = theme
-        userRepository.userInfo.equippedTheme = theme
+        userRepository.userInfo.customization_info.equippedTheme = theme
         userRepository.saveUserInfo()
     }
     fun selectCategory(category: CustomizeCategory){
@@ -95,7 +95,7 @@ class CustomizeViewModel @Inject constructor(
     }
     fun equipWidget(key: String){
         equippedWidget = key
-        userRepository.userInfo.equippedWidget = key
+        userRepository.userInfo.customization_info.equippedWidget = key
         userRepository.saveUserInfo()
     }
 }

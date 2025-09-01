@@ -25,13 +25,7 @@ data class UserInfo @OptIn(ExperimentalTime::class) constructor(
     var coins: Int = 100000,
     var level : Int = 1,
     val inventory: HashMap<InventoryItem, Int> = hashMapOf(Pair(InventoryItem.STREAK_FREEZER,2)),
-
-    var purchasedThemes: HashSet<String> = hashSetOf("Pitch Black"),
-    var equippedTheme:String = "Pitch Black",
-
-    var purchaseWidgets: HashSet<String> = hashSetOf("Heat Map"),
-    var equippedWidget:String = "Heat Map",
-
+    var customization_info: CustomizationInfo = CustomizationInfo(),
     val achievements: List<Achievements> = listOf(Achievements.THE_EARLY_FEW),
     var active_boosts: HashMap<InventoryItem,String> = hashMapOf(),
     var last_updated: Long = System.currentTimeMillis(),

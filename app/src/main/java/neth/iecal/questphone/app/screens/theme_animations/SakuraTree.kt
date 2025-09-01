@@ -20,16 +20,22 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.zIndex
-import androidx.core.content.edit
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.AndroidViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.serialization.Serializable
 import nethical.questphone.backend.repositories.UserRepository
+import nethical.questphone.data.json
 import javax.inject.Inject
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
+@Serializable
+private data class SakuraTreeInfo(
+    var seed: Long = Random.nextLong(),
+    var lastStreak: Int = 1,
+)
 @HiltViewModel
 class SakuraTreeViewModel
 @Inject constructor (application: Application,
@@ -42,17 +48,28 @@ class SakuraTreeViewModel
     private val sp = application.getSharedPreferences("sakuraTreeSeed", Context.MODE_PRIVATE)
 
     fun getSeed(streak: Int): Long {
+        val sakuraInfoJsonRaw = userRepository.userInfo.customization_info.themeData["Sakura Tree"]
+        val sakuraInfoJson = if(sakuraInfoJsonRaw != null)
+            json.decodeFromString<SakuraTreeInfo>(sakuraInfoJsonRaw)
+        else
+            SakuraTreeInfo()
         if(streak==0) {
-            if (sp.getInt("lastStreak", 1) != 0) {
-                sp.edit(commit = true) { putLong("seed", Random.nextLong()) }
+            if (sakuraInfoJson.lastStreak != 0) {
+                sakuraInfoJson.seed = Random.nextLong()
+                userRepository.userInfo.customization_info.themeData["Sakura Tree"] = json.encodeToString(sakuraInfoJson)
+                userRepository.saveUserInfo()
             }
         }
-        sp.edit { putInt("lastStreak",streak) }
+        if(streak!=sakuraInfoJson.lastStreak){
+            sakuraInfoJson.lastStreak = streak
+            userRepository.userInfo.customization_info.themeData["Sakura Tree"] = json.encodeToString(sakuraInfoJson)
+            userRepository.saveUserInfo()
+        }
 
-        return sp.getLong("seed",Random.nextLong())
+        return sakuraInfoJson.seed
     }
 
-    fun generate(width: Float, height: Float, streak: Int = 200) {
+    fun generate(width: Float, height: Float, streak: Int = userRepository.userInfo.streak.currentStreak) {
         if (branchList != null && streak == generatedStreak) return
 
         val rand = Random(getSeed(streak)) // Fixed seed for consistent tree structure

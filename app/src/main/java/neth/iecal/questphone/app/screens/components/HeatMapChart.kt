@@ -109,10 +109,6 @@ fun HeatMapChart(
     val statsMap by viewModel.successfulDates.collectAsState()
     val allQuestTitles by viewModel.allQuestTitles.collectAsState()
 
-    if (statsMap.isEmpty()) {
-        Text("No Data available.", modifier = modifier.padding(16.dp))
-        return
-    }
 
     val currentSystemTimeZone = remember { TimeZone.currentSystemDefault() }
 

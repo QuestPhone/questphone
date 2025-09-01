@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
             WorkManager.getInstance(applicationContext).enqueue(downloadWork)
         }
 
-        val currentTheme = themes[userRepository.userInfo.equippedTheme]!!
+        val currentTheme = themes[userRepository.userInfo.customization_info.equippedTheme]!!
         setContent {
             val isUserOnboarded = remember {mutableStateOf(true)}
             var currentTheme = remember { mutableStateOf(currentTheme) }
