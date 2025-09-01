@@ -285,9 +285,9 @@ fun HomeScreen(
                     Column(
                         Modifier.padding(8.dp)
                     ) {
-                        Column() {
+                        Box {
                             viewModel.getHomeWidget()?.invoke(
-                                Modifier.height(
+                                Modifier.size(
                                     200.dp
                                 )
                             )
