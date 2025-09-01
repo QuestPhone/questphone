@@ -63,13 +63,14 @@ import neth.iecal.questphone.R
 import neth.iecal.questphone.ThemePreview
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.theme.customThemes.BaseTheme
+import neth.iecal.questphone.homeWidgets
 import neth.iecal.questphone.themes
 import nethical.questphone.backend.repositories.UserRepository
 import javax.inject.Inject
 
 enum class CustomizeCategory(val simpleName: String) {
     THEME("Theme"),
-    ROOT_ANIMATION("Home Widget"),
+    HOME_WIDGET("Home Widget"),
 }
 
 @HiltViewModel
@@ -80,7 +81,9 @@ class CustomizeViewModel @Inject constructor(
         private set
 
     var purchasedThemes by mutableStateOf(userRepository.userInfo.purchasedThemes.toList())
+    var purchasedWidgets by mutableStateOf(userRepository.userInfo.purchaseWidgets.toList())
     var equippedTheme by mutableStateOf(userRepository.userInfo.equippedTheme)
+    var equippedWidget by mutableStateOf(userRepository.userInfo.equippedWidget)
 
     fun equipTheme(theme: String){
         equippedTheme = theme
@@ -89,6 +92,11 @@ class CustomizeViewModel @Inject constructor(
     }
     fun selectCategory(category: CustomizeCategory){
         selectedCategory = category
+    }
+    fun equipWidget(key: String){
+        equippedWidget = key
+        userRepository.userInfo.equippedWidget = key
+        userRepository.saveUserInfo()
     }
 }
 
@@ -101,7 +109,8 @@ fun CustomizeScreen(
 ) {
     val context = LocalContext.current
     var selectedThemeItem by remember { mutableStateOf<BaseTheme?>(null) }
-    var showSuccessMessage by remember { mutableStateOf<Triple<String, String, ()-> Unit>?>(null) }
+    var selectedWidgetItem by remember { mutableStateOf<String?>(null) }
+    var showSuccessMessage by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     // auto dismiss message
@@ -136,55 +145,103 @@ fun CustomizeScreen(
                 onCategorySelected = { viewModel.selectCategory(it) }
             )
 
-            if(viewModel.selectedCategory == CustomizeCategory.THEME) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    item {
-                        BuyFromStoreBtn(
-                            {
-                                navController.navigate(RootRoute.Store.route)
-                            },
-                            text = "Buy More Themes",
-                            description = "Open store"
-                        )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    BuyFromStoreBtn(
+                        {
+                            navController.navigate(RootRoute.Store.route)
+                        },
+                        text = "Buy More",
+                        description = "Open store"
+                    )
+                }
+                when (viewModel.selectedCategory) {
+                    CustomizeCategory.THEME -> {
+                        items(viewModel.purchasedThemes) { i ->
+                            themes[i]?.let {
+                                ItemCard(
+
+                                    isItemEquipped = i == viewModel.equippedTheme,
+                                    onClick = { selectedThemeItem = themes[i]!! },
+                                    name = it.name,
+                                    icon = R.drawable.customize,
+                                    description = it.description,
+                                )
+                            }
+                        }
                     }
-                    items(viewModel.purchasedThemes) { i ->
-                        themes[i]?.let {
-                            ThemeCard(
-                                theme = it,
-                                isThemeEquipped = i == viewModel.equippedTheme,
-                                onClick = { selectedThemeItem = themes[i]!! },
-                            )
+
+
+                    CustomizeCategory.HOME_WIDGET -> {
+                        items(viewModel.purchasedWidgets) { i ->
+                            homeWidgets[i]?.let {
+                                ItemCard(
+                                    isItemEquipped = i == viewModel.equippedTheme,
+                                    onClick = { selectedWidgetItem = i },
+                                    name = i,
+                                    icon = R.drawable.customize,
+                                    description = "",
+                                )
+                            }
                         }
                     }
                 }
-
             }
-
-            selectedThemeItem?.let {item ->
-                EquipThemeDialog(
-                    item = item,
-                    onDismiss = { selectedThemeItem = null },
-                    onEquip = {
-                        viewModel.equipTheme(item.name)
-                        showSuccessMessage = Triple("${item.name} equipped", "Go Back",{
-                            navController.popBackStack()
-                        })
-                        currentTheme.value= item
-                    },
-                    equippedTheme = viewModel.equippedTheme,
-                    onPreview = {
-                        val intent = Intent(context, ThemePreview::class.java)
-                        intent.putExtra("themeId",item.name)
-                        context.startActivity(intent)
-                    }
-                )
-            }
-
         }
+
+        selectedThemeItem?.let { item ->
+            EquipThemeDialog(
+                onDismiss = { selectedThemeItem = null },
+                onEquip = {
+                    viewModel.equipTheme(item.name)
+                    showSuccessMessage = Triple("${item.name} equipped", "Go Back", {
+                        navController.popBackStack()
+                    })
+                    currentTheme.value = item
+                },
+                equippedItem = viewModel.equippedTheme,
+                title = item.name,
+                description = item.description,
+                center = {
+                    OutlinedButton(
+                        onClick = {
+                            val intent = Intent(context, ThemePreview::class.java)
+                            intent.putExtra("themeId", item.name)
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color.White
+                        ),
+                        border = BorderStroke(1.dp, Color.Gray)
+                    ) {
+                        Text("Preview")
+                    }
+
+                },
+            )
+        }
+        selectedWidgetItem?.let {
+            EquipThemeDialog(
+                onDismiss = { selectedWidgetItem = null },
+                onEquip = {
+                    viewModel.equipWidget(it)
+                    showSuccessMessage = Triple("$it equipped", "Go Back", {
+                        navController.popBackStack()
+                    })
+                },
+                equippedItem = viewModel.equippedWidget,
+                title = it,
+                description = "",
+                center = {
+                    homeWidgets[it]?.invoke(Modifier.size(200.dp))
+                },
+            )
+        }
+
     }
 }
 
@@ -245,9 +302,11 @@ private fun CategoryItem(
 
 
 @Composable
-private fun ThemeCard(
-    theme: BaseTheme,
-    isThemeEquipped: Boolean,
+private fun ItemCard(
+    name:String,
+    icon:Int,
+    description: String,
+    isItemEquipped: Boolean,
     onClick: () -> Unit,
 ) {
     Card(
@@ -274,8 +333,8 @@ private fun ThemeCard(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(R.drawable.customize),
-                    contentDescription = theme.name
+                    painter = painterResource(icon),
+                    contentDescription = name
                 )
             }
 
@@ -286,14 +345,14 @@ private fun ThemeCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = theme.name,
+                    text = name,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
 
                 Text(
-                    text = theme.description,
+                    text = description,
                     fontSize = 14.sp,
                     color = Color.Gray,
                     maxLines = 2,
@@ -304,7 +363,7 @@ private fun ThemeCard(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (isThemeEquipped) {
+                if (isItemEquipped) {
                     Text(
                         text = "In Use",
                         color = Color.White,
@@ -318,11 +377,12 @@ private fun ThemeCard(
 }
 @Composable
 private fun EquipThemeDialog(
-    item: BaseTheme,
+    title: String,
+    description: String,
     onDismiss: () -> Unit,
     onEquip: () -> Unit,
-    onPreview: () -> Unit,
-    equippedTheme: String
+    center: @Composable ()-> Unit,
+    equippedItem: String
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -341,7 +401,7 @@ private fun EquipThemeDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Theme ${item.name}?",
+                    text = title,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -349,20 +409,13 @@ private fun EquipThemeDialog(
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
-                OutlinedButton(
-                    onClick = onPreview,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.White
-                    ),
-                    border = BorderStroke(1.dp, Color.Gray)
-                ) {
-                    Text("Preview")
-                }
+
+                center.invoke()
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = item.description,
+                    text = description,
                     fontSize = 16.sp,
                     color = Color.LightGray,
                     textAlign = TextAlign.Center
@@ -389,7 +442,7 @@ private fun EquipThemeDialog(
                     Button(
                         onClick = { onEquip()
                             onDismiss()},
-                        enabled = equippedTheme!=item.name,
+                        enabled = equippedItem != title,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFE091FF),
@@ -428,12 +481,21 @@ private fun BuyFromStoreBtn(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                tint = Color.White,
-                contentDescription = text,
-                modifier = Modifier.size(24.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF2A2A2A)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    tint = Color.White,
+                    contentDescription = text,
+                    modifier = Modifier.size(24.dp)
+                )
+
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 

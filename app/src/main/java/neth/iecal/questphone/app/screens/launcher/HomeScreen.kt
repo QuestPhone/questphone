@@ -285,13 +285,13 @@ fun HomeScreen(
                     Column(
                         Modifier.padding(8.dp)
                     ) {
-
-
-                        viewModel.getHomeWidget()?.invoke(
-                            Modifier.height(
-                                200.dp
+                        Column() {
+                            viewModel.getHomeWidget()?.invoke(
+                                Modifier.height(
+                                    200.dp
+                                )
                             )
-                        )
+                        }
                         Spacer(Modifier.size(12.dp))
                         Text(
                             time,

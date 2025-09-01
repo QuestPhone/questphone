@@ -291,7 +291,7 @@ fun StoreScreen(
                         viewModel.purchaseWidget(it.first)
                         showSuccessMessage =
                             Triple("Successfully purchased ${it.first}!", "Customize", {
-                                navController.navigate(RootRoute.UserInfo.route)
+                                navController.navigate(RootRoute.Customize.route)
                             })
                     },
                     center = {
@@ -313,7 +313,7 @@ fun StoreScreen(
                         viewModel.purchaseTheme(item)
                         showSuccessMessage =
                             Triple("Successfully purchased ${item.name}!", "Customize", {
-                                navController.navigate(RootRoute.UserInfo.route)
+                                navController.navigate(RootRoute.Customize.route)
                             })
                     },
                     center = {
