@@ -68,6 +68,7 @@ import neth.iecal.questphone.app.theme.customThemes.BaseTheme
 import neth.iecal.questphone.homeWidgets
 import neth.iecal.questphone.themes
 import nethical.questphone.backend.repositories.UserRepository
+import nethical.questphone.core.core.utils.toHex
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.StoreCategory
 import javax.inject.Inject
@@ -319,6 +320,7 @@ fun StoreScreen(
                     center = {
                         OutlinedButton(
                             onClick = {
+                                selectedThemeItem = null
                                 val intent = Intent(context, ThemePreview::class.java)
                                 intent.putExtra("themeId", item.name)
                                 context.startActivity(intent)
@@ -329,6 +331,21 @@ fun StoreScreen(
                             border = BorderStroke(1.dp, Color.Gray)
                         ) {
                             Text("Preview")
+                        }
+                        if(item.docLink!=null) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            OutlinedButton(
+                                onClick = {
+                                    selectedThemeItem = null
+                                    navController.navigate("${RootRoute.DocViewer.route}${item.docLink!!.toHex()}")
+                                },
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = Color.White
+                                ),
+                                border = BorderStroke(1.dp, Color.Gray)
+                            ) {
+                                Text("Read Perks")
+                            }
                         }
                     },
                     title = item.name,
@@ -518,7 +535,6 @@ private fun PurchaseDialog(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 center()
-                // Item preview
 
                 Spacer(modifier = Modifier.height(16.dp))
 

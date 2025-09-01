@@ -42,7 +42,7 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.R
-import neth.iecal.questphone.app.screens.quest_docs.QuestTutorial
+import neth.iecal.questphone.app.screens.etc.DocumentViewerScreen
 import neth.iecal.questphone.data.IntegrationId
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.VibrationHelper
@@ -100,7 +100,7 @@ fun SetIntegration(navController: NavHostController, viewModel: SetIntegrationVM
                     currentDocLink.value = null
                 }
                 if (currentDocLink.value != null) {
-                    QuestTutorial(url = currentDocLink.value!!)
+                    DocumentViewerScreen(url = currentDocLink.value!!)
                 } else {
 
                     LazyColumn(

@@ -15,4 +15,7 @@ interface BaseTheme  {
     val description:String
     val expandQuestsText: String
         get() = "View More"
+
+    val docLink: String?
+        get() = null
 }

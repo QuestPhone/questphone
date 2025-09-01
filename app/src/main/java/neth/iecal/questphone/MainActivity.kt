@@ -34,6 +34,7 @@ import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.account.SetupProfileScreen
 import neth.iecal.questphone.app.screens.account.UserInfoScreen
+import neth.iecal.questphone.app.screens.etc.DocumentViewerScreen
 import neth.iecal.questphone.app.screens.game.RewardDialogMaker
 import neth.iecal.questphone.app.screens.game.StoreScreen
 import neth.iecal.questphone.app.screens.launcher.AppList
@@ -52,7 +53,6 @@ import neth.iecal.questphone.app.screens.quest.stats.specific.BaseQuestStatsView
 import neth.iecal.questphone.app.screens.quest.templates.SelectFromTemplates
 import neth.iecal.questphone.app.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
-import neth.iecal.questphone.app.screens.quest_docs.QuestTutorial
 import neth.iecal.questphone.app.theme.LauncherTheme
 import neth.iecal.questphone.app.theme.customThemes.PitchBlackTheme
 import neth.iecal.questphone.core.services.AppBlockerService
@@ -65,6 +65,7 @@ import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.backend.triggerQuestSync
 import nethical.questphone.backend.worker.FileDownloadWorker
+import nethical.questphone.core.core.utils.fromHex
 import java.io.File
 import javax.inject.Inject
 
@@ -253,10 +254,14 @@ class MainActivity : ComponentActivity() {
                         composable(RootRoute.SetCoinRewardRatio.route){
                             SetCoinRewardRatio()
                         }
-                        composable("${RootRoute.IntegrationTutorial.route}{name}"){ backStackEntry ->
+                        composable("${RootRoute.IntegrationDocs.route}{name}"){ backStackEntry ->
                             val id = backStackEntry.arguments?.getString("name")
                             val url = IntegrationId.valueOf(id.toString()).docLink
-                            QuestTutorial(url)
+                            DocumentViewerScreen(url)
+                        }
+                        composable("${RootRoute.DocViewer.route}{url}"){ backStackEntry ->
+                            val url = backStackEntry.arguments?.getString("url")
+                            DocumentViewerScreen(String.fromHex(url.toString()))
                         }
                         composable(RootRoute.SetupProfile.route) {
                             SetupProfileScreen()

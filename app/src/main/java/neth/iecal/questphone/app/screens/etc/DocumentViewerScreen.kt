@@ -1,4 +1,4 @@
-package neth.iecal.questphone.app.screens.quest_docs
+package neth.iecal.questphone.app.screens.etc
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +18,7 @@ import dev.jeziellago.compose.markdowntext.MarkdownText
 import nethical.questphone.backend.fetchUrlContent
 
 @Composable
-fun QuestTutorial(url: String){
+fun DocumentViewerScreen(url: String){
     val isLoading = remember { mutableStateOf(true) }
     var response  = remember { mutableStateOf("") }
     LaunchedEffect(Unit) {

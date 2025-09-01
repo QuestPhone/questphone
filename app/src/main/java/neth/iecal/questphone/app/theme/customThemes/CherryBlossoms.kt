@@ -50,4 +50,6 @@ class CherryBlossomsTheme(): BaseTheme {
         get() = "花は桜木、人は武士"
     override val expandQuestsText: String
         get() = "✿✿✿✿✿✿✿"
+    override val docLink: String?
+        get() = "https://raw.githubusercontent.com/QuestPhone/docs/main/theme/cherryBlossom/cherryblossom.md"
 }

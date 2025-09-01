@@ -143,7 +143,7 @@ fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController, vi
                         painter = painterResource(R.drawable.outline_help_24),
                         contentDescription = "Help",
                         modifier = Modifier.clickable{
-                            navController.navigate("${RootRoute.IntegrationTutorial.route}${IntegrationId.DEEP_FOCUS.name}")
+                            navController.navigate("${RootRoute.IntegrationDocs.route}${IntegrationId.DEEP_FOCUS.name}")
                         }.size(30.dp)
                     )
                 }

@@ -146,7 +146,7 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewM
                         painter = painterResource(R.drawable.outline_help_24),
                         contentDescription = "Help",
                         modifier = Modifier.clickable{
-                            navController.navigate("${RootRoute.IntegrationTutorial.route}${IntegrationId.AI_SNAP.name}")
+                            navController.navigate("${RootRoute.IntegrationDocs.route}${IntegrationId.AI_SNAP.name}")
                         }.size(30.dp)
                     )
                 }

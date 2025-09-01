@@ -501,7 +501,7 @@ fun HomeScreen(
 
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowUp,
-                    contentDescription = "Swipe up",
+                    contentDescription =  if(navController!=null || LocalCustomTheme.current.docLink == null) "Swipe up" else "Click to read perks",
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .offset(y = swipeIconAnimation.dp)

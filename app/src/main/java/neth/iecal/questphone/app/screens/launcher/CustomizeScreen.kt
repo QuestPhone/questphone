@@ -66,6 +66,7 @@ import neth.iecal.questphone.app.theme.customThemes.BaseTheme
 import neth.iecal.questphone.homeWidgets
 import neth.iecal.questphone.themes
 import nethical.questphone.backend.repositories.UserRepository
+import nethical.questphone.core.core.utils.toHex
 import javax.inject.Inject
 
 enum class CustomizeCategory(val simpleName: String) {
@@ -219,6 +220,20 @@ fun CustomizeScreen(
                         border = BorderStroke(1.dp, Color.Gray)
                     ) {
                         Text("Preview")
+                    }
+                    if(item.docLink!=null) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        OutlinedButton(
+                            onClick = {
+                                navController.navigate("${RootRoute.DocViewer.route}${item.docLink!!.toHex()}")
+                            },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = Color.White
+                            ),
+                            border = BorderStroke(1.dp, Color.Gray)
+                        ) {
+                            Text("Read Perks")
+                        }
                     }
 
                 },

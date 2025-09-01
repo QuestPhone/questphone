@@ -100,7 +100,7 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, vi
                                 contentDescription = "Help",
                                 modifier = Modifier
                                     .clickable {
-                                        navController.navigate("${RootRoute.IntegrationTutorial.route}${IntegrationId.SWIFT_MARK.name}")
+                                        navController.navigate("${RootRoute.IntegrationDocs.route}${IntegrationId.SWIFT_MARK.name}")
                                     }
                                     .size(30.dp)
                             )
