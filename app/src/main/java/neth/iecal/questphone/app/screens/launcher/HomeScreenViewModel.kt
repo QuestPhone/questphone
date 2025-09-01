@@ -3,15 +3,16 @@ package neth.iecal.questphone.app.screens.launcher
 import android.app.Application
 import android.content.Context.MODE_PRIVATE
 import android.util.Log
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -24,6 +25,7 @@ import neth.iecal.questphone.app.screens.game.handleStreakFreezers
 import neth.iecal.questphone.app.screens.game.showStreakUpDialog
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.core.utils.scheduleDailyNotification
+import neth.iecal.questphone.homeWidgets
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
@@ -31,7 +33,6 @@ import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getCurrentDay
 import nethical.questphone.core.core.utils.getCurrentTime12Hr
-import nethical.questphone.data.MeshStyles
 import javax.inject.Inject
 
 @HiltViewModel
@@ -54,11 +55,8 @@ class HomeScreenViewModel @Inject constructor(
     private val _time = mutableStateOf(getCurrentTime12Hr())
     val time = _time
 
-    private val _meshStyle = MutableStateFlow(MeshStyles.ASYMMETRICAL)
-    val meshStyle: StateFlow<MeshStyles> = _meshStyle
 
 
-    private val meshStylesp = application.applicationContext.getSharedPreferences("mesh_style", MODE_PRIVATE)
     private val shortcutsSp = application.applicationContext.getSharedPreferences("shortcuts", MODE_PRIVATE)
 
 
@@ -93,16 +91,15 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     private fun loadSavedConfigs() {
-        // Load mesh style from SharedPreferences
-        val meshStyleOrd = meshStylesp.getInt("mesh_style", meshStyle.value.ordinal)
-        _meshStyle.value = MeshStyles.entries.toTypedArray()[meshStyleOrd]
-
         // Load shortcuts
         shortcuts.addAll(shortcutsSp.getStringSet("shortcuts", setOf())?.toList() ?: listOf())
         tempShortcuts.addAll(shortcuts)
 
     }
 
+    fun getHomeWidget(): @Composable ((Modifier) -> Unit)? {
+        return homeWidgets[userRepository.userInfo.equippedWidget]
+    }
 
     suspend fun filterQuests(){
         Log.d("HomeScreenViewModel", "quest list state changed")
@@ -146,12 +143,6 @@ class HomeScreenViewModel @Inject constructor(
             }
 
         }
-    }
-
-    fun toggleMeshStyle() {
-        val currentIndex = MeshStyles.entries.indexOf(meshStyle.value)
-        _meshStyle.value = MeshStyles.entries[(currentIndex + 1) % MeshStyles.entries.size]
-        meshStylesp.edit { putInt("mesh_style", meshStyle.value.ordinal) }
     }
 
     fun saveShortcuts() {

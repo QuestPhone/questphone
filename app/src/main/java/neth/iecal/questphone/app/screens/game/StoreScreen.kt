@@ -59,15 +59,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import dagger.hilt.android.lifecycle.HiltViewModel
+import neth.iecal.questphone.HOME_WIDGET_PRICE
 import neth.iecal.questphone.R
 import neth.iecal.questphone.ThemePreview
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.theme.customThemes.BaseTheme
-import neth.iecal.questphone.app.theme.themes
+import neth.iecal.questphone.homeWidgets
+import neth.iecal.questphone.themes
 import nethical.questphone.backend.repositories.UserRepository
-import nethical.questphone.data.game.Category
 import nethical.questphone.data.game.InventoryItem
+import nethical.questphone.data.game.StoreCategory
 import javax.inject.Inject
 
 @HiltViewModel
@@ -76,7 +78,7 @@ class StoreViewModel @Inject constructor(
 ): ViewModel() {
     var coins = userRepository.coinsState
 
-    var selectedCategory by mutableStateOf<Category>(Category.TOOLS)
+    var selectedStoreCategory by mutableStateOf<StoreCategory>(StoreCategory.TOOLS)
         private set
 
     private val _items = InventoryItem.entries
@@ -84,32 +86,34 @@ class StoreViewModel @Inject constructor(
     val items: List<InventoryItem>
         get() = _items.toList()
 
-    var isSelectingTheme = false
-        private set
 
     var themeList  by mutableStateOf( themes.keys.toList().filter { !userRepository.userInfo.purchasedThemes.contains(it) })
         private set
 
-    fun hasEnoughCoinsToPurchaseItem(item: InventoryItem): Boolean {
+    var homeWidgetList by mutableStateOf(homeWidgets.toList().filter { !userRepository.userInfo.purchaseWidgets.contains(it.first) })
+
+    fun hasEnoughCoins(price:Int): Boolean {
         val userCoins = userRepository.userInfo.coins
-        return userCoins >= item.price
+        return userCoins >= price
     }
+    fun hasEnoughCoinsToPurchaseItem(item: InventoryItem): Boolean {
+        return hasEnoughCoins(item.price)
+    }
+
     fun hasEnoughCoinsToPurchaseItem(item: BaseTheme): Boolean {
-        val userCoins = userRepository.userInfo.coins
-        return userCoins >= item.price
+        return hasEnoughCoins(item.price)
     }
 
     fun getItemInventoryCount(item: InventoryItem): Int{
         return userRepository.getInventoryItemCount(item)
     }
 
-    fun getItemsByCategory(category: Category): List<InventoryItem> {
-        return items.filter { it.category == category }
+    fun getItemsByCategory(storeCategory: StoreCategory): List<InventoryItem> {
+        return items.filter { it.storeCategory == storeCategory }
     }
 
-    fun selectCategory(category: Category) {
-        isSelectingTheme = category == Category.Theme
-        selectedCategory = category
+    fun selectCategory(storeCategory: StoreCategory) {
+        selectedStoreCategory = storeCategory
     }
 
     fun makeItemPurchase(item: InventoryItem): Boolean {
@@ -127,6 +131,11 @@ class StoreViewModel @Inject constructor(
         themeList = themeList.filter{ it != item.name}
     }
 
+    fun purchaseWidget(item: String){
+        userRepository.userInfo.purchaseWidgets.add(item)
+        userRepository.useCoins(HOME_WIDGET_PRICE)
+        homeWidgetList = homeWidgetList.filter { item != it.first }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,7 +145,8 @@ fun StoreScreen(
     viewModel: StoreViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    var selectedItem by remember { mutableStateOf<InventoryItem?>(null) }
+    var selectedInventoryItem by remember { mutableStateOf<InventoryItem?>(null) }
+    var selectedWidgetItem by remember { mutableStateOf<Pair<String, @Composable (Modifier)-> Unit>?>(null) }
     var selectedThemeItem by remember { mutableStateOf<BaseTheme?>(null) }
     var showSuccessMessage by remember { mutableStateOf<Triple<String, String, ()-> Unit>?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -186,58 +196,146 @@ fun StoreScreen(
                 .padding(paddingValues)
         ) {
             CategorySelector(
-                selectedCategory = viewModel.selectedCategory,
+                selectedStoreCategory = viewModel.selectedStoreCategory,
                 onCategorySelected = { viewModel.selectCategory(it) }
             )
 
-            if(viewModel.isSelectingTheme) {
-                StoreThemeList(
-                    viewModel.themeList
-                ) {
-                    selectedThemeItem = themes[it]!!
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                when(viewModel.selectedStoreCategory){
+                    StoreCategory.THEMES -> {
+                        items(viewModel.themeList) { i ->
+                            themes[i]?.let {
+                                StoreItemCard(
+                                    onClick = { selectedThemeItem = themes[i]!! },
+                                    title = it.name,
+                                    description = it.description,
+                                    icon = R.drawable.customize,
+                                    price = it.price,
+                                )
+                            }
+                        }
+                    }
+                    StoreCategory.HOME_WIDGET -> {
+                        items(viewModel.homeWidgetList) { i ->
+                            StoreItemCard(
+                                onClick = { selectedWidgetItem = i },
+                                title = i.first,
+                                description = "",
+                                icon = R.drawable.customize,
+                                price = HOME_WIDGET_PRICE,
+                            )
+                        }
+                    }
+
+                    else -> {
+                        items(viewModel.getItemsByCategory(viewModel.selectedStoreCategory)) { item ->
+                            StoreItemCard(
+                                onClick = { selectedInventoryItem = item },
+                                title = item.simpleName,
+                                description = item.description,
+                                icon = item.icon,
+                                price = item.price,
+                            )
+                        }
+                    }
                 }
-            }else{
-                StoreItemsList(
-                    items = viewModel.getItemsByCategory(viewModel.selectedCategory),
-                    onItemClick = { selectedItem = it },
-                )
             }
 
+
             // Purchase dialog
-            selectedItem?.let { item ->
+            selectedInventoryItem?.let { item ->
                 PurchaseDialog(
-                    item = item,
                     hasEnoughCoins = viewModel.hasEnoughCoinsToPurchaseItem(item),
                     userCoins = coins,
-                    inventoryCount = viewModel.getItemInventoryCount(selectedItem!!),
-                    onDismiss = { selectedItem = null },
+                    inventoryCount = viewModel.getItemInventoryCount(selectedInventoryItem!!),
+                    onDismiss = { selectedInventoryItem = null },
                     onPurchase = {
                         if (viewModel.makeItemPurchase(item)) {
-                            showSuccessMessage = Triple( "Successfully purchased ${item.simpleName}!", "Inventory", {
-                                navController.navigate(RootRoute.UserInfo.route)
-                            })
+                            showSuccessMessage =
+                                Triple("Successfully purchased ${item.simpleName}!", "Inventory", {
+                                    navController.navigate(RootRoute.UserInfo.route)
+                                })
                         }
+                    },
+                    title = item.simpleName,
+                    description = item.description,
+                    price = item.price,
+                    center = {
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color(0xFF2A2A2A)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(item.icon),
+                                contentDescription = item.simpleName
+                            )
+                        }
+
                     }
                 )
             }
 
+            selectedWidgetItem?.let {
+                PurchaseDialog(
+                    hasEnoughCoins = viewModel.hasEnoughCoins(HOME_WIDGET_PRICE),
+                    userCoins = coins,
+                    onDismiss = { selectedWidgetItem = null },
+                    onPurchase = {
+                        viewModel.purchaseWidget(it.first)
+                        showSuccessMessage =
+                            Triple("Successfully purchased ${it.first}!", "Customize", {
+                                navController.navigate(RootRoute.UserInfo.route)
+                            })
+                    },
+                    center = {
+                        it.second.invoke(Modifier.size(200.dp))
+                    },
+                    title = it.first,
+                    description = "Displays right above your quest list on home screen",
+                    price = HOME_WIDGET_PRICE,
+
+                    inventoryCount = 0
+                )
+            }
             selectedThemeItem?.let {item ->
-                PurchaseThemeDialog(
-                    item = item,
+                PurchaseDialog(
                     hasEnoughCoins = viewModel.hasEnoughCoinsToPurchaseItem(item),
                     userCoins = coins,
                     onDismiss = { selectedThemeItem = null },
                     onPurchase = {
                         viewModel.purchaseTheme(item)
-                        showSuccessMessage = Triple( "Successfully purchased ${item.name}!", "Customize", {
-                            navController.navigate(RootRoute.UserInfo.route)
-                        })
+                        showSuccessMessage =
+                            Triple("Successfully purchased ${item.name}!", "Customize", {
+                                navController.navigate(RootRoute.UserInfo.route)
+                            })
                     },
-                    onPreview = {
-                        val intent = Intent(context, ThemePreview::class.java)
-                        intent.putExtra("themeId",item.name)
-                        context.startActivity(intent)
-                    }
+                    center = {
+                        OutlinedButton(
+                            onClick = {
+                                val intent = Intent(context, ThemePreview::class.java)
+                                intent.putExtra("themeId", item.name)
+                                context.startActivity(intent)
+                            },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = Color.White
+                            ),
+                            border = BorderStroke(1.dp, Color.Gray)
+                        ) {
+                            Text("Preview")
+                        }
+                    },
+                    title = item.name,
+                    description = item.description,
+                    price = item.price,
+
+                    inventoryCount = 0
                 )
             }
 
@@ -247,10 +345,10 @@ fun StoreScreen(
 
 @Composable
 private fun CategorySelector(
-    selectedCategory: Category,
-    onCategorySelected: (Category) -> Unit
+    selectedStoreCategory: StoreCategory,
+    onCategorySelected: (StoreCategory) -> Unit
 ) {
-    val categories = Category.entries.toList()
+    val categories = StoreCategory.entries.toList()
 
     LazyRow(
         modifier = Modifier
@@ -261,8 +359,8 @@ private fun CategorySelector(
     ) {
         items(categories) { category ->
             CategoryItem(
-                category = category,
-                isSelected = category == selectedCategory,
+                storeCategory = category,
+                isSelected = category == selectedStoreCategory,
                 onClick = { onCategorySelected(category) }
             )
         }
@@ -271,7 +369,7 @@ private fun CategorySelector(
 
 @Composable
 private fun CategoryItem(
-    category: Category,
+    storeCategory: StoreCategory,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -291,7 +389,7 @@ private fun CategoryItem(
         ) {
 
             Text(
-                text = category.simpleName,
+                text = storeCategory.simpleName,
                 color = contentColor,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 fontSize = 14.sp
@@ -299,49 +397,12 @@ private fun CategoryItem(
         }
     }
 }
-
-@Composable
-private fun StoreItemsList(
-    items: List<InventoryItem>,
-    onItemClick: (InventoryItem) -> Unit,
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(items) { item ->
-            StoreItemCard(
-                item = item,
-                onClick = { onItemClick(item) },
-            )
-        }
-    }
-}
-@Composable
-private fun StoreThemeList(
-    themesKeys: List<String>,
-    onItemClick: (String) -> Unit,
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(themesKeys) { i ->
-            themes[i]?.let {
-                StoreThemeCard(
-                    theme = it,
-                    onClick = { onItemClick(i) },
-                )
-            }
-        }
-    }
-}
-
 @Composable
 private fun StoreItemCard(
-    item: InventoryItem,
+    title: String,
+    description : String,
+    icon: Int,
+    price: Int,
     onClick: () -> Unit,
 ) {
     Card(
@@ -368,8 +429,8 @@ private fun StoreItemCard(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(item.icon),
-                    contentDescription = item.simpleName
+                    painter = painterResource(icon),
+                    contentDescription = title
                 )
             }
 
@@ -380,14 +441,14 @@ private fun StoreItemCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = item.simpleName,
+                    text = title,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
 
                 Text(
-                    text = item.description,
+                    text = description,
                     fontSize = 14.sp,
                     color = Color.Gray,
                     maxLines = 2,
@@ -408,7 +469,7 @@ private fun StoreItemCard(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "${item.price}",
+                    text = "$price",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -417,91 +478,13 @@ private fun StoreItemCard(
         }
     }
 }
-
-
-@Composable
-private fun StoreThemeCard(
-    theme: BaseTheme,
-    onClick: () -> Unit,
-) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1A1A1A)
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Item preview/icon
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF2A2A2A)),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.customize),
-                    contentDescription = theme.name
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Item details
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = theme.name,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-
-                Text(
-                    text = theme.description,
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Price or actions
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.coin_icon),
-                    contentDescription = "Coins",
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "${theme.price}",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-            }
-        }
-    }
-}
-
 
 @Composable
 private fun PurchaseDialog(
-    item: InventoryItem,
+    title: String,
+    description: String,
+    price: Int,
+    center: @Composable ()-> Unit,
     hasEnoughCoins: Boolean,
     inventoryCount: Int,
     userCoins: Int,
@@ -525,7 +508,7 @@ private fun PurchaseDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Purchase ${item.simpleName}?",
+                    text = "Purchase ${title}?",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -534,24 +517,13 @@ private fun PurchaseDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                center()
                 // Item preview
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0xFF2A2A2A)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(item.icon),
-                        contentDescription = item.simpleName
-                    )
-                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = item.description,
+                    text = description,
                     fontSize = 16.sp,
                     color = Color.LightGray,
                     textAlign = TextAlign.Center
@@ -576,7 +548,7 @@ private fun PurchaseDialog(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${item.price}",
+                        text = "$price",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
@@ -601,134 +573,7 @@ private fun PurchaseDialog(
                 if (!hasEnoughCoins) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "You need ${item.price - userCoins} more coins!",
-                        color = Color(0xFFFF5252),
-                        fontSize = 16.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color.White
-                        ),
-                        border = BorderStroke(1.dp, Color.Gray)
-                    ) {
-                        Text("Cancel")
-                    }
-
-                    Button(
-                        onClick = { onPurchase()
-                                  onDismiss()},
-                        modifier = Modifier.weight(1f),
-                        enabled = hasEnoughCoins,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFE091FF),
-                            contentColor = Color.Black,
-                            disabledContainerColor = Color(0xFF4A4A4A),
-                            disabledContentColor = Color.Gray
-                        )
-                    ) {
-                        Text("Purchase")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PurchaseThemeDialog(
-    item: BaseTheme,
-    hasEnoughCoins: Boolean,
-    userCoins: Int,
-    onDismiss: () -> Unit,
-    onPurchase: () -> Unit,
-    onPreview: () -> Unit
-) {
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF1A1A1A)
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Purchase ${item.name}?",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-                OutlinedButton(
-                    onClick = onPreview,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.White
-                    ),
-                    border = BorderStroke(1.dp, Color.Gray)
-                ) {
-                    Text("Preview")
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = item.description,
-                    fontSize = 16.sp,
-                    color = Color.LightGray,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Price
-                Row(
-                    modifier = Modifier
-                        .background(
-                            color = Color(0xFF2A2A2A),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.coin_icon),
-                        contentDescription = "Coins",
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "${item.price}",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                }
-
-                // Not enough coins message
-                if (!hasEnoughCoins) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "You need ${item.price - userCoins} more coins!",
+                        text = "You need ${price - userCoins} more coins!",
                         color = Color(0xFFFF5252),
                         fontSize = 16.sp
                     )

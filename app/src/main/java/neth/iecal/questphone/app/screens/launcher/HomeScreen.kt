@@ -80,13 +80,10 @@ import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.LauncherDialogRoutes
 import neth.iecal.questphone.app.navigation.RootRoute
-import neth.iecal.questphone.app.screens.components.NeuralMeshAsymmetrical
-import neth.iecal.questphone.app.screens.components.NeuralMeshSymmetrical
 import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.screens.launcher.dialogs.DonationsDialog
 import neth.iecal.questphone.app.screens.launcher.dialogs.LauncherDialog
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SelectAppsDialog
-import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
 import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.app.theme.smoothRed
 import neth.iecal.questphone.core.services.LockScreenService
@@ -96,7 +93,6 @@ import nethical.questphone.core.core.utils.managers.isAccessibilityServiceEnable
 import nethical.questphone.core.core.utils.managers.isSetToDefaultLauncher
 import nethical.questphone.core.core.utils.managers.openAccessibilityServiceScreen
 import nethical.questphone.core.core.utils.managers.openDefaultLauncherSettings
-import nethical.questphone.data.MeshStyles
 
 data class SidePanelItem(
     val icon: Int,
@@ -116,7 +112,6 @@ fun HomeScreen(
 
     val time by viewModel.time
     val questList by viewModel.questList.collectAsState()
-    val meshStyle by viewModel.meshStyle.collectAsState(initial = MeshStyles.SYMMETRICAL)
 
     val completedQuests by viewModel.completedQuests.collectAsState()
     val shortcuts = viewModel.shortcuts
@@ -124,6 +119,7 @@ fun HomeScreen(
     val coins by viewModel.coins.collectAsState()
     val streak by viewModel.currentStreak.collectAsState()
     var isAppSelectorVisible by remember { mutableStateOf(false) }
+
 
     val sidePanelItems = listOf<SidePanelItem>(
         SidePanelItem(
@@ -290,36 +286,12 @@ fun HomeScreen(
                         Modifier.padding(8.dp)
                     ) {
 
-                        Box(
-                            Modifier
-                                .combinedClickable(onClick = {}, onLongClick = {
-                                    viewModel.toggleMeshStyle()
 
-                                })
-                        ) {
-                            when (meshStyle) {
-                                MeshStyles.SYMMETRICAL -> NeuralMeshSymmetrical(
-                                    modifier = Modifier.size(
-                                        200.dp
-                                    )
-                                )
-
-                                MeshStyles.ASYMMETRICAL -> NeuralMeshAsymmetrical(
-                                    modifier = Modifier.size(
-                                        200.dp
-                                    )
-                                )
-
-                                MeshStyles.USER_STATS_HEATMAP -> {
-                                    Column(
-                                        modifier = Modifier.height(200.dp),
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        HeatMapChart(Modifier.padding(8.dp))
-                                    }
-                                }
-                            }
-                        }
+                        viewModel.getHomeWidget()?.invoke(
+                            Modifier.height(
+                                200.dp
+                            )
+                        )
                         Spacer(Modifier.size(12.dp))
                         Text(
                             time,

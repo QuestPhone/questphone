@@ -11,7 +11,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import neth.iecal.questphone.app.screens.launcher.HomeScreen
 import neth.iecal.questphone.app.screens.launcher.HomeScreenViewModel
 import neth.iecal.questphone.app.theme.LauncherTheme
-import neth.iecal.questphone.app.theme.themes
 
 @AndroidEntryPoint(ComponentActivity::class)
 class ThemePreview : ComponentActivity() {

@@ -51,7 +51,7 @@ import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatRemainingTime
-import nethical.questphone.data.game.Category
+import nethical.questphone.data.game.StoreCategory
 import nethical.questphone.data.game.InventoryItem
 import javax.inject.Inject
 
@@ -270,7 +270,7 @@ private fun InventoryItemInfoDialog(
                     }
 
                     if (reward.isDirectlyUsableFromInventory) {
-                        if (reward.category != Category.BOOSTERS || !isBoosterActive) {
+                        if (reward.storeCategory != StoreCategory.BOOSTERS || !isBoosterActive) {
                             Button(
                                 onClick = {
                                     onUseRequest()

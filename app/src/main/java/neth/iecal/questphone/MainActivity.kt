@@ -53,7 +53,7 @@ import neth.iecal.questphone.app.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
 import neth.iecal.questphone.app.screens.quest_docs.QuestTutorial
 import neth.iecal.questphone.app.theme.LauncherTheme
-import neth.iecal.questphone.app.theme.themes
+import neth.iecal.questphone.app.theme.customThemes.PitchBlackTheme
 import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.core.utils.receiver.AppInstallReceiver
 import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
@@ -187,11 +187,15 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(RootRoute.Store.route) {
-                            StoreScreen(navController)
+                            LauncherTheme(PitchBlackTheme()) {
+                                StoreScreen(navController)
+                            }
                         }
 
                         composable(RootRoute.Customize.route) {
-                            CustomizeScreen(navController, currentTheme = currentTheme)
+                            LauncherTheme(PitchBlackTheme()) {
+                                CustomizeScreen(navController, currentTheme = currentTheme)
+                            }
                         }
                         composable(RootRoute.AppList.route) {
                             AppList(navController,appListViewModel)

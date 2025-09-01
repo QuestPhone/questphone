@@ -442,3 +442,13 @@ fun QuestTooltip(dailyInfo: DailyQuestInfo, onDismiss: ()-> Unit, questTitleList
     }
 }
 
+
+@Composable
+fun HeatMapHomeScreenWrapper(modifier: Modifier){
+    Column(
+        modifier = Modifier.height(200.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        HeatMapChart(Modifier.padding(8.dp))
+    }
+}

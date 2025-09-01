@@ -63,7 +63,7 @@ import neth.iecal.questphone.R
 import neth.iecal.questphone.ThemePreview
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.theme.customThemes.BaseTheme
-import neth.iecal.questphone.app.theme.themes
+import neth.iecal.questphone.themes
 import nethical.questphone.backend.repositories.UserRepository
 import javax.inject.Inject
 
