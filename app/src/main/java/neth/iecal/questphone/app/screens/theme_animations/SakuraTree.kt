@@ -52,19 +52,19 @@ class SakuraTreeViewModel
         return sp.getLong("seed",Random.nextLong())
     }
 
-    fun generate(width: Float, height: Float, streak: Int = userRepository.userInfo.streak.currentStreak) {
+    fun generate(width: Float, height: Float, streak: Int = 200) {
         if (branchList != null && streak == generatedStreak) return
 
         val rand = Random(getSeed(streak)) // Fixed seed for consistent tree structure
-        val maxStreak = 30 // Cap significant growth at streak 30
-        val effectiveStreak = streak.coerceAtMost(maxStreak)
+        val maxStreak = 10 // Cap significant growth at streak 30
+        val effectiveStreak = if(streak<maxStreak) streak else maxStreak
         val extraBlossoms = if (streak > maxStreak) (streak - maxStreak).coerceAtMost(10) else 0
 
         val root = generateTree(
             rand = rand,
             start = Offset(width, height), // bottom-right corner
             length = height * (0.2f + (effectiveStreak / 100f)),
-            angle = -120f + if (streak > maxStreak) (streak - maxStreak) * 0.5f else 0f, // Slight angle tweak for higher streaks
+            angle = -120f, // Slight angle tweak for higher streaks
             depth = 6 + effectiveStreak / 2,
             extraBlossoms = extraBlossoms
         )
@@ -87,7 +87,7 @@ class SakuraTreeViewModel
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SakuraTree(vm: SakuraTreeViewModel = hiltViewModel(), innerPadding: PaddingValues, streak: Int = 3) {
+fun SakuraTree(vm: SakuraTreeViewModel = hiltViewModel(), innerPadding: PaddingValues,) {
     Box(Modifier.padding(innerPadding)) {
         Canvas(modifier = Modifier.fillMaxSize().zIndex(-1f).padding(WindowInsets.statusBarsIgnoringVisibility.asPaddingValues())) {
             vm.generate(size.width, size.height)

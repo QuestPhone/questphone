@@ -5,17 +5,22 @@ import android.app.Application
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,9 +47,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -62,8 +69,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import neth.iecal.questphone.OnboardActivity
 import neth.iecal.questphone.R
+import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.game.InventoryBox
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 import nethical.questphone.backend.BuildConfig
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatNumber
@@ -109,155 +118,177 @@ class UserInfoViewModel @Inject constructor(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController: NavController) {
     val context = LocalContext.current
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(innerPadding)
-                .padding(16.dp),
+    val scrollState = rememberScrollState()
+    Scaffold(containerColor = LocalCustomTheme.current.getRootColorScheme().surface,
+        contentWindowInsets = WindowInsets(0),
+        ) { innerPadding ->
+        Box(Modifier
+            .padding(innerPadding)
+
         ) {
-            Row(
-                modifier = Modifier.padding(bottom = 32.dp)
-            ) {
-
-                // Profile Header
-                Text(
-                    text = "Profile",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(Modifier.weight(1f))
-
-                Menu(viewModel.userInfo.isAnonymous, {
-                    viewModel.logOut {
-                        val intent = Intent(context, OnboardActivity::class.java)
-                        context.startActivity(intent)
-                        (context as Activity).finish()
-                    }
-                })
+            Box(Modifier.graphicsLayer {
+                translationY = -scrollState.value * 0.5f
+            }) {
+                LocalCustomTheme.current.ThemeObjects(innerPadding)
             }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(scrollState)
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // Avatar
-                Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(RoundedCornerShape(12.dp))
                 ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(
+                Row(
+                    modifier = Modifier.padding( WindowInsets.statusBarsIgnoringVisibility.asPaddingValues())
+                ) {
 
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(viewModel.profilePicLink)
-                                .crossfade(true)
-                                .error(R.drawable.baseline_person_24)
-                                .placeholder(R.drawable.baseline_person_24)
-                                .build(),
-                        ),
-                        contentDescription = "Avatar",
-                        Modifier.fillMaxSize(),
-                        colorFilter = if (viewModel.profilePicLink == null)
-                            ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-                        else
-                            null,
+                    // Profile Header
+                    Text(
+                        text = "Profile",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
                     )
+                    Spacer(Modifier.weight(1f))
+
+                    Menu(viewModel.userInfo.isAnonymous, {
+                        viewModel.logOut {
+                            val intent = Intent(context, OnboardActivity::class.java)
+                            context.startActivity(intent)
+                            (context as Activity).finish()
+                        }
+                    })
                 }
+                Spacer(Modifier.size(32.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    "@${viewModel.userInfo.username}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Text(
-                    viewModel.userInfo.username,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-
-
-                // Level Progress Bar
-                Column(
-                    modifier = Modifier.width(250.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            "Level ${viewModel.userInfo.level}",
-                            color = MaterialTheme.colorScheme.outline,
-                            fontSize = 12.sp
-                        )
-                        Text(
-                            "XP: ${viewModel.userInfo.xp} / ${viewModel.totalXpForNextLevel}",
-                            color = MaterialTheme.colorScheme.outline,
-                            fontSize = 12.sp
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Avatar
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(12.dp)
-                            .align(Alignment.CenterHorizontally)
+                            .size(120.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable{
+                                navController.navigate(RootRoute.SetupProfile.route)
+                            }
                     ) {
-                        LinearProgressIndicator(
-                            progress = { viewModel.xpProgress },
-                            modifier = Modifier.fillMaxSize(),
+                        Image(
+                            painter = rememberAsyncImagePainter(
+
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(viewModel.profilePicLink)
+                                    .crossfade(true)
+                                    .error(R.drawable.baseline_person_24)
+                                    .placeholder(R.drawable.baseline_person_24)
+                                    .build(),
+                            ),
+                            contentDescription = "Avatar",
+                            Modifier.fillMaxSize(),
+                            colorFilter = if (viewModel.profilePicLink == null)
+                                ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                            else
+                                null,
                         )
                     }
-                }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                // Stats Box
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Row(
+                    Text(
+                        "@${viewModel.userInfo.username}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Text(
+                        viewModel.userInfo.username,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+
+
+                    // Level Progress Bar
+                    Column(
+                        modifier = Modifier.width(250.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Level ${viewModel.userInfo.level}",
+                                color = MaterialTheme.colorScheme.outline,
+                                fontSize = 12.sp
+                            )
+                            Text(
+                                "XP: ${viewModel.userInfo.xp} / ${viewModel.totalXpForNextLevel}",
+                                color = MaterialTheme.colorScheme.outline,
+                                fontSize = 12.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(12.dp)
+                                .align(Alignment.CenterHorizontally)
+                        ) {
+                            LinearProgressIndicator(
+                                progress = { viewModel.xpProgress },
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // Stats Box
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                            .background(
+                                color = LocalCustomTheme.current.getExtraColorScheme().toolBoxContainer,
+                                shape = RoundedCornerShape(16.dp),
+                            )
+                            .alpha(0.7f),
                     ) {
-                        StatItem(
-                            value = formatNumber(viewModel.userInfo.coins),
-                            label = "coins"
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            StatItem(
+                                value = formatNumber(viewModel.userInfo.coins),
+                                label = "coins"
+                            )
 
-                        StatItem(
-                            value = "${formatNumber(viewModel.userInfo.streak.currentStreak)}d",
-                            label = "Streak"
-                        )
+                            StatItem(
+                                value = "${formatNumber(viewModel.userInfo.streak.currentStreak)}d",
+                                label = "Streak"
+                            )
 
-                        StatItem(
-                            value = "${formatNumber(viewModel.userInfo.streak.longestStreak)}d",
-                            label = "Top Streak"
-                        )
+                            StatItem(
+                                value = "${formatNumber(viewModel.userInfo.streak.longestStreak)}d",
+                                label = "Top Streak"
+                            )
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
-
+                HeatMapChart(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                )
                 Spacer(modifier = Modifier.height(32.dp))
-            }
-            HeatMapChart(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-            )
-            Spacer(modifier = Modifier.height(32.dp))
 
-            InventoryBox(navController)
+                InventoryBox(navController)
+            }
         }
     }
 }

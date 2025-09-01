@@ -29,5 +29,6 @@ sealed class RootRoute(val route: String) {
 
     data object SetIntegration : RootRoute("set_quest_integration/")
     data object IntegrationTutorial : RootRoute("tutorial/")
+    data object SetupProfile : RootRoute("setupProfile/")
 }
 

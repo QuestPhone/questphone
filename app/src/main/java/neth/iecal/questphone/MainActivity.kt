@@ -32,6 +32,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.app.screens.account.SetupProfileScreen
 import neth.iecal.questphone.app.screens.account.UserInfoScreen
 import neth.iecal.questphone.app.screens.game.RewardDialogMaker
 import neth.iecal.questphone.app.screens.game.StoreScreen
@@ -256,6 +257,9 @@ class MainActivity : ComponentActivity() {
                             val id = backStackEntry.arguments?.getString("name")
                             val url = IntegrationId.valueOf(id.toString()).docLink
                             QuestTutorial(url)
+                        }
+                        composable(RootRoute.SetupProfile.route) {
+                            SetupProfileScreen()
                         }
                     }
                 }

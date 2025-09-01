@@ -11,7 +11,7 @@ interface BaseTheme  {
     @Composable fun ThemeObjects(innerPadding: PaddingValues)
     val name: String
     val price: Int
-        get() = 500
+        get() =50
     val description:String
     val expandQuestsText: String
         get() = "View More"

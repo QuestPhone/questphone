@@ -53,7 +53,7 @@ class HackerTheme(): BaseTheme {
         get() = "Hacker"
 
     override val description: String
-        get() = "Kimi wa nawa kim"
+        get() = "root@nethical:~#"
 
     override val expandQuestsText: String
         get() = "▓▒░▓▒░▓▒░"

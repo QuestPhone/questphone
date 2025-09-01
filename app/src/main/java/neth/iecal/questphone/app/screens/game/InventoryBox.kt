@@ -8,15 +8,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -27,8 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,14 +46,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.screens.account.ActiveBoostsItem
+import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.core.utils.managers.executeItem
 import neth.iecal.questphone.data.InventoryExecParams
 import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.backend.repositories.StatsRepository
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatRemainingTime
-import nethical.questphone.data.game.StoreCategory
 import nethical.questphone.data.game.InventoryItem
+import nethical.questphone.data.game.StoreCategory
 import javax.inject.Inject
 
 @HiltViewModel
@@ -125,8 +127,7 @@ fun InventoryBox(navController: NavController,viewModel: InventoryBoxViewModel =
     }
     Text(
         text = "Inventory",
-        fontSize = 18.sp,
-        fontWeight = FontWeight.Medium,
+        style = MaterialTheme.typography.headlineSmall,
         modifier = Modifier.padding(bottom = 16.dp)
     )
     Column(
@@ -136,8 +137,11 @@ fun InventoryBox(navController: NavController,viewModel: InventoryBoxViewModel =
             InventoryItemCard(it.key, it.value) { item ->
                 viewModel.selectedItem(item)
             }
-
         }
+        Spacer(Modifier.size(1.dp).padding(
+            bottom = WindowInsets.navigationBars.asPaddingValues()
+            .calculateBottomPadding() + 8.dp)
+        )
     }
 }
 
@@ -148,10 +152,14 @@ private fun InventoryItemCard(
     quantity: Int,
     onClick: (InventoryItem) -> Unit,
 ) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
+    Column (
         modifier = Modifier
             .fillMaxWidth()
+            .background(
+                color = LocalCustomTheme.current.getExtraColorScheme().toolBoxContainer,
+                shape = RoundedCornerShape(16.dp)
+            )
+            .alpha(0.7f)
             .clickable { onClick(item) }
     ) {
         Row(
@@ -163,9 +171,7 @@ private fun InventoryItemCard(
             // Item preview/icon
             Box(
                 modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF2A2A2A)),
+                    .size(60.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
