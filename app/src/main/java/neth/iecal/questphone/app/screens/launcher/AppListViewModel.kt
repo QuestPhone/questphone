@@ -144,15 +144,23 @@ class AppListViewModel @Inject constructor(
     }
 
     fun onConfirmUnlockApp(coins: Int) {
+        Log.d("Unlocking app ${_selectedPackage.value}","duration ${minutesPerFiveCoins.value * coins}")
+
+        requestAppUnlock(minutesPerFiveCoins.value * (coins/5))
+        userRepository.useCoins(coins)
+        launchApp(context, _selectedPackage.value)
+        _showCoinDialog.value = false
+    }
+
+    fun requestAppUnlock(cooldownInMins:Int){
         if (
             AppBlockerServiceInfo.appBlockerService == null
         ) {
             startForegroundService(context, Intent(context, AppBlockerService::class.java))
         }
 
-        val cooldownTime = (minutesPerFiveCoins.value * (coins/5)) * 60_000L
+        val cooldownTime =  cooldownInMins * 60_000L
         val pkg = _selectedPackage.value
-        Log.d("Unlocking app $pkg","duration ${minutesPerFiveCoins.value * coins}")
         val intent = Intent().apply {
             action = INTENT_ACTION_UNLOCK_APP
             putExtra("selected_time", cooldownTime)
@@ -160,9 +168,6 @@ class AppListViewModel @Inject constructor(
         }
         context.sendBroadcast(intent)
 
-        userRepository.useCoins(coins)
-        launchApp(context, pkg)
-        _showCoinDialog.value = false
     }
 
     fun dismissDialog() {
@@ -235,6 +240,8 @@ class AppListViewModel @Inject constructor(
             putInt("freepass_count", remainingFreePassesToday)
         }
 
+        requestAppUnlock(10)
+        launchApp(context,_selectedPackage.value)
         onConfirmUnlockApp(0)
     }
 
@@ -244,4 +251,5 @@ class AppListViewModel @Inject constructor(
 fun launchApp(context: Context, packageName: String) {
     val intent = context.packageManager.getLaunchIntentForPackage(packageName)
     intent?.let { context.startActivity(it) }
+
 }
