@@ -120,7 +120,10 @@ class HealthConnectManager(private val context: Context) {
                 aggregateResponse[DistanceRecord.DISTANCE_TOTAL]?.inMeters ?: 0.0
             }
             HealthTaskType.SLEEP -> readRecords<SleepSessionRecord>(timeRangeFilter)
-                .sumOf { Duration.between(it.startTime, it.endTime).toMinutes().toDouble() }
+                .sumOf {
+                    println("Sleep session: start=${it.startTime}, end=${it.endTime}")
+                    Duration.between(it.startTime, it.endTime).toHours().toDouble()
+                }
             HealthTaskType.WATER_INTAKE -> {
                 val aggregateResponse = healthConnectClient.aggregate(
                     AggregateRequest(

@@ -69,7 +69,7 @@ class HealthQuestViewVM @Inject constructor (questRepository: QuestRepository,
      * encode Health quest to common quest json
      */
     fun encodeToCommonQuest(){
-        commonQuestInfo.quest_json = json.encodeToString(healthQuest)
+        commonQuestInfo.quest_json = json.encodeToString(healthQuest.value)
     }
 
     /**
@@ -262,7 +262,7 @@ fun HealthQuestView(commonQuestInfo: CommonQuestInfo, viewModel: HealthQuestView
                     Text(
                         text = "Next Goal: ${healthQuest.nextGoal} ${healthQuest.type.unit}",
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
 
                 } else {
