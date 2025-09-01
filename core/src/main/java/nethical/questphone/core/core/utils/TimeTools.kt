@@ -33,6 +33,9 @@ fun getCurrentDate(): String {
 fun getCurrentTime12Hr(): String {
     return SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date()) // HH:MM AM/PM format
 }
+fun getCurrentTime24Hr(): String {
+    return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date()) // 24-hour format
+}
 
 
 /**

@@ -296,7 +296,10 @@ fun HomeScreen(
                         Text(
                             time,
                             style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.Black
+                            fontWeight = FontWeight.Black,
+                            modifier = Modifier.combinedClickable(onClick = {},onLongClick = {
+                                viewModel.toggleTimeCLock()
+                            })
                         )
                         Text(
                             "Today's Quests",

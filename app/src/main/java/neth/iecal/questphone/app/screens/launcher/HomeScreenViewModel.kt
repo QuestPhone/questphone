@@ -33,6 +33,7 @@ import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getCurrentDay
 import nethical.questphone.core.core.utils.getCurrentTime12Hr
+import nethical.questphone.core.core.utils.getCurrentTime24Hr
 import javax.inject.Inject
 
 @HiltViewModel
@@ -55,21 +56,23 @@ class HomeScreenViewModel @Inject constructor(
     private val _time = mutableStateOf(getCurrentTime12Hr())
     val time = _time
 
-
-
+    private var is12HourClock = true
     private val shortcutsSp = application.applicationContext.getSharedPreferences("shortcuts", MODE_PRIVATE)
 
 
     val showDonationsDialog = MutableStateFlow(false)
     val donationSp = application.getSharedPreferences("shows", MODE_PRIVATE)
+    val sp = application.getSharedPreferences("timeFormat",MODE_PRIVATE)
 
     init {
         scheduleDailyNotification(application,9,0)
         viewModelScope.launch {
             loadSavedConfigs()
             // Keep updating time every minute
+            val sp = application.getSharedPreferences("timeFormat",MODE_PRIVATE)
+            is12HourClock = sp.getBoolean("12hr",true)
             while (true) {
-                _time.value = getCurrentTime12Hr()
+                reloadTime()
                 val delayMillis = 60_000 - (System.currentTimeMillis() % 60_000)
                 delay(delayMillis)
             }
@@ -97,6 +100,19 @@ class HomeScreenViewModel @Inject constructor(
 
     }
 
+    fun toggleTimeCLock(){
+        is12HourClock = !is12HourClock
+        sp.edit(commit = true) { putBoolean("12hr", is12HourClock) }
+        reloadTime()
+    }
+
+    private fun reloadTime(){
+        if(is12HourClock) {
+            _time.value = getCurrentTime12Hr()
+        }else{
+            _time.value = getCurrentTime24Hr()
+        }
+    }
     fun getHomeWidget(): @Composable ((Modifier) -> Unit)? {
         return homeWidgets[userRepository.userInfo.customization_info.equippedWidget]
     }

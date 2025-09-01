@@ -31,7 +31,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -295,9 +294,7 @@ fun BaseQuestStatsView(
         return
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
+    Scaffold() { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -436,10 +433,6 @@ fun ProgressStatsSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -545,9 +538,6 @@ fun ProgressStatsSection(
 fun StatCard(title: String, value: String, icon: Int, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
         shape = RoundedCornerShape(12.dp),
     ) {
         Column(
@@ -593,10 +583,6 @@ fun CalendarSection(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -685,10 +671,6 @@ fun QuestDetailsCard(baseData: CommonQuestInfo, onQuestEditorClicked: () -> Unit
     val context = LocalContext.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
