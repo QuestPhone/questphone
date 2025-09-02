@@ -1,11 +1,17 @@
 @file:OptIn(ExperimentalFoundationApi::class)
 package neth.iecal.questphone.app.screens.etc
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.content.ReceiveContentListener
+import androidx.compose.foundation.content.contentReceiver
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -15,9 +21,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -26,35 +35,42 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.firstUriOrNull
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.jeziellago.compose.markdowntext.MarkdownText
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import neth.iecal.questphone.R
+import neth.iecal.questphone.app.theme.smoothYellow
+import nethical.questphone.data.game.InventoryItem
 import java.io.File
 import java.io.FileWriter
 
+private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 // Data classes for components
 data class MdComponent(
     val id: String = java.util.UUID.randomUUID().toString(),
@@ -69,8 +85,16 @@ enum class ComponentType(val displayName: String, val icon: ImageVector) {
     LIST("List Item", Icons.Default.Build),
     CODE("Code Block", Icons.Default.Build),
     QUOTE("Quote", Icons.Default.Build),
-    LINK("Link", Icons.Default.Build)
+    LINK("Link", Icons.Default.Build),
+    IMAGE("Image", Icons.Default.Build),
+    TABLE("Table", Icons.Default.Build),
+    CHECKBOX("Checkbox", Icons.Default.Build)
 }
+@Serializable
+data class TableData(
+    val headers: List<String>,
+    val rows: List<List<String>>
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,135 +104,91 @@ fun MarkdownComposer() {
     var fileName by remember { mutableStateOf("document") }
     val context = LocalContext.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF1E1E2E))
-    ) {
-        // Top Bar
+    Scaffold (topBar = {
         TopAppBar(
+
             title = {
-                Text(
-                    "MD Composer",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(0xFF313244)
-            ),
             actions = {
                 IconButton(onClick = { showPreview = !showPreview }) {
                     Icon(
-                        if (showPreview) Icons.Default.Edit else Icons.Default.Build,
+                        if (showPreview) Icons.Default.Edit else Icons.Default.PlayArrow,
                         contentDescription = if (showPreview) "Edit" else "Preview",
-                        tint = Color.White
                     )
                 }
                 IconButton(onClick = {
                     saveMarkdownFile(context, fileName, generateMarkdown(components))
                 }) {
-                    Icon(Icons.Default.Build, contentDescription = "Save", tint = Color.White)
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_check_24),
+                        contentDescription = "Save",
+                    )
                 }
             }
         )
 
-        if (showPreview) {
-            // Preview Mode
-            PreviewScreen(components)
-        } else {
-            // Edit Mode
-            Row(modifier = Modifier.fillMaxSize()) {
-                // Component Palette (Left Panel)
-                ComponentPalette(
-                    modifier = Modifier
-                        .width(120.dp)
-                        .fillMaxHeight(),
-                    onComponentDrop = { componentType ->
-                        components = components + MdComponent(type = componentType)
-                    }
-                )
+    }){padding->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            // Top Bar
 
-                // Main Canvas (Right Panel)
-                MainCanvas(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    components = components,
-                    onComponentUpdate = { index, newComponent ->
-                        components = components.toMutableList().apply {
-                            this[index] = newComponent
+            if (showPreview) {
+                PreviewScreen(components)
+            } else {
+                Row(modifier = Modifier.fillMaxSize()) {
+                    ComponentPalette(
+                        modifier = Modifier
+                            .width(120.dp)
+                            .fillMaxHeight(),
+                        onComponentDrop = { componentType ->
+                            components = components + MdComponent(type = componentType)
                         }
-                    },
-                    onComponentDelete = { index ->
-                        components = components.toMutableList().apply {
-                            removeAt(index)
-                        }
-                    },
-                    onComponentMove = { from, to ->
-                        components = components.toMutableList().apply {
-                            add(to, removeAt(from))
-                        }
-                    }
-                )
-            }
-        }
-
-        // File name input at bottom
-        if (!showPreview) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF313244))
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("File name:", color = Color.White)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    OutlinedTextField(
-                        value = fileName,
-                        onValueChange = { fileName = it },
-                        modifier = Modifier.weight(1f),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedBorderColor = Color(0xFF89B4FA),
-                            unfocusedBorderColor = Color(0xFF6C7086)
-                        ),
-                        singleLine = true
                     )
-                    Text(".md", color = Color.White)
+
+                    MainCanvas(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        components = components,
+                        onComponentUpdate = { index, newComponent ->
+                            components = components.toMutableList().apply {
+                                this[index] = newComponent
+                            }
+                        },
+                        onComponentDelete = { index ->
+                            components = components.toMutableList().apply {
+                                removeAt(index)
+                            }
+                        },
+                        onComponentMove = { from, to ->
+                            components = components.toMutableList().apply {
+                                add(to, removeAt(from))
+                            }
+                        }
+                    )
                 }
             }
+
         }
     }
 }
-
 @Composable
 fun ComponentPalette(
     modifier: Modifier = Modifier,
     onComponentDrop: (ComponentType) -> Unit
 ) {
-    Card(
+    Box(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF313244))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(8.dp)
         ) {
-            Text(
-                "Components",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            ComponentType.values().forEach { componentType ->
+            ComponentType.entries.forEach { componentType ->
                 DraggableComponent(
                     componentType = componentType,
                     onDrop = onComponentDrop
@@ -228,22 +208,19 @@ fun DraggableComponent(
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable { onDrop(componentType) },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF45475A))
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(12.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
                 componentType.icon,
                 contentDescription = componentType.displayName,
-                tint = Color(0xFF89B4FA),
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 componentType.displayName,
-                color = Color.White,
                 fontSize = 10.sp
             )
         }
@@ -258,9 +235,8 @@ fun MainCanvas(
     onComponentDelete: (Int) -> Unit,
     onComponentMove: (Int, Int) -> Unit
 ) {
-    Card(
+    Box(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E2E))
     ) {
         if (components.isEmpty()) {
             Box(
@@ -271,12 +247,10 @@ fun MainCanvas(
                     Icon(
                         Icons.Default.Add,
                         contentDescription = "Add components",
-                        tint = Color(0xFF6C7086),
                         modifier = Modifier.size(48.dp)
                     )
                     Text(
                         "Drag components here to start",
-                        color = Color(0xFF6C7086),
                         fontSize = 16.sp
                     )
                 }
@@ -288,34 +262,49 @@ fun MainCanvas(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                itemsIndexed(components) { index, component ->
+                itemsIndexed(
+                    items = components,
+                    key = { _, component -> component.id } // Make sure each item has a stable unique key
+                ) { index, component ->
                     ComponentEditor(
                         component = component,
                         onUpdate = { updatedComponent ->
                             onComponentUpdate(index, updatedComponent)
                         },
                         onDelete = { onComponentDelete(index) },
-                        onMoveUp = if (index > 0) { { onComponentMove(index, index - 1) } } else null,
-                        onMoveDown = if (index < components.size - 1) { { onComponentMove(index, index + 1) } } else null
+                        onMoveUp = if (index > 0) {
+                            { onComponentMove(index, index - 1) }
+                        } else null,
+                        onMoveDown = if (index < components.size - 1) {
+                            { onComponentMove(index, index + 1) }
+                        } else null,
+                        modifier = Modifier.animateItem(
+                            placementSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                            fadeInSpec = tween(180),
+                            fadeOutSpec = tween(180)
+                        )
                     )
                 }
             }
+
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalComposeUiApi::class
+)
 @Composable
 fun ComponentEditor(
     component: MdComponent,
     onUpdate: (MdComponent) -> Unit,
     onDelete: () -> Unit,
     onMoveUp: (() -> Unit)?,
-    onMoveDown: (() -> Unit)?
+    onMoveDown: (() -> Unit)?,
+    modifier: Modifier
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF313244))
+        modifier = modifier.fillMaxWidth(),
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -330,13 +319,11 @@ fun ComponentEditor(
                     Icon(
                         component.type.icon,
                         contentDescription = component.type.displayName,
-                        tint = Color(0xFF89B4FA),
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         component.type.displayName,
-                        color = Color.White,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -347,7 +334,6 @@ fun ComponentEditor(
                             Icon(
                                 Icons.Default.KeyboardArrowUp,
                                 contentDescription = "Move up",
-                                tint = Color(0xFF89B4FA),
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -358,7 +344,6 @@ fun ComponentEditor(
                             Icon(
                                 Icons.Default.KeyboardArrowDown,
                                 contentDescription = "Move down",
-                                tint = Color(0xFF89B4FA),
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -368,7 +353,6 @@ fun ComponentEditor(
                         Icon(
                             Icons.Default.Delete,
                             contentDescription = "Delete",
-                            tint = Color(0xFFF38BA8),
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -379,76 +363,294 @@ fun ComponentEditor(
 
             // Component-specific controls
             when (component.type) {
-                ComponentType.HEADER -> {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Level:", color = Color.White)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        (1..6).forEach { level ->
-                            FilterChip(
-                                onClick = {
-                                    onUpdate(component.copy(level = level))
-                                },
-                                label = { Text("H$level") },
-                                selected = component.level == level,
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Color(0xFF89B4FA),
-                                    selectedLabelColor = Color.Black,
-                                    containerColor = Color(0xFF45475A),
-                                    labelColor = Color.White
-                                ),
-                                modifier = Modifier.padding(end = 4.dp)
+                ComponentType.TABLE -> {
+                    // Parse table data from JSON or initialize empty table
+                    val tableData = remember(component.content) {
+                        try {
+                            if (component.content.isNotEmpty()) {
+                                json.decodeFromString<TableData>(component.content).let { data ->
+                                    // Validate that all rows match header size
+                                    if (data.rows.all { it.size == data.headers.size }) {
+                                        data
+                                    } else {
+                                        // Fix mismatched rows by padding or truncating
+                                        val fixedRows = data.rows.map { row ->
+                                            when {
+                                                row.size < data.headers.size -> row + List(data.headers.size - row.size) { "" }
+                                                row.size > data.headers.size -> row.take(data.headers.size)
+                                                else -> row
+                                            }
+                                        }
+                                        TableData(data.headers, fixedRows)
+                                    }
+                                }
+                            } else {
+                                TableData(
+                                    headers = listOf("Column 1", "Column 2"),
+                                    rows = listOf(listOf("Cell 1", "Cell 2"))
+                                )
+                            }
+                        } catch (e: Exception) {
+                            println("Deserialization error: ${e.message}")
+                            TableData(
+                                headers = listOf("Column 1", "Column 2"),
+                                rows = listOf(listOf("Cell 1", "Cell 2"))
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                else -> {}
-            }
 
-            // Content input
-            OutlinedTextField(
-                value = component.content,
-                onValueChange = { onUpdate(component.copy(content = it)) },
-                label = {
-                    Text(
-                        when (component.type) {
-                            ComponentType.HEADER -> "Header text"
-                            ComponentType.TEXT -> "Paragraph text"
-                            ComponentType.LIST -> "List item text"
-                            ComponentType.CODE -> "Code content"
-                            ComponentType.QUOTE -> "Quote text"
-                            ComponentType.LINK -> "Link text|URL (separated by |)"
-                        },
-                        color = Color(0xFF6C7086)
+                    // State for table data
+                    var headers by remember { mutableStateOf(tableData.headers) }
+                    var rows by remember { mutableStateOf(tableData.rows) }
+
+                    // Update component when table data changes
+                    fun updateTableData(newHeaders: List<String>, newRows: List<List<String>>) {
+                        headers = newHeaders
+                        rows = newRows
+                        try {
+                            val newTableData = TableData(newHeaders, newRows)
+                            onUpdate(component.copy(content = json.encodeToString(newTableData)))
+                        } catch (e: Exception) {
+                            println("Serialization error: ${e.message}")
+                        }
+                    }
+
+                    Column(
+                    ) {
+                        // Controls for adding rows/columns
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            IconButton(onClick = {
+                                updateTableData(
+                                    headers + "Column ${headers.size + 1}",
+                                    rows.map { it + "" }
+                                )
+                            }) {
+                                Icon(Icons.Default.Add, contentDescription = "Add Column")
+                            }
+                            IconButton(onClick = {
+                                val newlist =  rows.toMutableList()
+                                newlist.add(List(headers.size) {""})
+                                updateTableData(
+                                    headers,
+                                    newlist
+                                )
+                            }) {
+                                Icon(Icons.Default.Add, contentDescription = "Add Row")
+                            }
+                        }
+
+                        // Table grid
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp), // Adjust height as needed
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            // Header row
+                            item {
+                                // Use Box to constrain LazyRow width
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight()
+                                ) {
+                                    LazyRow(
+                                        modifier = Modifier
+                                            .widthIn(max = 1000.dp) // Set a reasonable max width
+                                            .background(MaterialTheme.colorScheme.primaryContainer),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        contentPadding = PaddingValues(horizontal = 4.dp)
+                                    ) {
+                                        itemsIndexed(headers) { colIndex, header ->
+                                            OutlinedTextField(
+                                                value = header,
+                                                onValueChange = { newValue ->
+                                                    val newHeaders = headers.toMutableList().apply {
+                                                        set(colIndex, newValue)
+                                                    }
+                                                    updateTableData(newHeaders, rows)
+                                                },
+                                                modifier = Modifier
+                                                    .width(150.dp) // Fixed width for consistency
+                                                    .padding(vertical = 4.dp),
+                                                label = { Text("Header $colIndex") }
+                                            )
+                                        }
+                                        // Delete column button
+                                        if (headers.size > 1) {
+                                            item {
+                                                IconButton(onClick = {
+                                                    updateTableData(
+                                                        headers.dropLast(1),
+                                                        rows.map { it.dropLast(1) }
+                                                    )
+                                                }) {
+                                                    Icon(Icons.Default.Delete, contentDescription = "Delete Column")
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Body rows
+                            itemsIndexed(rows) { rowIndex, row ->
+                                // Use Box to constrain LazyRow width
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight()
+                                ) {
+                                    LazyRow(
+                                        modifier = Modifier
+                                            .widthIn(max = 1000.dp) // Set a reasonable max width
+                                            .wrapContentHeight(),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        contentPadding = PaddingValues(horizontal = 4.dp)
+                                    ) {
+                                        itemsIndexed(row) { colIndex, cell ->
+                                            OutlinedTextField(
+                                                value = cell,
+                                                onValueChange = { newValue ->
+                                                    val newRows = rows.toMutableList().apply {
+                                                        set(rowIndex, row.toMutableList().apply {
+                                                            set(colIndex, newValue)
+                                                        })
+                                                    }
+                                                    updateTableData(headers, newRows)
+                                                },
+                                                modifier = Modifier
+                                                    .width(150.dp) // Fixed width for consistency
+                                                    .padding(vertical = 4.dp),
+                                                label = { Text("Cell") }
+                                            )
+                                        }
+                                        // Delete row button
+                                        if (rows.size > 1) {
+                                            item {
+                                                IconButton(onClick = {
+                                                    val newRows = rows.toMutableList().apply {
+                                                        removeAt(rowIndex)
+                                                    }
+                                                    updateTableData(headers, newRows)
+                                                }) {
+                                                    Icon(
+                                                        Icons.Default.Delete,
+                                                        contentDescription = "Delete Row"
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        }
+
+                                }
+                            }
+                        }
+
+                        // Optional raw input
+                        var showRawInput by remember { mutableStateOf(false) }
+                        FilterChip(
+                            selected = showRawInput,
+                            onClick = { showRawInput = !showRawInput },
+                            label = { Text("Edit Raw") }
+                        )
+                        if (showRawInput) {
+                            OutlinedTextField(
+                                value = component.content,
+                                onValueChange = { newValue ->
+                                    try {
+                                        val newTableData = json.decodeFromString<TableData>(newValue)
+                                        headers = newTableData.headers
+                                        rows = newTableData.rows
+                                        onUpdate(component.copy(content = newValue))
+                                    } catch (e: Exception) {
+                                        println("Raw input error: ${e.message}")
+                                        // Optionally show a Toast or error message to the user
+                                    }
+                                },
+                                label = { Text("Raw Table Data (JSON)") },
+                                modifier = Modifier.fillMaxWidth(),
+                                minLines = 3
+                            )
+                        }
+                    }
+                }
+                ComponentType.HEADER -> {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        item {
+                            Text("Level:")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            (1..6).forEach { level ->
+                                FilterChip(
+                                    onClick = {
+                                        onUpdate(component.copy(level = level))
+                                    },
+                                    label = { Text("H$level") },
+                                    selected = component.level == level,
+                                    modifier = Modifier.padding(end = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = component.content,
+                        onValueChange = { onUpdate(component.copy(content = it)) },
+                        label = { Text("Header text") },
+                        modifier = Modifier.fillMaxWidth()
                     )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedBorderColor = Color(0xFF89B4FA),
-                    unfocusedBorderColor = Color(0xFF6C7086)
-                ),
-                minLines = if (component.type == ComponentType.CODE || component.type == ComponentType.QUOTE) 3 else 1,
-                maxLines = if (component.type == ComponentType.LINK) 1 else Int.MAX_VALUE
-            )
+                }
+                else -> {
+                    OutlinedTextField(
+                        value = component.content,
+                        onValueChange = { onUpdate(component.copy(content = it)) },
+                        label = {
+                            Text(
+                                when (component.type) {
+                                    ComponentType.TEXT -> "Paragraph text"
+                                    ComponentType.LIST -> "List item text"
+                                    ComponentType.CODE -> "Code content"
+                                    ComponentType.QUOTE -> "Quote text"
+                                    ComponentType.LINK -> "Link text|URL (separated by |)"
+                                    ComponentType.IMAGE -> "Alt text|Image URL"
+                                    ComponentType.CHECKBOX -> "done|Task text OR todo|Task text"
+                                    else -> "Content"
+                                }
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth() .contentReceiver(
+                            ReceiveContentListener { content ->
+                                val entry = content.clipEntry
+                                val uri = entry.firstUriOrNull()
+                                if (uri != null) {
+                                    component.content+=uri.path
+                                }
+
+                                // return content if you want system to keep handling it,
+                                // or null if you fully consumed it
+                                null
+                            }),
+                        keyboardActions = KeyboardActions(),
+                        minLines = if (component.type == ComponentType.CODE || component.type == ComponentType.QUOTE) 3 else 1,
+                        maxLines = if (component.type == ComponentType.LINK) 1 else Int.MAX_VALUE
+                    )
+                }
+            }
 
             // Preview of how it will look in markdown
             if (component.content.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     "Preview: ${generateComponentMarkdown(component)}",
-                    color = Color(0xFF6C7086),
                     fontSize = 12.sp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(
-                            Color(0xFF181825),
-                            RoundedCornerShape(4.dp)
-                        )
                         .padding(8.dp)
                 )
             }
@@ -456,27 +658,51 @@ fun ComponentEditor(
     }
 }
 
+
+
+
 @Composable
 fun PreviewScreen(components: List<MdComponent>) {
     val markdown = generateMarkdown(components)
 
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF313244))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                "Markdown Preview",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
+                text = "Quest Title",
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
             )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text ="Reward: 40 coins + 32 xp",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                    Text(
+                        text = " + ",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Black,
+                        color = smoothYellow
+                    )
+                    Image(painter = painterResource( InventoryItem.XP_BOOSTER.icon),
+                        contentDescription = InventoryItem.XP_BOOSTER.simpleName,
+                        Modifier.size(20.dp))
+                    Text(
+                        text = " 69 xp",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Black,
+                        color = smoothYellow
+                    )
+            }
 
+            Text(
+                text = "Time: 01:00 to 02:00",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(Modifier.size(32.dp))
             LazyColumn {
                 item {
                     SelectionContainer {
@@ -484,11 +710,6 @@ fun PreviewScreen(components: List<MdComponent>) {
                             markdown = markdown,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(
-                                    Color(0xFF181825),
-                                    RoundedCornerShape(8.dp)
-                                )
-                                .padding(16.dp),
                         )
                     }
                 }
@@ -499,6 +720,18 @@ fun PreviewScreen(components: List<MdComponent>) {
 
 fun generateComponentMarkdown(component: MdComponent): String {
     return when (component.type) {
+        ComponentType.TABLE -> {
+            try {
+                val tableData = json.decodeFromString<TableData>(component.content)
+                val header = tableData.headers.joinToString("|")
+                val separator = tableData.headers.joinToString("|") { "---" }
+                val body = tableData.rows.joinToString("\n") { it.joinToString("|") }
+                "$header\n$separator\n$body"
+            } catch (e: Exception) {
+                println("Markdown generation error: ${e.message}")
+                "" // Return empty string if parsing fails
+            }
+        }
         ComponentType.HEADER -> "${"#".repeat(component.level)} ${component.content}"
         ComponentType.TEXT -> component.content
         ComponentType.LIST -> "- ${component.content}"
@@ -512,9 +745,21 @@ fun generateComponentMarkdown(component: MdComponent): String {
                 component.content
             }
         }
+        ComponentType.IMAGE -> {
+            val parts = component.content.split("|")
+            if (parts.size == 2) {
+                "![${parts[0].trim()}](${parts[1].trim()})"
+            } else component.content
+        }
+        ComponentType.CHECKBOX -> {
+            val parts = component.content.split("|", limit = 2)
+            if (parts.size == 2) {
+                val checked = if (parts[0].trim().equals("done", true)) "x" else " "
+                "- [$checked] ${parts[1].trim()}"
+            } else "- [ ] ${component.content}"
+        }
     }
 }
-
 fun generateMarkdown(components: List<MdComponent>): String {
     return components.joinToString("\n\n") { generateComponentMarkdown(it) }
 }
