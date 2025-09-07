@@ -74,11 +74,17 @@
             android:launchMode="singleTop"
             android:taskAffinity=""
             android:theme="@style/Theme.Launcher">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="image/gif" />
+                <data android:mimeType="image/png" />
+                <data android:mimeType="image/jpeg" />
+                <data android:mimeType="image/webp" />
             </intent-filter>
         </activity>
         <activity

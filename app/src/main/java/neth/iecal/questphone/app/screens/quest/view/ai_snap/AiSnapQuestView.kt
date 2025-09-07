@@ -119,7 +119,7 @@ fun AiSnapQuestView(
                                 viewModel.isCameraScreen.value = true
                             }
                         ) {
-                            Text(text = "Start Quest")
+                            Text(text = "Snap Pic")
                         }
                     }
                 }

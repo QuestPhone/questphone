@@ -284,7 +284,7 @@ fun DeepFocusQuestView(
                             viewModel.startQuest()
                         }
                     ) {
-                        Text(text = "Start Quest")
+                        Text(text = "Start Focusing")
                     }
                 }
             }

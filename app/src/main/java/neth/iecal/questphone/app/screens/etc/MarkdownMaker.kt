@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.content.ReceiveContentListener
+import androidx.compose.foundation.content.TransferableContent
 import androidx.compose.foundation.content.contentReceiver
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,6 +69,7 @@ import kotlinx.serialization.json.Json
 import neth.iecal.questphone.app.theme.smoothYellow
 import neth.iecal.questphone.data.QuestInfoState
 import nethical.questphone.data.game.InventoryItem
+import java.util.UUID
 
 fun parseMarkdown(markdown: String): List<MdComponent> {
     val components = mutableListOf<MdComponent>()
@@ -240,7 +242,7 @@ fun parseMarkdown(markdown: String): List<MdComponent> {
 private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 // Data classes for components
 data class MdComponent(
-    val id: String = java.util.UUID.randomUUID().toString(),
+    val id: String = UUID.randomUUID().toString(),
     val type: ComponentType,
     var content: String = "",
     var level: Int = 1 // for headers
@@ -372,7 +374,9 @@ fun DraggableComponent(
             .clickable { onDrop(componentType) },
     ) {
         Column(
-            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
@@ -786,18 +790,20 @@ fun ComponentEditor(
                                 }
                             )
                         },
-                        modifier = Modifier.fillMaxWidth() .contentReceiver(
-                            ReceiveContentListener { content ->
-                                val entry = content.clipEntry
-                                val uri = entry.firstUriOrNull()
-                                if (uri != null) {
-                                    component.content+=uri.path
-                                }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .contentReceiver(
+                                object : ReceiveContentListener {
+                                    override fun onReceive(transferableContent: TransferableContent): TransferableContent? {
+                                        val entry = transferableContent.clipEntry
+                                        val uri = entry.firstUriOrNull()
+                                        if (uri != null) {
+                                            component.content += uri.path
+                                        }
+                                        return transferableContent
+                                    }
 
-                                // return content if you want system to keep handling it,
-                                // or null if you fully consumed it
-                                null
-                            }),
+                                }),
                         keyboardActions = KeyboardActions(),
                         minLines = if (component.type == ComponentType.CODE || component.type == ComponentType.QUOTE) 3 else 1,
                         maxLines = if (component.type == ComponentType.LINK) 1 else Int.MAX_VALUE
@@ -925,4 +931,3 @@ fun generateComponentMarkdown(component: MdComponent): String {
 fun generateMarkdown(components: List<MdComponent>): String {
     return components.joinToString("\n\n") { generateComponentMarkdown(it) }
 }
-

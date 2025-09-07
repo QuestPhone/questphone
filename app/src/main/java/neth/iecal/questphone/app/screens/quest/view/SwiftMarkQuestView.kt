@@ -108,7 +108,7 @@ fun SwiftMarkQuestView(
                             viewModel.saveQuestToDb()
                         }
                     ) {
-                        Text(text = "Start Quest")
+                        Text(text = "Mark as Complete")
                     }
                 }
             }
