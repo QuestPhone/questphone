@@ -1,6 +1,7 @@
 package neth.iecal.questphone.app.screens.quest.setup.health_connect
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +51,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.app.screens.etc.MarkdownComposer
+import neth.iecal.questphone.app.screens.etc.MdComponent
+import neth.iecal.questphone.app.screens.etc.parseMarkdown
 import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
 import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
@@ -85,13 +89,25 @@ fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController
     val healthQuest by viewModel.healthQuest.collectAsState()
     val isReviewDialogVisible by viewModel.isReviewDialogVisible.collectAsState()
 
+    val parsedMarkdown = remember { mutableStateOf(listOf<MdComponent>()) }
+    var isMdEditorVisible by remember { mutableStateOf(false) }
+
+    BackHandler(isMdEditorVisible) {
+        isMdEditorVisible = false
+    }
 
     LaunchedEffect(Unit) {
         viewModel.loadQuestData(editQuestId, BaseIntegrationId.HEALTH_CONNECT) {
             viewModel.healthQuest.value = json.decodeFromString<HealthQuest>(it.quest_json)
         }
     }
-
+    if(isMdEditorVisible){
+        MarkdownComposer(
+            list = parsedMarkdown.value,
+            generatedMarkdown = questInfoState
+        )
+        return
+    }
     if (isReviewDialogVisible) {
         val baseQuest = viewModel.getBaseQuestInfo()
         ReviewDialog(
@@ -148,7 +164,12 @@ fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController
                 CommonSetBaseQuest(
                     viewModel.userCreatedOn,
                     questInfoState,
-                    isTimeRangeSupported = false
+                    isTimeRangeSupported = false,
+                    {
+                        parsedMarkdown.value = parseMarkdown(questInfoState.instructions)
+
+                        isMdEditorVisible = true
+                    }
                 )
 
                 Text(

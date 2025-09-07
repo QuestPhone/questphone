@@ -1,5 +1,6 @@
 package neth.iecal.questphone.app.screens.quest.setup.swift_mark
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -36,6 +40,9 @@ import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.app.screens.etc.MarkdownComposer
+import neth.iecal.questphone.app.screens.etc.MdComponent
+import neth.iecal.questphone.app.screens.etc.parseMarkdown
 import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
 import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
@@ -55,9 +62,15 @@ class SetSwiftMarkViewModelQuest @Inject constructor (questRepository: QuestRepo
 fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, viewModel: SetSwiftMarkViewModelQuest = hiltViewModel()) {
     val questInfoState by viewModel.questInfoState.collectAsState()
 
+    var isMdEditorVisible by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val isReviewDialogVisible by viewModel.isReviewDialogVisible.collectAsState()
 
+    val parsedMarkdown = remember { mutableStateOf(listOf<MdComponent>()) }
+
+    BackHandler(isMdEditorVisible) {
+        isMdEditorVisible = false
+    }
     LaunchedEffect(Unit) {
         viewModel.loadQuestData(editQuestId, BaseIntegrationId.SWIFT_MARK)
     }
@@ -79,6 +92,13 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, vi
         )
     }
 
+    if(isMdEditorVisible){
+        MarkdownComposer(
+            list = parsedMarkdown.value,
+            generatedMarkdown = questInfoState
+        )
+        return
+    }
     Scaffold(
         modifier = Modifier.safeDrawingPadding(),
         topBar = {
@@ -121,7 +141,10 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, vi
                 verticalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
 
-                CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState)
+                CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState, onAdvancedMdEditor = {
+                    parsedMarkdown.value = parseMarkdown(questInfoState.instructions)
+                    isMdEditorVisible = true
+                })
                 Button(
                     enabled = questInfoState.selectedDays.isNotEmpty(),
                     onClick = {

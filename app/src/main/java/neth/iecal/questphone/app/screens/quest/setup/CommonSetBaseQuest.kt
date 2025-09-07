@@ -1,23 +1,31 @@
 package neth.iecal.questphone.app.screens.quest.setup
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import neth.iecal.questphone.data.QuestInfoState
 import neth.iecal.questphone.app.screens.quest.setup.components.AutoDestruct
 import neth.iecal.questphone.app.screens.quest.setup.components.SelectDaysOfWeek
 import neth.iecal.questphone.app.screens.quest.setup.components.SetTimeRange
+import neth.iecal.questphone.data.QuestInfoState
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getCurrentDay
 
 @Composable
-fun CommonSetBaseQuest(createdOnDate:String,questInfoState: QuestInfoState, isTimeRangeSupported: Boolean = true) {
+fun CommonSetBaseQuest(createdOnDate:String,questInfoState: QuestInfoState, isTimeRangeSupported: Boolean = true, onAdvancedMdEditor:()->Unit = {}) {
 
     OutlinedTextField(
         value = questInfoState.title,
@@ -36,14 +44,31 @@ fun CommonSetBaseQuest(createdOnDate:String,questInfoState: QuestInfoState, isTi
     }
     SelectDaysOfWeek(questInfoState)
 
-    OutlinedTextField(
-        value = questInfoState.instructions,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-        onValueChange = { questInfoState.instructions = it }, // Direct update
-        label = { Text("Instructions") },
-        modifier = Modifier.fillMaxWidth()
-            .height(200.dp)
-    )
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        OutlinedTextField(
+            value = questInfoState.instructions,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            onValueChange = { questInfoState.instructions = it }, // Direct update
+            label = { Text("Instructions") },
+            modifier = Modifier.weight(1f)
+                .height(200.dp)
+        )
+        Spacer(Modifier.size(8.dp))
+        IconButton(
+            modifier = Modifier.size(30.dp),
+            onClick = {
+                onAdvancedMdEditor()
+        }) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Markdown Editor"
+            )
+        }
+        Spacer(Modifier.size(4.dp))
+
+    }
+
     AutoDestruct(questInfoState)
 
     if(isTimeRangeSupported){

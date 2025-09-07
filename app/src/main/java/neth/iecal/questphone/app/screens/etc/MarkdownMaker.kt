@@ -47,6 +47,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,11 +65,177 @@ import androidx.compose.ui.unit.sp
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import neth.iecal.questphone.R
 import neth.iecal.questphone.app.theme.smoothYellow
+import neth.iecal.questphone.data.QuestInfoState
 import nethical.questphone.data.game.InventoryItem
-import java.io.File
-import java.io.FileWriter
+
+fun parseMarkdown(markdown: String): List<MdComponent> {
+    val components = mutableListOf<MdComponent>()
+    val lines = markdown.lines()
+    var i = 0
+    var inCodeBlock = false
+    val codeBuffer = StringBuilder()
+    val paragraphBuffer = StringBuilder()
+
+    fun flushParagraph() {
+        if (paragraphBuffer.isNotBlank()) {
+            components.add(MdComponent(type = ComponentType.TEXT, content = paragraphBuffer.toString().trim()))
+            paragraphBuffer.clear()
+        }
+    }
+
+    fun splitPipeLine(line: String): List<String> {
+        var s = line.trim()
+        if (s.startsWith("|")) s = s.drop(1)
+        if (s.endsWith("|")) s = s.dropLast(1)
+        return s.split("|").map { it.trim() }
+    }
+
+    fun isSeparatorLine(line: String): Boolean {
+        if (!line.contains("|")) return false
+        return line.split("|").all { part ->
+            val p = part.trim()
+            // matches ---, :---, ---:, :---:
+            p.matches(Regex("^:?-+:?$"))
+        }
+    }
+
+    while (i < lines.size) {
+        val line = lines[i]
+
+        // fenced code blocks (```)
+        if (line.trim().startsWith("```")) {
+            if (inCodeBlock) {
+                // end code block
+                components.add(MdComponent(type = ComponentType.CODE, content = codeBuffer.toString().trimEnd()))
+                codeBuffer.clear()
+            } else {
+                // starting a code block -> flush any pending paragraph
+                flushParagraph()
+            }
+            inCodeBlock = !inCodeBlock
+            i++
+            continue
+        }
+
+        if (inCodeBlock) {
+            codeBuffer.appendLine(line)
+            i++
+            continue
+        }
+
+        // Table detection: header line contains '|' and next line is a separator line
+        if (line.contains("|") && i + 1 < lines.size && isSeparatorLine(lines[i + 1])) {
+            // flush any paragraph text we've been aggregating
+            flushParagraph()
+
+            // parse header
+            val headers = splitPipeLine(line)
+
+            // collect rows after the separator
+            val rows = mutableListOf<List<String>>()
+            var j = i + 2
+            while (j < lines.size) {
+                val r = lines[j]
+                if (r.trim().isEmpty() || !r.contains("|")) break
+                val rowParts = splitPipeLine(r)
+                val fixedRow = if (rowParts.size < headers.size) {
+                    rowParts + List(headers.size - rowParts.size) { "" }
+                } else {
+                    rowParts.take(headers.size)
+                }
+                rows.add(fixedRow)
+                j++
+            }
+
+            // create TableData and component
+            val tableData = TableData(headers = headers, rows = rows)
+            components.add(MdComponent(type = ComponentType.TABLE, content = json.encodeToString(tableData)))
+
+            // advance index to the line after the last table row
+            i = j
+            continue
+        }
+
+        // blank line -> flush paragraph
+        if (line.trim().isEmpty()) {
+            flushParagraph()
+            i++
+            continue
+        }
+
+        // Header #, e.g. ## Title
+        if (line.trimStart().startsWith("#")) {
+            flushParagraph()
+            val level = line.takeWhile { it == '#' }.length
+            val text = line.drop(level).trim()
+            components.add(MdComponent(type = ComponentType.HEADER, content = text, level = level))
+            i++
+            continue
+        }
+
+        // Checkbox - [ ] or - [x]
+        val trimmed = line.trimStart()
+        if (trimmed.startsWith("- [") && (trimmed.startsWith("- [ ]") || trimmed.startsWith("- [x]", true))) {
+            flushParagraph()
+            val checked = trimmed.substring(3, 4).equals("x", true)
+            val task = trimmed.substringAfter("]").trim()
+            components.add(MdComponent(type = ComponentType.CHECKBOX, content = (if (checked) "done|" else "todo|") + task))
+            i++
+            continue
+        }
+
+        // List item - or *
+        if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+            flushParagraph()
+            val text = trimmed.substring(2).trim()
+            components.add(MdComponent(type = ComponentType.LIST, content = text))
+            i++
+            continue
+        }
+
+        // Quote
+        if (trimmed.startsWith(">")) {
+            flushParagraph()
+            val text = trimmed.substring(1).trim()
+            components.add(MdComponent(type = ComponentType.QUOTE, content = text))
+            i++
+            continue
+        }
+
+        // Image ![alt](url)
+        if (trimmed.startsWith("![")) {
+            flushParagraph()
+            val alt = trimmed.substringAfter("![").substringBefore("]")
+            val url = trimmed.substringAfter("(").substringBefore(")")
+            components.add(MdComponent(type = ComponentType.IMAGE, content = "$alt|$url"))
+            i++
+            continue
+        }
+
+        // Link [text](url)
+        if (trimmed.startsWith("[")) {
+            flushParagraph()
+            val text = trimmed.substringAfter("[").substringBefore("]")
+            val url = trimmed.substringAfter("(").substringBefore(")")
+            components.add(MdComponent(type = ComponentType.LINK, content = "$text|$url"))
+            i++
+            continue
+        }
+
+        // default: aggregate into a paragraph (so multiple lines become one TEXT component)
+        if (paragraphBuffer.isNotEmpty()) paragraphBuffer.append("\n")
+        paragraphBuffer.append(line)
+        i++
+    }
+
+    // flush any remaining buffers
+    if (inCodeBlock && codeBuffer.isNotEmpty()) {
+        components.add(MdComponent(type = ComponentType.CODE, content = codeBuffer.toString().trimEnd()))
+    }
+    flushParagraph()
+    return components
+}
 
 private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 // Data classes for components
@@ -98,12 +265,14 @@ data class TableData(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MarkdownComposer() {
-    var components by remember { mutableStateOf(listOf<MdComponent>()) }
+fun MarkdownComposer(list: List<MdComponent> = listOf(), generatedMarkdown : QuestInfoState = QuestInfoState()) {
+    var components by remember { mutableStateOf(list) }
     var showPreview by remember { mutableStateOf(false) }
-    var fileName by remember { mutableStateOf("document") }
     val context = LocalContext.current
 
+    LaunchedEffect(components) {
+        generatedMarkdown.instructions = generateMarkdown(components)
+    }
     Scaffold (topBar = {
         TopAppBar(
 
@@ -116,14 +285,7 @@ fun MarkdownComposer() {
                         contentDescription = if (showPreview) "Edit" else "Preview",
                     )
                 }
-                IconButton(onClick = {
-                    saveMarkdownFile(context, fileName, generateMarkdown(components))
-                }) {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_check_24),
-                        contentDescription = "Save",
-                    )
-                }
+
             }
         )
 
@@ -762,18 +924,5 @@ fun generateComponentMarkdown(component: MdComponent): String {
 }
 fun generateMarkdown(components: List<MdComponent>): String {
     return components.joinToString("\n\n") { generateComponentMarkdown(it) }
-}
-
-fun saveMarkdownFile(context: android.content.Context, fileName: String, content: String) {
-    try {
-        val file = File(context.getExternalFilesDir(null), "$fileName.md")
-        FileWriter(file).use { writer ->
-            writer.write(content)
-        }
-        // You can add a toast notification here
-        println("File saved: ${file.absolutePath}")
-    } catch (e: Exception) {
-        println("Error saving file: ${e.message}")
-    }
 }
 

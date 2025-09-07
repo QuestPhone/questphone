@@ -1,6 +1,7 @@
 package neth.iecal.questphone.app.screens.quest.setup.ai_snap
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +55,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.app.screens.etc.MarkdownComposer
+import neth.iecal.questphone.app.screens.etc.MdComponent
+import neth.iecal.questphone.app.screens.etc.parseMarkdown
 import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
 import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
@@ -101,6 +105,12 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewM
 
     ModelDownloadDialog(modelDownloadDialogVisible = isModelDownloadDialogVisible)
 
+    val parsedMarkdown = remember { mutableStateOf(listOf<MdComponent>()) }
+    var isMdEditorVisible by remember { mutableStateOf(false) }
+
+    BackHandler(isMdEditorVisible) {
+        isMdEditorVisible = false
+    }
     LaunchedEffect(Unit) {
         viewModel.loadQuestData(editQuestId, BaseIntegrationId.AI_SNAP) {
             val aiSnap = json.decodeFromString<AiSnap>(it.quest_json)
@@ -128,6 +138,13 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewM
         )
     }
 
+    if(isMdEditorVisible){
+        MarkdownComposer(
+            list = parsedMarkdown.value,
+            generatedMarkdown = questInfoState
+        )
+        return
+    }
     Scaffold(
         modifier = Modifier.safeDrawingPadding(),
         topBar = {
@@ -167,7 +184,11 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewM
                 ) {
 
                     // Base quest configuration
-                    CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState)
+                    CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState, onAdvancedMdEditor = {
+                        parsedMarkdown.value = parseMarkdown(questInfoState.instructions)
+                        
+                        isMdEditorVisible = true
+                    })
 
                     // Task description
                     OutlinedTextField(

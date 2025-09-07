@@ -35,11 +35,11 @@ import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.account.SetupProfileScreen
 import neth.iecal.questphone.app.screens.account.UserInfoScreen
 import neth.iecal.questphone.app.screens.etc.DocumentViewerScreen
-import neth.iecal.questphone.app.screens.etc.MarkdownComposer
 import neth.iecal.questphone.app.screens.game.RewardDialogMaker
 import neth.iecal.questphone.app.screens.game.StoreScreen
 import neth.iecal.questphone.app.screens.launcher.AppList
 import neth.iecal.questphone.app.screens.launcher.AppListViewModel
+import neth.iecal.questphone.app.screens.launcher.CustomizeScreen
 import neth.iecal.questphone.app.screens.launcher.HomeScreen
 import neth.iecal.questphone.app.screens.launcher.HomeScreenViewModel
 import neth.iecal.questphone.app.screens.onboard.subscreens.SelectApps
@@ -195,10 +195,9 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(RootRoute.Customize.route) {
-                            MarkdownComposer()
-//                            LauncherTheme(PitchBlackTheme()) {
-//                                CustomizeScreen(navController, currentTheme = currentTheme)
-//                            }
+                            LauncherTheme(PitchBlackTheme()) {
+                                CustomizeScreen(navController, currentTheme = currentTheme)
+                            }
                         }
                         composable(RootRoute.AppList.route) {
                             AppList(navController,appListViewModel)

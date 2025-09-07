@@ -1,6 +1,7 @@
 package neth.iecal.questphone.app.screens.quest.setup.deep_focus
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +31,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +47,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.app.screens.etc.MarkdownComposer
+import neth.iecal.questphone.app.screens.etc.MdComponent
+import neth.iecal.questphone.app.screens.etc.parseMarkdown
 import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
 import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
@@ -91,6 +98,12 @@ fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController, vi
 
     val scrollState = rememberScrollState()
 
+    val parsedMarkdown = remember { mutableStateOf(listOf<MdComponent>()) }
+    var isMdEditorVisible by remember { mutableStateOf(false) }
+
+    BackHandler(isMdEditorVisible) {
+        isMdEditorVisible = false
+    }
     LaunchedEffect(Unit) {
         viewModel.loadQuestData(editQuestId, BaseIntegrationId.DEEP_FOCUS) {
             val deepFocus = json.decodeFromString<DeepFocus>(it.quest_json)
@@ -105,6 +118,14 @@ fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController, vi
                 viewModel.showAppSelectionDialog.value = false
             }
         )
+    }
+
+    if(isMdEditorVisible){
+        MarkdownComposer(
+            list = parsedMarkdown.value,
+            generatedMarkdown = questInfoState
+        )
+        return
     }
     if (isReviewDialogVisible) {
         val baseQuest = viewModel.getBaseQuestInfo()
@@ -162,7 +183,11 @@ fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController, vi
 
             ) {
 
-                CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState)
+                CommonSetBaseQuest(viewModel.userCreatedOn,questInfoState, onAdvancedMdEditor = {
+                    parsedMarkdown.value = parseMarkdown(questInfoState.instructions)
+
+                    isMdEditorVisible = true
+                })
 
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
