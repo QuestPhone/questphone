@@ -1,6 +1,7 @@
 package neth.iecal.questphone.app.screens.onboard.subscreens
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -82,6 +83,7 @@ fun SetCoinRewardRatio() {
                 onClick = {
                     val sp = context.getSharedPreferences("minutes_per_5", Context.MODE_PRIVATE)
                     sp.edit { putInt("minutes_per_5", minutesPerFiveCoins) }
+                    Toast.makeText(context,"Saved. You can press back press safely", Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
