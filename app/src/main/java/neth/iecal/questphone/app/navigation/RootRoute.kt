@@ -8,6 +8,8 @@ package neth.iecal.questphone.app.navigation
 sealed class RootRoute(val route: String) {
     data object HomeScreen : RootRoute("home_screen/")
     data object AppList : RootRoute("app_list/")
+    data object WidgetScreen : RootRoute("widgetsList/")
+
     data object ViewQuest : RootRoute("view_quest/")
     data object AddNewQuest : RootRoute("add_quest/")
     data object ListAllQuest : RootRoute("list_quest/")

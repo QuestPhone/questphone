@@ -83,7 +83,7 @@ class LoginViewModel @Inject constructor(
                 }
                 onSuccess()
             } catch (e: AuthRestException) {
-                errorMessage.value = e.errorDescription
+                errorMessage.value = e.errorDescription + "\n error code: ${e.errorCode}" + "\n ${e.error}"
             } finally {
                 isLoading.value = false
             }

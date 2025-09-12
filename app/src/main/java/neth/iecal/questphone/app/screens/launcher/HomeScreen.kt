@@ -229,8 +229,8 @@ fun HomeScreen(
                         onVerticalDrag = { change, dragAmount ->
                             change.consume()
                             verticalDragOffset += dragAmount
-                            val swipeThreshold = -50f // Increased for more deliberate swipe
-                            if (verticalDragOffset < swipeThreshold) {
+                            val swipeThresholdAppList = -50f // Increased for more deliberate swipe
+                            if (verticalDragOffset < swipeThresholdAppList) {
                                 if (!isScreenSwitched) {
                                     isScreenSwitched = true
                                     navController?.navigate(RootRoute.AppList.route) {
@@ -238,7 +238,20 @@ fun HomeScreen(
                                     }
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                                 }
+                                return@detectVerticalDragGestures
                             }
+                            val swipeThresholdWidgets = 50f // Increased for more deliberate swipe
+                            if (verticalDragOffset > swipeThresholdWidgets) {
+                                if (!isScreenSwitched) {
+                                    isScreenSwitched = true
+                                    navController?.navigate(RootRoute.WidgetScreen.route) {
+                                        restoreState = true
+                                    }
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                }
+                            }
+                            return@detectVerticalDragGestures
+
                         },
                     )
                 }
