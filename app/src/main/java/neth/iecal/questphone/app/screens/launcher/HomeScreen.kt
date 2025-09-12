@@ -1,6 +1,7 @@
 package neth.iecal.questphone.app.screens.launcher
 
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -13,6 +14,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -93,6 +95,7 @@ import nethical.questphone.core.core.utils.managers.isAccessibilityServiceEnable
 import nethical.questphone.core.core.utils.managers.isSetToDefaultLauncher
 import nethical.questphone.core.core.utils.managers.openAccessibilityServiceScreen
 import nethical.questphone.core.core.utils.managers.openDefaultLauncherSettings
+import java.lang.reflect.Method
 
 data class SidePanelItem(
     val icon: Int,
@@ -221,6 +224,7 @@ fun HomeScreen(
                 .padding(innerPadding)
                 .pointerInput(Unit) {
                     var verticalDragOffset = 0f
+
                     detectVerticalDragGestures(
                         onDragStart = {
                             // Reset offset when drag starts
@@ -243,9 +247,18 @@ fun HomeScreen(
                             val swipeThresholdWidgets = 50f // Increased for more deliberate swipe
                             if (verticalDragOffset > swipeThresholdWidgets) {
                                 if (!isScreenSwitched) {
-                                    isScreenSwitched = true
-                                    navController?.navigate(RootRoute.WidgetScreen.route) {
-                                        restoreState = true
+                                    try {
+                                        context.getSystemService("statusbar")?.let { service ->
+                                            val statusbarManager = Class.forName("android.app.StatusBarManager")
+                                            val expand: Method = statusbarManager.getMethod("expandNotificationsPanel")
+                                            expand.invoke(service)
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e(
+                                            "HomeScreen",
+                                            "Error opening notification panel.",
+                                            e
+                                        )
                                     }
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                                 }
@@ -253,6 +266,29 @@ fun HomeScreen(
                             return@detectVerticalDragGestures
 
                         },
+                    )
+                }
+                .pointerInput(Unit) {
+                    var horizontalDragOffset = 0f
+                    detectHorizontalDragGestures(
+                        onDragStart = {
+                            horizontalDragOffset = 0f
+                        },
+                        onHorizontalDrag = { change, dragAmount ->
+                            change.consume()
+                            horizontalDragOffset += dragAmount
+                            val swipeThresholdAppList = -50f // Increased for more deliberate swipe
+                            if (horizontalDragOffset < swipeThresholdAppList) {
+                                if (!isScreenSwitched) {
+                                    isScreenSwitched = true
+                                    navController?.navigate(RootRoute.WidgetScreen.route) {
+                                        restoreState = true
+                                    }
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                }
+                                return@detectHorizontalDragGestures
+                            }
+                        }
                     )
                 }
                 .pointerInput(Unit) {
