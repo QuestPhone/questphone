@@ -76,6 +76,11 @@ Press on any title to get a detailed explanation about them
 - [ ] Add friends and social features.
 - [ ] AI-generated motivational reminders.
 
+## Tech Stack
+- Compose
+- Room 
+- Supabase
+- Dagger Hilt
 ---
 
 We can def win over brainrot
