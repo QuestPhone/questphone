@@ -75,6 +75,7 @@ class ReminderBroadcastReceiver : HiltBroadcastReceiver() {
     private fun showNotification(context: Context, reminderId: String, title: String, description: String) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+
         // Create an Intent to open the main activity of the app when the notification is tapped.
         // flags:
         //   - FLAG_ACTIVITY_NEW_TASK: Starts the activity in a new task.
@@ -101,7 +102,6 @@ class ReminderBroadcastReceiver : HiltBroadcastReceiver() {
             .setCategory(NotificationCompat.CATEGORY_REMINDER) // Categorize as a reminder
             .setContentIntent(pendingIntent) // Set the action when notification is clicked
             .setGroup(null) // avoid accidental grouping
-            .setOngoing(true)
             .setGroupSummary(false)
             .setAutoCancel(false) // Automatically dismisses the notification when tapped by the user
             .build()

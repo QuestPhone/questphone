@@ -229,8 +229,7 @@ fun sendCustomNotifcationWithTitle(
         enableLights(true)
         lightColor = 0xFFFFA500.toInt() // bright orange light
         enableVibration(true)
-//        setSound(soundUri, attributes)
-
+        setSound(soundUri, attributes)
     }
     val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     manager.createNotificationChannel(channel)

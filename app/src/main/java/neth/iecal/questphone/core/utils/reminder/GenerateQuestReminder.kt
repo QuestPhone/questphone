@@ -12,6 +12,7 @@ import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.ReminderData
 import nethical.questphone.backend.ReminderDatabaseProvider
 import nethical.questphone.backend.Supabase
+import nethical.questphone.core.core.utils.convertToDayOfWeek
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.unixToReadable
 import java.io.BufferedReader
@@ -41,20 +42,24 @@ fun generateQuestReminder(context: Context, quest: CommonQuestInfo) {
     }
 
     fun isFuture(timeMillis: Long) = timeMillis > System.currentTimeMillis()
-
     suspend fun scheduleNextDayReminder() {
-        val nextDayCal = Calendar.getInstance().apply { add(Calendar.DATE, 1) }
+        val nextDayCal = Calendar.getInstance()
+
+        // Keep adding days until we hit an allowed one
+        do {
+            nextDayCal.add(Calendar.DATE, 1)
+            val nextDayEnum = nextDayCal.convertToDayOfWeek()
+        } while (quest.selected_days.isNotEmpty() && nextDayEnum !in quest.selected_days)
+
         val nextDay = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(nextDayCal.time)
 
         val (startHour, endHour) = quest.time_range
         val reminderTimeCal = Calendar.getInstance().apply {
             time = nextDayCal.time
             if (startHour == 0 && endHour == 24) {
-                // All-day quest: schedule morning reminder (7–10 AM) with random minutes
                 set(Calendar.HOUR_OF_DAY, Random.nextInt(7, 11))
                 set(Calendar.MINUTE, Random.nextInt(0, 60))
             } else {
-                // Time-bound quest: schedule first reminder exactly at startHour
                 set(Calendar.HOUR_OF_DAY, startHour)
                 set(Calendar.MINUTE, 0)
             }
@@ -75,12 +80,16 @@ fun generateQuestReminder(context: Context, quest: CommonQuestInfo) {
 
         dao.upsertReminder(nextReminder)
         NotificationScheduler(context).scheduleReminder(nextReminder)
-        Log.d("Reminder", "Set for ${quest.id} next day at ${unixToReadable(nextReminder.timeMillis)}")
+        Log.d("Reminder", "Set for ${quest.id} next valid day ($nextDay) at ${unixToReadable(nextReminder.timeMillis)}")
     }
 
     CoroutineScope(Dispatchers.IO).launch {
         val existing = dao.getRemindersByQuestId(quest.id)
-
+        val todayDayOfWeek = Calendar.getInstance().convertToDayOfWeek()
+        if (quest.selected_days.isNotEmpty() && todayDayOfWeek !in quest.selected_days) {
+            Log.d("Reminder", "Quest ${quest.id} not scheduled today ($todayDayOfWeek not in ${quest.selected_days})")
+            return@launch
+        }
         // Clear any reminders if quest already completed today
         if (quest.last_completed_on == getCurrentDate()) {
             // Clear any reminders for today
@@ -100,6 +109,7 @@ fun generateQuestReminder(context: Context, quest: CommonQuestInfo) {
             scheduleNextDayReminder()
             return@launch
         }
+        quest.selected_days
 
         val (startHour, endHour) = quest.time_range
         var reminder: ReminderData? = null
