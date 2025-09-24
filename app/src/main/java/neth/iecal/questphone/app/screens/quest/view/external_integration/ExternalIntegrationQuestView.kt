@@ -4,16 +4,15 @@ import android.app.Application
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -29,11 +28,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.app.screens.components.TopBarActions
-import neth.iecal.questphone.app.screens.quest.view.components.MdPad
 import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
+import neth.iecal.questphone.app.screens.quest.view.external_integration.WebView
 import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.app.theme.smoothYellow
 import nethical.questphone.backend.CommonQuestInfo
@@ -100,21 +100,13 @@ fun ExternalIntegrationQuestView(
                     )
 
                 }
-                if(!hideStartQuestBtn) {
-                    Spacer(modifier = Modifier.width(15.dp))
-                    Button(
-                        onClick = {
-                            VibrationHelper.vibrate(100)
-                            viewModel.saveQuestToDb()
-                        }
-                    ) {
-                        Text(text = "Mark as Complete")
-                    }
-                }
             }
         }) { innerPadding ->
 
         QuestSkipperDialog(viewModel)
+        Box(Modifier.fillMaxSize().zIndex(-1f)) {
+            WebView()
+        }
         Column(
             modifier = Modifier.padding(innerPadding)
                 .padding(8.dp)
@@ -166,7 +158,6 @@ fun ExternalIntegrationQuestView(
                 style = MaterialTheme.typography.bodyLarge
             )
 
-            MdPad(commonQuestInfo)
         }
     }
 }
