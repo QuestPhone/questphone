@@ -25,9 +25,19 @@ open class QuestSetupViewModel(
 
     val userCreatedOn = userRepository.userInfo.getCreatedOnString()
 
-    suspend fun loadQuestData(id:String?,integrationId: BaseIntegrationId,onQuestLoaded:(CommonQuestInfo) -> Unit = {}){
-        val quest = questRepository.getQuestById(id.toString())
+    /**
+     * Sets value to the questinfo state that doesnt contain the questjson field
+     */
+    suspend fun loadQuestUpperData(id:String?, integrationId: BaseIntegrationId, onQuestLoaded:(CommonQuestInfo) -> Unit = {}){
+        val quest = loadQuestData(id.toString())
         questInfoState.value.fromBaseQuest(quest ?: CommonQuestInfo(integration_id = integrationId))
+    }
+
+    /**
+     * loads the [CommonQuestInfo] object with all fields
+     */
+    suspend fun loadQuestData(id:String?): CommonQuestInfo? {
+        return questRepository.getQuestById(id.toString())
     }
     fun addQuestToDb(json: String,reward: Int = 5, onSuccess: ()-> Unit){
         viewModelScope.launch {

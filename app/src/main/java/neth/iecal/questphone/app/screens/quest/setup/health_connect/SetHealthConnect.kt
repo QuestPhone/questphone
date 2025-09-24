@@ -97,7 +97,7 @@ fun SetHealthConnect(editQuestId:String? = null,navController: NavHostController
     }
 
     LaunchedEffect(Unit) {
-        viewModel.loadQuestData(editQuestId, BaseIntegrationId.HEALTH_CONNECT) {
+        viewModel.loadQuestUpperData(editQuestId, BaseIntegrationId.HEALTH_CONNECT) {
             viewModel.healthQuest.value = json.decodeFromString<HealthQuest>(it.quest_json)
         }
     }

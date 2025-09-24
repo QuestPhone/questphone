@@ -17,6 +17,8 @@ object Supabase {
                 prettyPrint = false
                 encodeDefaults = true
                 explicitNulls = false
+                ignoreUnknownKeys = true
+                coerceInputValues = true
             })
             install(Auth) {
 

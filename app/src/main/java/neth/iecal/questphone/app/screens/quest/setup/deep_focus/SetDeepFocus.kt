@@ -105,7 +105,7 @@ fun SetDeepFocus(editQuestId:String? = null,navController: NavHostController, vi
         isMdEditorVisible = false
     }
     LaunchedEffect(Unit) {
-        viewModel.loadQuestData(editQuestId, BaseIntegrationId.DEEP_FOCUS) {
+        viewModel.loadQuestUpperData(editQuestId, BaseIntegrationId.DEEP_FOCUS) {
             val deepFocus = json.decodeFromString<DeepFocus>(it.quest_json)
             viewModel.focusTimeConfig.value = deepFocus.focusTimeConfig
             selectedApps.addAll(deepFocus.unrestrictedApps)

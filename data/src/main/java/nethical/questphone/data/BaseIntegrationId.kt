@@ -11,5 +11,6 @@ enum class BaseIntegrationId(
     DEEP_FOCUS,
     HEALTH_CONNECT,
     SWIFT_MARK,
-    AI_SNAP
+    AI_SNAP,
+    EXTERNAL_INTEGRATION
 }

@@ -1,5 +1,6 @@
 package neth.iecal.questphone.data
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import kotlinx.serialization.Serializable
@@ -10,6 +11,7 @@ import neth.iecal.questphone.app.screens.quest.setup.external_integration.SetExt
 import neth.iecal.questphone.app.screens.quest.setup.health_connect.SetHealthConnect
 import neth.iecal.questphone.app.screens.quest.setup.swift_mark.SetSwiftMark
 import neth.iecal.questphone.app.screens.quest.view.DeepFocusQuestView
+import neth.iecal.questphone.app.screens.quest.view.ExternalIntegrationQuestView
 import neth.iecal.questphone.app.screens.quest.view.SwiftMarkQuestView
 import neth.iecal.questphone.app.screens.quest.view.ai_snap.AiSnapQuestView
 import neth.iecal.questphone.app.screens.quest.view.health_connect.HealthQuestView
@@ -115,11 +117,20 @@ enum class IntegrationId(
         label = "External Integration",
         description = "Connect questphone to a different app",
         setupScreen = {id,navController ->
-            SetExtIntegration(navController)
+            Log.d("id", id.toString())
+            if(id==null|| id.isEmpty() == true){
+                SetExtIntegration(navController)
+            }else{
+                SetSwiftMark(
+                    id,
+                    navController
+                )
+            }
         },
         viewScreen = {baseQuest ->
-
+            ExternalIntegrationQuestView(baseQuest)
         },
+        isLoginRequired = true,
         docLink = "https://raw.githubusercontent.com/questphone/docs/refs/heads/main/integration/externalIntegration.md"
     )
 }

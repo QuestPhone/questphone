@@ -112,7 +112,7 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewM
         isMdEditorVisible = false
     }
     LaunchedEffect(Unit) {
-        viewModel.loadQuestData(editQuestId, BaseIntegrationId.AI_SNAP) {
+        viewModel.loadQuestUpperData(editQuestId, BaseIntegrationId.AI_SNAP) {
             val aiSnap = json.decodeFromString<AiSnap>(it.quest_json)
             viewModel.taskDescription.value = aiSnap.taskDescription
             viewModel.features.addAll(aiSnap.features)

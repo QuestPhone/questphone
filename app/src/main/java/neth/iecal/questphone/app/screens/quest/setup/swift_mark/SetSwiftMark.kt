@@ -30,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.etc.MarkdownComposer
@@ -68,11 +70,12 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, vi
 
     val parsedMarkdown = remember { mutableStateOf(listOf<MdComponent>()) }
 
+    val cScope = rememberCoroutineScope()
     BackHandler(isMdEditorVisible) {
         isMdEditorVisible = false
     }
     LaunchedEffect(Unit) {
-        viewModel.loadQuestData(editQuestId, BaseIntegrationId.SWIFT_MARK)
+        viewModel.loadQuestUpperData(editQuestId, BaseIntegrationId.SWIFT_MARK)
     }
 
     if (isReviewDialogVisible) {
@@ -82,8 +85,17 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, vi
                 baseQuest
             ),
             onConfirm = {
-                viewModel.addQuestToDb("",1) {
-                    navController.popBackStack()
+                if(editQuestId==null) {
+                    viewModel.addQuestToDb("", 1) {
+                        navController.popBackStack()
+                    }
+                }else{
+                    cScope.launch {
+                        val questInfo = viewModel.loadQuestData(editQuestId)
+                        viewModel.addQuestToDb(questInfo?.quest_json ?: "", questInfo?.reward ?: 1) {
+                            navController.popBackStack()
+                        }
+                    }
                 }
             },
             onDismiss = {
