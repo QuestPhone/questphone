@@ -1,4 +1,4 @@
-package neth.iecal.questphone.app.screens.onboard.subscreens
+package neth.iecal.questphone.app.screens.etc
 
 import android.content.Context
 import android.widget.Toast

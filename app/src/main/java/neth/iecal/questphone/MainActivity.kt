@@ -42,11 +42,10 @@ import neth.iecal.questphone.app.screens.launcher.AppListViewModel
 import neth.iecal.questphone.app.screens.launcher.CustomizeScreen
 import neth.iecal.questphone.app.screens.launcher.HomeScreen
 import neth.iecal.questphone.app.screens.launcher.HomeScreenViewModel
-import neth.iecal.questphone.app.screens.launcher.widget.WidgetManagementScreen
 import neth.iecal.questphone.app.screens.launcher.widget.WidgetScreen
 import neth.iecal.questphone.app.screens.onboard.subscreens.SelectApps
 import neth.iecal.questphone.app.screens.onboard.subscreens.SelectAppsModes
-import neth.iecal.questphone.app.screens.onboard.subscreens.SetCoinRewardRatio
+import neth.iecal.questphone.app.screens.etc.SetCoinRewardRatio
 import neth.iecal.questphone.app.screens.pet.TheSystemDialog
 import neth.iecal.questphone.app.screens.quest.ListAllQuests
 import neth.iecal.questphone.app.screens.quest.ViewQuest
