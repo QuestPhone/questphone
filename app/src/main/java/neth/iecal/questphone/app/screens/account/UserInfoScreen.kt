@@ -75,6 +75,7 @@ import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
 import neth.iecal.questphone.app.theme.LocalCustomTheme
 import nethical.questphone.backend.BuildConfig
 import nethical.questphone.backend.repositories.UserRepository
+import nethical.questphone.backend.triggerProfileSync
 import nethical.questphone.core.core.utils.formatNumber
 import nethical.questphone.data.UserInfo
 import nethical.questphone.data.game.InventoryItem
@@ -103,7 +104,9 @@ class UserInfoViewModel @Inject constructor(
         }
     } else null
 
-
+    init {
+        triggerProfileSync(application,false)
+    }
 
 
     fun logOut(onLoggedOut: () -> Unit) {

@@ -8,7 +8,7 @@ plugins {
     kotlin("plugin.serialization") version "2.0.20"
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
-
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -130,6 +130,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation (libs.androidx.ui.text.google.fonts)
 
+    add("playImplementation", platform("com.google.firebase:firebase-bom:34.3.0"))
+    add("playImplementation", "com.google.firebase:firebase-messaging")
     implementation(project(":data"))
     implementation(project(":core"))
     implementation(project(":backend"))
