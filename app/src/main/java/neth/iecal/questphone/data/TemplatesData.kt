@@ -140,6 +140,7 @@ data class AllQuestsWrapper(
                 "{}"
             }
 
+            IntegrationId.EXTERNAL_INTEGRATION,
             IntegrationId.AI_SNAP -> {
                 json.encodeToString<AiSnap>(this.AiSnap)
             }

@@ -104,27 +104,23 @@ fun SetSwiftMark(editQuestId:String? = null,navController: NavHostController, vi
         topBar = {
             TopAppBar(
                 title = {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 8.dp),
-                                text = "Swift Quest",
-                                style = MaterialTheme.typography.headlineLarge,
-                            )
-                        },
-                        actions = {
-                            Icon(
-                                painter = painterResource(R.drawable.outline_help_24),
-                                contentDescription = "Help",
-                                modifier = Modifier
-                                    .clickable {
-                                        navController.navigate("${RootRoute.IntegrationDocs.route}${IntegrationId.SWIFT_MARK.name}")
-                                    }
-                                    .size(30.dp)
-                            )
-                        }
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        text = "Swift Quest",
+                        style = MaterialTheme.typography.headlineLarge,
+                    )
+                },
+                actions = {
+                    Icon(
+                        painter = painterResource(R.drawable.outline_help_24),
+                        contentDescription = "Help",
+                        modifier = Modifier
+                            .clickable {
+                                navController.navigate("${RootRoute.IntegrationDocs.route}${IntegrationId.SWIFT_MARK.name}")
+                            }
+                            .size(30.dp)
                     )
                 }
             )

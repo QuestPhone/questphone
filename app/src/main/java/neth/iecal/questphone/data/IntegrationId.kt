@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.screens.quest.setup.ai_snap.SetAiSnap
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SetDeepFocus
+import neth.iecal.questphone.app.screens.quest.setup.external_integration.SetExtIntegration
 import neth.iecal.questphone.app.screens.quest.setup.health_connect.SetHealthConnect
 import neth.iecal.questphone.app.screens.quest.setup.swift_mark.SetSwiftMark
 import neth.iecal.questphone.app.screens.quest.view.DeepFocusQuestView
@@ -109,5 +110,16 @@ enum class IntegrationId(
             )
         },
         docLink = "https://raw.githubusercontent.com/questphone/docs/refs/heads/main/integration/AiSnap.md"
+    ),
+    EXTERNAL_INTEGRATION(
+        label = "External Integration",
+        description = "Connect questphone to a different app",
+        setupScreen = {id,navController ->
+            SetExtIntegration(navController)
+        },
+        viewScreen = {baseQuest ->
+
+        },
+        docLink = "https://raw.githubusercontent.com/questphone/docs/refs/heads/main/integration/externalIntegration.md"
     )
 }

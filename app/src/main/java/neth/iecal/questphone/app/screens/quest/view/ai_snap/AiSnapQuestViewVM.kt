@@ -163,7 +163,7 @@ class AiSnapQuestViewVM @Inject constructor(
             compressedFile,
             aiQuest.taskDescription,
             aiQuest.features.joinToString(","),
-            Supabase.supabase.auth.currentUserOrNull()!!.toString()
+            Supabase.supabase.auth.currentAccessTokenOrNull()!!.toString()
         ) {
             results.value = it.getOrNull()
             currentStep.value = EvaluationStep.COMPLETED
