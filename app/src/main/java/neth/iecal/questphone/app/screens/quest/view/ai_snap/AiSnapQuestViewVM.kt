@@ -88,7 +88,7 @@ class AiSnapQuestViewVM @Inject constructor(
     }
 
     fun onAiSnapQuestDone(){
-        saveQuestToDb()
+        saveMarkedQuestToDb()
         isCameraScreen.value = false
     }
 

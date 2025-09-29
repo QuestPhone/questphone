@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.io.IOException
+import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
+import nethical.questphone.backend.CommonQuestInfo
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -21,7 +23,7 @@ import org.json.JSONObject
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun WebView() {
+fun WebView(commonQuestInfo: CommonQuestInfo, viewQuestVM: ViewQuestVM) {
     val colors = MaterialTheme.colorScheme // use MaterialTheme.colors for M2
     AndroidView(
         modifier = Modifier.fillMaxSize(),
@@ -38,7 +40,7 @@ fun WebView() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            addJavascriptInterface(WebAppInterface(context, this), "WebAppInterface")
+            addJavascriptInterface(WebAppInterface(context, this,viewQuestVM), "WebAppInterface")
 
 
             webViewClient = object : WebViewClient() {
@@ -62,30 +64,41 @@ fun WebView() {
                     }.toString()
 
                     view?.evaluateJavascript("applyTheme($themeJson);", null)
+                    view?.evaluateJavascript("injectData(${commonQuestInfo.quest_json});", null)
+                    Log.d("data",commonQuestInfo.quest_json)
                 }
             }
 
-            // so links open inside WebView
-            loadUrl("http://192.168.31.15:8000/test-test.html")
+            val json = JSONObject(commonQuestInfo.quest_json)
+            if(json.has("webviewUrl")){
+                loadUrl(json.getString("webviewUrl"))
+            }
+//            loadUrl("http://localhost:8000/profile.html")
+
         }
 
     })
 }
 
 
-class WebAppInterface(private val context: Context, private val webView: WebView) {
+class WebAppInterface(private val context: Context, private val webView: WebView, private val viewQuestVM: ViewQuestVM) {
 
     private val client = OkHttpClient()
 
-    // --- Example method to mark quest as complete ---
     @JavascriptInterface
-    fun markQuestAsComplete(questId: String) {
-        // Your app logic here
-        // Toast or store quest completion
-        android.widget.Toast.makeText(context, "Quest $questId completed!", android.widget.Toast.LENGTH_SHORT).show()
+    fun onQuestCompleted() {
+        viewQuestVM.saveMarkedQuestToDb()
+        Log.d("WebAppInterface","Quest Completed")
+        android.widget.Toast.makeText(context, "Quest completed!", android.widget.Toast.LENGTH_SHORT).show()
     }
 
-    // --- Async fetch method with headers injected from JS ---
+    @JavascriptInterface
+    fun toast(msg: String) {
+        Log.d("WebAppInterfaceToast",msg)
+        android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+
     @JavascriptInterface
     fun fetchDataWithoutCorsAsync(url: String, headersJson: String?, callback: String) {
         Log.d("Webview","Fetching without cors")

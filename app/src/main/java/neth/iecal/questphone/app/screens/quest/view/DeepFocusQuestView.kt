@@ -136,7 +136,7 @@ class DeepFocusQuestViewVM @Inject constructor(questRepository: QuestRepository,
         deepFocus.incrementTime()
         focusDuration.value = deepFocus.nextFocusDurationInMillis
         encodeToCommonQuest()
-        saveQuestToDb()
+        saveMarkedQuestToDb()
 
         isQuestRunning.value = false
         isTimerActive.value = false

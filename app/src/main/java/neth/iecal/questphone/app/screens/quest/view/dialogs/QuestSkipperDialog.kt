@@ -53,7 +53,7 @@ fun QuestSkipperDialog(viewModel: ViewQuestVM) {
                                 viewModel.isQuestSkippedDialogVisible.value = false
                                 VibrationHelper.vibrate(200)
                                 viewModel.useItem(InventoryItem.QUEST_SKIPPER) {
-                                    viewModel.saveQuestToDb()
+                                    viewModel.saveMarkedQuestToDb()
                                 }
                             },
                         ) {

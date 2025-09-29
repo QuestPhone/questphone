@@ -4,32 +4,56 @@ import android.app.Application
 import android.content.ClipData
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.AndroidViewModel
@@ -38,6 +62,7 @@ import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -67,7 +92,7 @@ class ExternalIntegrationQuestVM @Inject constructor(
     }
 
     private val prefs = application.getSharedPreferences("externalIntToken", Context.MODE_PRIVATE)
-    private val FIVE_HOURS_MS = 5 * 60 * 60 * 1000L
+    private val ONEHOURMS = 1 * 60 * 60 * 1000L
 
     val token = MutableStateFlow<Token?>(null)
     val isLoading = MutableStateFlow(false)
@@ -81,7 +106,7 @@ class ExternalIntegrationQuestVM @Inject constructor(
         val saved = prefs.getString("token", null)
         if (saved != null) {
             val tToken = json.decodeFromString<Token>(saved)
-            if (System.currentTimeMillis() - tToken.createdAt <= FIVE_HOURS_MS) {
+            if (System.currentTimeMillis() - tToken.createdAt <= ONEHOURMS) {
                 token.value = tToken
             } else {
                 prefs.edit(commit = true) { remove("token") }
@@ -101,25 +126,29 @@ class ExternalIntegrationQuestVM @Inject constructor(
     fun refreshQuestForToken() = viewModelScope.launch {
         token.value?.let { t ->
             isLoading.value = true
-            val remoteQuests = Supabase.supabase
-                .postgrest["quests"]
-                .select {
-                    filter {
-                        eq("user_id", Supabase.supabase.auth.currentUserOrNull()?.id.toString())
-                        eq("integration_token", t.token)
+            try {
+                val remoteQuests = Supabase.supabase
+                    .postgrest["quests"]
+                    .select {
+                        filter {
+                            eq("user_id", Supabase.supabase.auth.currentUserOrNull()?.id.toString())
+                            eq("integration_token", t.token)
+                        }
                     }
+                    .decodeList<CommonQuestInfo>()
+
+                remoteQuests.forEach { quest ->
+                    questRepository.upsertQuest(quest.copy(synced = true))
                 }
-                .decodeList<CommonQuestInfo>()
 
-            remoteQuests.forEach { quest ->
-                questRepository.upsertQuest(quest.copy(synced = true))
+                if (remoteQuests.isNotEmpty()) {
+                    prefs.edit(commit = true) { remove("token") }
+                    token.value = null
+                    isQuestCreated.value = true
+                }
+            } finally {
+                isLoading.value = false
             }
-            isLoading.value = false
-            if(remoteQuests.isNotEmpty()){
-                prefs.edit(commit = true) { remove("token") }
-            }
-            isQuestCreated.value = remoteQuests.isNotEmpty()
-
         }
     }
 
@@ -128,7 +157,7 @@ class ExternalIntegrationQuestVM @Inject constructor(
             isLoading.value = true
             val generateExtIntToken = GenerateExtIntToken()
             val result = suspendCancellableCoroutine<Result<String>> { cont ->
-                generateExtIntToken.generateToken(Supabase.supabase.auth.currentAccessTokenOrNull().toString()) {
+                generateExtIntToken.generateToken(Supabase.supabase.auth.currentAccessTokenOrNull()!!.toString()) {
                     cont.resume(it) {}
                 }
             }
@@ -144,6 +173,15 @@ class ExternalIntegrationQuestVM @Inject constructor(
             isLoading.value = false
         }
     }
+
+    fun getTimeRemaining(createdAt: Long): Long {
+        return ONEHOURMS - (System.currentTimeMillis() - createdAt)
+    }
+
+    fun getProgressPercentage(createdAt: Long): Float {
+        val remaining = getTimeRemaining(createdAt)
+        return (remaining.toFloat() / ONEHOURMS).coerceIn(0f, 1f)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -154,20 +192,18 @@ fun SetExtIntegration(navController: NavHostController, vm: ExternalIntegrationQ
     val isQuestCreated by vm.isQuestCreated.collectAsState()
     val context = LocalContext.current
 
-    if(isQuestCreated) {
+    if (isQuestCreated) {
         AlertDialog(
-            onDismissRequest = {
-                navController.popBackStack()
-            },
+            onDismissRequest = { navController.popBackStack() },
             title = {
-                Text("Quest Created!", style = MaterialTheme.typography.headlineSmall)
+                Text("Quest Created", style = MaterialTheme.typography.headlineSmall)
             },
             text = {
-                Text("Your quest has been successfully created.")
+                Text("Your quest has been successfully created and synced.")
             },
             confirmButton = {
                 Button(onClick = { navController.popBackStack() }) {
-                    Text("Close")
+                    Text("Done")
                 }
             }
         )
@@ -177,16 +213,26 @@ fun SetExtIntegration(navController: NavHostController, vm: ExternalIntegrationQ
         modifier = Modifier.safeDrawingPadding(),
         topBar = {
             TopAppBar(
-                title = { Text("External Integration", style = MaterialTheme.typography.headlineLarge) },
-                actions = {
-                    Icon(
-                        painter = painterResource(R.drawable.outline_help_24),
-                        contentDescription = "Help",
-                        modifier = Modifier
-                            .clickable { navController.navigate("${RootRoute.IntegrationDocs.route}${IntegrationId.SWIFT_MARK.name}") }
-                            .size(30.dp)
+                title = {
+                    Text(
+                        "External Integration",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
                     )
-                }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { navController.navigate("${RootRoute.IntegrationDocs.route}${IntegrationId.SWIFT_MARK.name}") }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_help_24),
+                            contentDescription = "Help"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { padding ->
@@ -195,33 +241,202 @@ fun SetExtIntegration(navController: NavHostController, vm: ExternalIntegrationQ
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Spacer(Modifier.size(8.dp))
+            // Instructions
             Text(
-                "Copy the token below and paste it into the app’s token field. Make sure to keep it safe. The token will automatically expire in 5 hours."
+                text = "Generate a secure token to link external apps with your quests. Tokens expire in 1 hour.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 20.sp
             )
 
-            token?.let {
-                Text(
-                    text = it.token,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.clickable { vm.copyTokenToClipboard(context) }
-                )
-
-                Button(onClick = { vm.refreshQuestForToken() }) {
-                    Text("Reload Quest")
+            // Token Card
+            AnimatedVisibility(
+                visible = token != null,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                token?.let { t ->
+                    TokenCard(
+                        token = t,
+                        onCopy = { vm.copyTokenToClipboard(context) },
+                        getTimeRemaining = { vm.getTimeRemaining(t.createdAt) },
+                        getProgress = { vm.getProgressPercentage(t.createdAt) }
+                    )
                 }
             }
 
-            if (isLoading) {
-                CircularProgressIndicator()
-            } else {
-                Button(onClick = { vm.generateNewToken() }) {
-                    Text(if (token != null) "Regenerate Token" else "Generate Token")
+            // Action Buttons
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 3.dp
+                        )
+                    }
+                } else {
+                    if (token != null) {
+                        Button(
+                            onClick = { vm.refreshQuestForToken() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Check for Quest", fontSize = 16.sp)
+                        }
+
+                        OutlinedButton(
+                            onClick = { vm.generateNewToken() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Generate New Token", fontSize = 16.sp)
+                        }
+                    } else {
+                        Button(
+                            onClick = { vm.generateNewToken() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Generate Token", fontSize = 16.sp)
+                        }
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun TokenCard(
+    token: ExternalIntegrationQuestVM.Companion.Token,
+    onCopy: () -> Unit,
+    getTimeRemaining: () -> Long,
+    getProgress: () -> Float
+) {
+    var timeRemaining by remember { mutableStateOf(getTimeRemaining()) }
+    var progress by remember { mutableStateOf(getProgress()) }
+
+    LaunchedEffect(token) {
+        while (true) {
+            timeRemaining = getTimeRemaining()
+            progress = getProgress()
+            delay(1000)
+        }
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Header with timer
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Active Token",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                TimeDisplay(timeRemaining = timeRemaining)
+            }
+
+            // Progress bar
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp)),
+                color = when {
+                    progress > 0.5f -> MaterialTheme.colorScheme.primary
+                    progress > 0.25f -> MaterialTheme.colorScheme.tertiary
+                    else -> MaterialTheme.colorScheme.error
+                }
+            )
+
+            // Token value
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onCopy),
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = token.token,
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            // Copy hint
+            Text(
+                text = "Tap token to copy",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+fun TimeDisplay(timeRemaining: Long) {
+    val minutes = (timeRemaining / 1000 / 60).toInt()
+    val seconds = (timeRemaining / 1000 % 60).toInt()
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.baseline_timer_24),
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = String.format("%02d:%02d", minutes, seconds),
+            style = MaterialTheme.typography.labelLarge,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

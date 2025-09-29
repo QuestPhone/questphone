@@ -39,7 +39,7 @@ open class ViewQuestVM(
         progress.value = if(isQuestComplete.value) 1f else 0f
     }
 
-    fun saveQuestToDb(){
+    fun saveMarkedQuestToDb(){
         progress.value = 1f
         commonQuestInfo.last_completed_on = getCurrentDate()
         commonQuestInfo.synced = false

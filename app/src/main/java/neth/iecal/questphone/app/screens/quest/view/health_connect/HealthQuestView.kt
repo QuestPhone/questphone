@@ -83,7 +83,7 @@ class HealthQuestViewVM @Inject constructor (questRepository: QuestRepository,
     fun onHealthQuestDone(){
         healthQuest.value.incrementGoal()
         encodeToCommonQuest()
-        saveQuestToDb()
+        saveMarkedQuestToDb()
     }
     fun checkPermissionHandlerResult(granted:Set<String>){
         hasRequiredPermissions.value = granted.containsAll(requiredPermissions)

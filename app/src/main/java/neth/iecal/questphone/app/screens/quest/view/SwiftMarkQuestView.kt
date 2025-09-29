@@ -105,7 +105,7 @@ fun SwiftMarkQuestView(
                     Button(
                         onClick = {
                             VibrationHelper.vibrate(100)
-                            viewModel.saveQuestToDb()
+                            viewModel.saveMarkedQuestToDb()
                         }
                     ) {
                         Text(text = "Mark as Complete")

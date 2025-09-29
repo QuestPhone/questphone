@@ -20,7 +20,7 @@ class GenerateExtIntToken {
 
     companion object {
         private const val TAG = "GenerateExtIntToken"
-        private const val BASE_URL = "http://localhost:8000" // Use 10.0.2.2 for emulator localhost
+        private const val BASE_URL = "https://questphone.app" // Use 10.0.2.2 for emulator localhost
     }
 
     fun generateToken(
@@ -50,6 +50,7 @@ class GenerateExtIntToken {
                     }
 
                     val responseBody = response.body?.string()
+                    Log.d("response",responseBody.toString())
                     if (responseBody.isNullOrEmpty()) {
                         Log.e(TAG, "Empty response from server")
                         callback(Result.failure(IOException("Empty response from server")))

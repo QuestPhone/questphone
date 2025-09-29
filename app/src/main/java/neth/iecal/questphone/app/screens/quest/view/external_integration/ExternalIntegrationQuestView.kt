@@ -105,7 +105,7 @@ fun ExternalIntegrationQuestView(
 
         QuestSkipperDialog(viewModel)
         Box(Modifier.fillMaxSize().zIndex(-1f)) {
-            WebView()
+            WebView(commonQuestInfo,viewModel)
         }
         Column(
             modifier = Modifier.padding(innerPadding)
