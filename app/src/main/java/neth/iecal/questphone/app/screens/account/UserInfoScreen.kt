@@ -146,7 +146,8 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
 
                 ) {
                 Row(
-                    modifier = Modifier.padding( WindowInsets.statusBarsIgnoringVisibility.asPaddingValues())
+                    modifier = Modifier.padding( WindowInsets.statusBarsIgnoringVisibility.asPaddingValues()),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
 
                     // Profile Header
@@ -157,6 +158,19 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
                     )
                     Spacer(Modifier.weight(1f))
 
+                    Icon(
+                        painter = painterResource(R.drawable.outline_share_24),
+                        contentDescription = "Share Profile",
+                        modifier = Modifier.clickable(true, onClick = {
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, "https://questphone.app/@${viewModel.userInfo.username}")
+                            }
+                            val shareIntent = Intent.createChooser(sendIntent, "Share Profile via")
+                            context.startActivity(shareIntent)
+                        })
+                    )
+                    Spacer(Modifier.size(4.dp))
                     Menu(viewModel.userInfo.isAnonymous, {
                         viewModel.logOut {
                             val intent = Intent(context, OnboardActivity::class.java)
