@@ -426,7 +426,7 @@ fun TimeDisplay(timeRemaining: Long) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.baseline_timer_24),
+            painter = painterResource(android.R.drawable.ic_lock_idle_alarm),
             contentDescription = null,
             modifier = Modifier.size(16.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant

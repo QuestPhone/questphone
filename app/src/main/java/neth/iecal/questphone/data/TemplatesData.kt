@@ -16,7 +16,8 @@ data class Template(
     val color: String,
     val integration: IntegrationId,
     val category: String,
-    val id: String
+    val id: String,
+    val setupLink:String? = null
 )
 
 @Serializable

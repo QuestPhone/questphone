@@ -1,5 +1,7 @@
 package neth.iecal.questphone.app.screens.quest.templates
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -57,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
 import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.data.Template
 
 
@@ -76,7 +80,7 @@ fun SelectFromTemplates(
     val showLoginRequiredDialog by viewModel.showLoginDialog.collectAsState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
-
+    val context = LocalContext.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -239,7 +243,18 @@ fun SelectFromTemplates(
                                 showLoginRequiredDialog.value = true
                             } else {
                                 viewModel.selectTemplate(template)
+                                if(template.integration == IntegrationId.EXTERNAL_INTEGRATION){
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        data = Uri.parse(template.setupLink)
+                                    }
+                                    if (intent.resolveActivity(context.packageManager) != null) {
+                                        context.startActivity(intent)
+                                    }
+                                    navController.navigate("${IntegrationId.EXTERNAL_INTEGRATION.name}/ntg")
+
+                                }else{
                                 navController.navigate(RootRoute.SetupTemplate.route)
+                                    }
                             }
                         }
                     )

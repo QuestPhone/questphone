@@ -182,6 +182,7 @@ fun SetIntegration(navController: NavHostController, viewModel: SetIntegrationVM
                                             text = item.description,
                                             fontSize = 14.sp,
                                             color = MaterialTheme.colorScheme.outline,
+                                            modifier = Modifier.fillMaxWidth(),
                                             maxLines = 3,
                                             overflow = TextOverflow.Ellipsis
                                         )
