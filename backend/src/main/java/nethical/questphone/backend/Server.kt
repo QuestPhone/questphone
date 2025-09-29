@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import nethical.questphone.backend.services.sync.ProfileSyncService
 import nethical.questphone.backend.services.sync.QuestSyncService
 import nethical.questphone.backend.services.sync.QuestSyncService.Companion.EXTRA_IS_FIRST_TIME
+import nethical.questphone.backend.services.sync.QuestSyncService.Companion.EXTRA_IS_PULL_SPECIFIC_QUEST
 import nethical.questphone.backend.services.sync.StatsSyncService
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -46,10 +47,12 @@ fun Context.isOnline(): Boolean {
 
 
 
-fun triggerQuestSync(context: Context, isFirstSync: Boolean = false) {
-
+fun triggerQuestSync(context: Context, isFirstSync: Boolean = false, pullForQuest:String? = null) {
     val intent = Intent(context, QuestSyncService::class.java).apply {
         putExtra(EXTRA_IS_FIRST_TIME, isFirstSync)
+        if(pullForQuest!=null){
+            putExtra(EXTRA_IS_PULL_SPECIFIC_QUEST, pullForQuest)
+        }
     }
     context.startForegroundService(intent)
 }
@@ -58,6 +61,6 @@ fun triggerProfileSync(context: Context, isFirstLoginSync:Boolean = false) {
     ProfileSyncService.start(context,isFirstLoginSync)
 }
 
-fun triggerStatsSync(context: Context, isFirstSync: Boolean = false) {
-    StatsSyncService.start(context,isFirstSync)
+fun triggerStatsSync(context: Context, isFirstSync: Boolean = false,pullAllForToday:Boolean = false) {
+    StatsSyncService.start(context,isFirstSync,pullAllForToday)
 }

@@ -244,4 +244,12 @@ class UserRepository @Inject constructor(
         Supabase.supabase.auth.signOut()
 
     }
+
+    fun saveFcmToken(string: String) {
+        val tokens = userInfo.fcm_tokens.toMutableList()
+        tokens.add(string)
+        userInfo.fcm_tokens = tokens
+        saveUserInfo()
+        Log.d("saved Fcm token", tokens.toString())
+    }
 }

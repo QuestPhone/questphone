@@ -110,15 +110,15 @@ class ProfileSyncService : Service() {
                 if (profileRemote != null) {
                     if (profileRemote.last_updated > userRepository.userInfo.last_updated || isFirstTimeSync) {
                         userRepository.userInfo = profileRemote
+                    }else{
+                        Supabase.supabase.postgrest["profiles"].upsert(
+                            userRepository.userInfo
+                        )
+
+                        userRepository.userInfo.needsSync = false
+                        userRepository.saveUserInfo(false)
                     }
                 }
-
-                Supabase.supabase.postgrest["profiles"].upsert(
-                    userRepository.userInfo
-                )
-
-                userRepository.userInfo.needsSync = false
-                userRepository.saveUserInfo(false)
             }
 
             sendSyncBroadcast(SyncStatus.OVER)

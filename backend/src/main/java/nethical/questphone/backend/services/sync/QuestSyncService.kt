@@ -37,6 +37,7 @@ class QuestSyncService : Service() {
         private const val NOTIFICATION_ID = 1043
         private const val CHANNEL_ID = "quest_sync_channel"
          const val EXTRA_IS_FIRST_TIME = "is_first_time"
+         const val EXTRA_IS_PULL_SPECIFIC_QUEST = "is_for_specific_quest"
 
         fun stop(context: Context) {
             val intent = Intent(context, QuestSyncService::class.java)
@@ -51,6 +52,7 @@ class QuestSyncService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val isFirstTimeSync = intent?.getBooleanExtra(EXTRA_IS_FIRST_TIME, false) ?: false
+        val isPullExtraQuest = intent?.getStringExtra(EXTRA_IS_PULL_SPECIFIC_QUEST)
 
         startForeground(NOTIFICATION_ID, createSyncNotification())
 
@@ -60,7 +62,7 @@ class QuestSyncService : Service() {
         // Start sync process
         syncJob = serviceScope.launch {
             try {
-                performSync(isFirstTimeSync)
+                performSync(isFirstTimeSync,isPullExtraQuest)
             } catch (e: Exception) {
                 Log.e("QuestSyncService", "Sync failed", e)
                 sendSyncBroadcast(SyncStatus.OVER)
@@ -79,7 +81,7 @@ class QuestSyncService : Service() {
         syncJob?.cancel()
     }
 
-    private suspend fun performSync(isFirstTimeSync: Boolean) {
+    private suspend fun performSync(isFirstTimeSync: Boolean, pullForSpecific: String? = null) {
         try {
             val userId = Supabase.supabase.auth.currentUserOrNull()?.id
             if (userId == null) {
@@ -92,7 +94,9 @@ class QuestSyncService : Service() {
 
             if (isFirstTimeSync) {
                 performFirstTimeSync(userId)
-            } else {
+            } else if (pullForSpecific!=null) {
+                performAdvancedSyncForQuest(userId,pullForSpecific)
+            }else {
                 performRegularSync()
             }
 
@@ -188,6 +192,46 @@ class QuestSyncService : Service() {
     }
     */
 
+    private suspend fun performAdvancedSyncForQuest(userId: String, questId: String) {
+        val localQuest = questRepository.getQuestById(questId)
+        val remoteQuest = Supabase.supabase
+            .postgrest["quests"]
+            .select()
+            {
+                filter {
+                    eq("user_id", userId)
+                    eq("id", questId)
+                }
+            }
+            .decodeSingleOrNull<CommonQuestInfo>()
+
+        when {
+            localQuest != null && remoteQuest == null -> {
+                // New local quest not on server yet
+                Supabase.supabase.postgrest["quests"].upsert(localQuest)
+            }
+
+            localQuest == null && remoteQuest != null -> {
+                // Remote quest not in local DB
+                questRepository.upsertQuest(remoteQuest)
+            }
+
+            localQuest != null && remoteQuest != null -> {
+                // Compare timestamps
+                when {
+                    localQuest.last_updated > remoteQuest.last_updated -> {
+                        Supabase.supabase.postgrest["quests"].upsert(localQuest)
+                    }
+
+                    remoteQuest.last_updated > localQuest.last_updated -> {
+                        questRepository.upsertQuest(remoteQuest)
+                    }
+                }
+            }
+        }
+
+        if (localQuest != null) questRepository.markAsSynced(questId)
+    }
     private fun createNotificationChannel() {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 

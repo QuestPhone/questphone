@@ -1,6 +1,5 @@
 package nethical.questphone.backend.services.sync
 
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -18,11 +17,12 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import nethical.questphone.backend.StatsInfo
 import nethical.questphone.backend.Supabase
@@ -71,10 +71,12 @@ class StatsSyncService : Service() {
         private const val NOTIFICATION_ID = 1044
         private const val CHANNEL_ID = "stats_sync_channel"
         private const val EXTRA_IS_FIRST_TIME = "is_first_time"
+        private const val EXTRA_IS_PULL_FOR_TODAY = "is_today_pull"
 
-        fun start(context: Context, isFirstTime: Boolean = false) {
+        fun start(context: Context, isFirstTime: Boolean = false,isPullForToday: Boolean) {
             val intent = Intent(context, StatsSyncService::class.java).apply {
                 putExtra(EXTRA_IS_FIRST_TIME, isFirstTime)
+                putExtra(EXTRA_IS_PULL_FOR_TODAY, isPullForToday)
             }
             context.startForegroundService(intent)
         }
@@ -123,6 +125,7 @@ class StatsSyncService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val isFirstTimeSync = intent?.getBooleanExtra(EXTRA_IS_FIRST_TIME, false) ?: false
+        val isPullForToday = intent?.getBooleanExtra(EXTRA_IS_PULL_FOR_TODAY,false)?:false
 
         startForeground(NOTIFICATION_ID, createSyncNotification())
 
@@ -132,7 +135,7 @@ class StatsSyncService : Service() {
         // Start sync process
         syncJob = serviceScope.launch {
             try {
-                performSync(isFirstTimeSync)
+                performSync(isFirstTimeSync,isPullForToday)
             } catch (e: Exception) {
                 Log.e("StatsSyncService", "Sync failed", e)
                 sendSyncBroadcast(SyncStatus.ONGOING)
@@ -155,7 +158,7 @@ class StatsSyncService : Service() {
 
     }
 
-    private suspend fun performSync(isFirstTimeSync: Boolean) {
+    private suspend fun performSync(isFirstTimeSync: Boolean, isPullForToday: Boolean) {
         try {
             val userId = Supabase.supabase.auth.currentUserOrNull()?.id
             if (userId == null) {
@@ -168,6 +171,8 @@ class StatsSyncService : Service() {
 
             if (isFirstTimeSync) {
                 performFirstTimeSync(userId)
+            } else if(isPullForToday){
+                pullEverythingForToday(userId)
             } else {
                 performRegularSync()
             }
@@ -221,6 +226,33 @@ class StatsSyncService : Service() {
         Log.d("StatsSyncService", "Regular sync completed, synced ${unSyncedStats.size} stats")
     }
 
+    private suspend fun pullEverythingForToday(userId: String) {
+        val today = Clock.System.now().toLocalDateTime(TimeZone.UTC).date.toString()
+
+        // Get the most recent stat date from local DB
+        val lastStatDate = statsRepository.getLastStatDate()
+
+        val startDate = lastStatDate?.// Pull everything after the last date
+        plus(1, DateTimeUnit.DAY)?.toString() ?: // No stats exist, pull only today
+        today
+
+        val stats = Supabase.supabase
+            .postgrest["quest_stats"]
+            .select {
+                filter {
+                    eq("user_id", userId)
+                    gte("date", startDate)
+                    lte("date", today)
+                }
+            }
+            .decodeList<StatsInfo>()
+
+        stats.forEach {
+            statsRepository.upsertStats(it.copy(isSynced = true))
+        }
+
+        Log.d("StatsSyncService", "Pulled ${stats.size} stats from $startDate to $today")
+    }
     private fun createNotificationChannel() {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 

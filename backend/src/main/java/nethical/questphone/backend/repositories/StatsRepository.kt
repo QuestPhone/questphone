@@ -1,6 +1,8 @@
 package nethical.questphone.backend.repositories
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.datetime.LocalDate
 import nethical.questphone.backend.StatsInfo
 import nethical.questphone.backend.StatsInfoDao
 import javax.inject.Inject
@@ -46,5 +48,10 @@ class StatsRepository @Inject constructor(
 
     suspend fun markAsSynced(id: String) {
         statsInfoDao.markAsSynced(id)
+    }
+    suspend fun getLastStatDate(): LocalDate? {
+        return getAllStatsForUser().first()
+            .maxByOrNull { it.date }
+            ?.date
     }
 }

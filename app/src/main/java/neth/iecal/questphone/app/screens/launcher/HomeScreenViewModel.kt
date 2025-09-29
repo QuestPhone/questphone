@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -93,6 +94,13 @@ class HomeScreenViewModel @Inject constructor(
 
     }
 
+    init {
+        getFCMToken {
+            if(it!=null && !userRepository.userInfo.fcm_tokens.contains(it)){
+                userRepository.saveFcmToken(it)
+            }
+        }
+    }
     private fun loadSavedConfigs() {
         // Load shortcuts
         shortcuts.addAll(shortcutsSp.getStringSet("shortcuts", setOf())?.toList() ?: listOf())
@@ -177,6 +185,19 @@ class HomeScreenViewModel @Inject constructor(
     fun hideDonationDialog(){
         showDonationsDialog.value = false
         donationSp.edit(commit = true) { putBoolean("shown", true) }
+    }
+
+    fun getFCMToken(onTokenReceived: (String?) -> Unit) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.d("FCM", "Token: $token")
+                onTokenReceived(token)
+            } else {
+                Log.e("FCM", "Failed to get token", task.exception)
+                onTokenReceived(null)
+            }
+        }
     }
 
 }
