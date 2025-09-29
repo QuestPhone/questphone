@@ -9,6 +9,7 @@ import nethical.questphone.backend.isOnline
 import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.backend.triggerQuestSync
 import nethical.questphone.backend.triggerStatsSync
+import nethical.questphone.core.core.utils.CrashLogger
 import nethical.questphone.core.core.utils.VibrationHelper
 import javax.inject.Inject
 
@@ -41,5 +42,7 @@ class MyApp : Application() {
         if (isOnline()) {
             triggerQuestSync(applicationContext)
         }
+
+        Thread.setDefaultUncaughtExceptionHandler(CrashLogger(this))
     }
 }
