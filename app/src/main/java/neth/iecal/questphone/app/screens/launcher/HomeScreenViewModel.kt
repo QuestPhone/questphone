@@ -117,38 +117,43 @@ class HomeScreenViewModel @Inject constructor(
         return homeWidgets[userRepository.userInfo.customization_info.equippedWidget]
     }
 
-    suspend fun filterQuests(){
+    suspend fun filterQuests() {
         Log.d("HomeScreenViewModel", "quest list state changed")
 
-        // we reload the list from disk cause android triggers the function twice, once with an empty list initially.
-        // we cannot ignore empty lists cuz some dates have no quests so in those cases, we cannot trigger
-        // the function that checks streaks for those days
-        var rawQuestsListLocal = questRepository.getAllQuests().first()
+        // Reload full list from repo
+        val rawQuests = questRepository.getAllQuests().first()
         val today = getCurrentDay()
-        val filtered = rawQuestsListLocal.filter {
-            !it.is_destroyed && it.selected_days.contains(today)
-        }
-        // Mark completed
-        val tempCompletedList = mutableListOf<String>()
-        filtered.forEach {
-            if (it.last_completed_on == getCurrentDate()) {
-                tempCompletedList.add(it.id)
-            }
+        val todayDate = getCurrentDate()
+
+        // Step 1: filter valid quests for today
+        val filtered = rawQuests.filter { quest ->
+            !quest.is_destroyed && quest.selected_days.contains(today)
         }
 
-        val uncompleted = filtered.filter { it.id !in tempCompletedList }
-        val completed = filtered.filter { it.id in tempCompletedList }
+        // Step 2: split into completed & uncompleted
+        val completedIds = filtered
+            .filter { it.last_completed_on == todayDate }
+            .map { it.id }
 
-        val merged =
-            (uncompleted + completed).sortedBy { QuestHelper.isInTimeRange(it) }
+        val uncompleted = filtered.filter { it.id !in completedIds }
+        val completed = filtered.filter { it.id in completedIds }
 
+        // Step 3: sort — uncompleted first, then completed
+        val merged = (uncompleted + completed).sortedWith(
+            compareByDescending<CommonQuestInfo> { QuestHelper.isInTimeRange(it) } // in-range first
+                .thenBy { it.title }
+        )
+
+        // Step 4: handle streak continuation
         if (completed.size == filtered.size) {
             if (userRepository.continueStreak()) {
                 showStreakUpDialog()
             }
         }
-        questList.value = if (merged.size >= 4) merged.take(4) else merged
-        completedQuests.value = tempCompletedList.toList()
+
+        // Step 5: update state
+        questList.value = merged.take(4)
+        completedQuests.value = completedIds
     }
 
     fun handleCheckStreakFailure(){
