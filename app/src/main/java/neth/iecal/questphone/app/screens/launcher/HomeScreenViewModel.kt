@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +21,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.until
+import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.app.screens.game.handleStreakFreezers
 import neth.iecal.questphone.app.screens.game.showStreakUpDialog
 import neth.iecal.questphone.core.utils.managers.QuestHelper
@@ -43,7 +43,7 @@ class HomeScreenViewModel @Inject constructor(
     private val questRepository: QuestRepository,
     private val statsRepository: StatsRepository,
     private val userRepository: UserRepository,
-) : AndroidViewModel(application){
+) : AndroidViewModel(application) {
 
     val coins = userRepository.coinsState
     val currentStreak = userRepository.currentStreakState
@@ -58,20 +58,21 @@ class HomeScreenViewModel @Inject constructor(
     val time = _time
 
     private var is12HourClock = true
-    private val shortcutsSp = application.applicationContext.getSharedPreferences("shortcuts", MODE_PRIVATE)
+    private val shortcutsSp =
+        application.applicationContext.getSharedPreferences("shortcuts", MODE_PRIVATE)
 
 
     val showDonationsDialog = MutableStateFlow(false)
     val donationSp = application.getSharedPreferences("shows", MODE_PRIVATE)
-    val sp = application.getSharedPreferences("timeFormat",MODE_PRIVATE)
+    val sp = application.getSharedPreferences("timeFormat", MODE_PRIVATE)
 
     init {
-        scheduleDailyNotification(application,9,0)
+        scheduleDailyNotification(application, 9, 0)
         viewModelScope.launch {
             loadSavedConfigs()
             // Keep updating time every minute
-            val sp = application.getSharedPreferences("timeFormat",MODE_PRIVATE)
-            is12HourClock = sp.getBoolean("12hr",true)
+            val sp = application.getSharedPreferences("timeFormat", MODE_PRIVATE)
+            is12HourClock = sp.getBoolean("12hr", true)
             while (true) {
                 reloadTime()
                 val delayMillis = 60_000 - (System.currentTimeMillis() % 60_000)
@@ -96,11 +97,12 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         getFCMToken {
-            if(it!=null && !userRepository.userInfo.fcm_tokens.contains(it)){
+            if (it != null && !userRepository.userInfo.fcm_tokens.contains(it)) {
                 userRepository.saveFcmToken(it)
             }
         }
     }
+
     private fun loadSavedConfigs() {
         // Load shortcuts
         shortcuts.addAll(shortcutsSp.getStringSet("shortcuts", setOf())?.toList() ?: listOf())
@@ -108,19 +110,20 @@ class HomeScreenViewModel @Inject constructor(
 
     }
 
-    fun toggleTimeCLock(){
+    fun toggleTimeCLock() {
         is12HourClock = !is12HourClock
         sp.edit(commit = true) { putBoolean("12hr", is12HourClock) }
         reloadTime()
     }
 
-    private fun reloadTime(){
-        if(is12HourClock) {
+    private fun reloadTime() {
+        if (is12HourClock) {
             _time.value = getCurrentTime12Hr()
-        }else{
+        } else {
             _time.value = getCurrentTime24Hr()
         }
     }
+
     fun getHomeWidget(): @Composable ((Modifier) -> Unit)? {
         return homeWidgets[userRepository.userInfo.customization_info.equippedWidget]
     }
@@ -164,10 +167,10 @@ class HomeScreenViewModel @Inject constructor(
         completedQuests.value = completedIds
     }
 
-    fun handleCheckStreakFailure(){
+    fun handleCheckStreakFailure() {
         if (userRepository.userInfo.streak.currentStreak != 0) {
             val daysSince = userRepository.checkIfStreakFailed()
-            if(daysSince!=null){
+            if (daysSince != null) {
                 handleStreakFreezers(userRepository.tryUsingStreakFreezers(daysSince))
             }
 
@@ -182,22 +185,21 @@ class HomeScreenViewModel @Inject constructor(
         shortcuts.addAll(tempShortcuts)
     }
 
-    fun hideDonationDialog(){
+    fun hideDonationDialog() {
         showDonationsDialog.value = false
         donationSp.edit(commit = true) { putBoolean("shown", true) }
     }
 
     fun getFCMToken(onTokenReceived: (String?) -> Unit) {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val token = task.result
-                Log.d("FCM", "Token: $token")
-                onTokenReceived(token)
+        val pushProvider: PushProvider =
+            if (BuildConfig.IS_FDROID) {
+                neth.iecal.questphone.push.PlayPushProvider()
             } else {
-                Log.e("FCM", "Failed to get token", task.exception)
-                onTokenReceived(null)
+                neth.iecal.questphone.push.FdroidPushProvider()
             }
-        }
+        pushProvider.getFCMToken { onTokenReceived(it) }
     }
-
+}
+interface PushProvider {
+    fun getFCMToken(onTokenReceived: (String?) -> Unit)
 }

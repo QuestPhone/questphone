@@ -165,12 +165,20 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
                         painter = painterResource(R.drawable.outline_share_24),
                         contentDescription = "Share Profile",
                         modifier = Modifier.clickable(true, onClick = {
-                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, "https://questphone.app/@${viewModel.userInfo.username}")
+                            if(!neth.iecal.questphone.BuildConfig.IS_FDROID) {
+                                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(
+                                        Intent.EXTRA_TEXT,
+                                        "https://questphone.app/@${viewModel.userInfo.username}"
+                                    )
+                                }
+                                val shareIntent =
+                                    Intent.createChooser(sendIntent, "Share Profile via")
+                                context.startActivity(shareIntent)
+                            }else{
+                                Toast.makeText(context,"You're profile is local", Toast.LENGTH_SHORT).show()
                             }
-                            val shareIntent = Intent.createChooser(sendIntent, "Share Profile via")
-                            context.startActivity(shareIntent)
                         })
                     )
                     Spacer(Modifier.size(4.dp))
