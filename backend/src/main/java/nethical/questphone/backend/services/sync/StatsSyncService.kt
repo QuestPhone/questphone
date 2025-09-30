@@ -12,7 +12,6 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -279,7 +278,7 @@ class StatsSyncService : Service() {
         .build()
 
     private fun sendSyncBroadcast(status: SyncStatus) {
-        val intent = Intent("launcher.launcher.quest_sync")
+        val intent = Intent("launcher.launcher.quest_sync_stats")
         intent.putExtra("status", status.ordinal)
         sendBroadcast(intent)
     }

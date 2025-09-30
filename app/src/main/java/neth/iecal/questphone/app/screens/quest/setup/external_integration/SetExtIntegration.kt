@@ -77,6 +77,7 @@ import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.GenerateExtIntToken
 import nethical.questphone.backend.Supabase
 import nethical.questphone.backend.repositories.QuestRepository
+import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.json
 import javax.inject.Inject
 
@@ -91,6 +92,7 @@ class QuestCreatedReceiver(val onQuestCreated: () -> Unit) : android.content.Bro
 @HiltViewModel
 class ExternalIntegrationQuestVM @Inject constructor(
     private val questRepository: QuestRepository,
+    private val userRepository: UserRepository,
     application: Application,
 ) : AndroidViewModel(application) {
 
@@ -109,6 +111,7 @@ class ExternalIntegrationQuestVM @Inject constructor(
     val token = MutableStateFlow<Token?>(null)
     val isLoading = MutableStateFlow(false)
     val isQuestCreated = MutableStateFlow(false)
+    val isProfileSynced = !userRepository.userInfo.needsSync
 
     init {
         loadSavedToken()
@@ -346,7 +349,13 @@ fun SetExtIntegration(navController: NavHostController, vm: ExternalIntegrationQ
                         }
                     } else {
                         Button(
-                            onClick = { vm.generateNewToken() },
+                            onClick = {
+                                if(vm.isProfileSynced){
+                                    vm.generateNewToken()
+                                } else {
+                                    Toast.makeText(context,"Sync ongoing, comeback after a few mins!",
+                                        Toast.LENGTH_SHORT).show()
+                                }},
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp),
