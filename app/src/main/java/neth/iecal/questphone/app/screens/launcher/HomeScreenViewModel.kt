@@ -192,7 +192,7 @@ class HomeScreenViewModel @Inject constructor(
 
     fun getFCMToken(onTokenReceived: (String?) -> Unit) {
         val pushProvider: PushProvider =
-            if (BuildConfig.IS_FDROID) {
+            if (!BuildConfig.IS_FDROID) {
                 neth.iecal.questphone.push.PlayPushProvider()
             } else {
                 neth.iecal.questphone.push.FdroidPushProvider()
