@@ -207,8 +207,7 @@ class SetupProfileViewModel @Inject constructor(
                 } else {
                     null
                 }
-
-                userRepository.userInfo = UserInfo(
+                userRepository.userInfo = userRepository.userInfo.copy(
                     username = _username.value,
                     full_name = _name.value,
                     has_profile = _profileUri.value != null || _profileUrl.value != null

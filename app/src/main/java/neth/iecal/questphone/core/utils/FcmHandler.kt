@@ -42,18 +42,19 @@ object FcmHandler {
                     showToast("refreshing quest data",context)
                 }
             }
-
             if (data.containsKey("refreshProfile")) {
                 triggerProfileSync(context)
                 showToast("refreshing profile",context)
             }
             if(data.containsKey("gifts")){
-                val items = json.decodeFromString<HashMap<InventoryItem,Int>>(data.get("gift").toString())
+                val items = json.decodeFromString<HashMap<InventoryItem,Int>>(data.get("gifts").toString())
                 userRepository.addItemsToInventory(items)
+                showToast("Added New gifts!!",context)
             }
             if(data.containsKey("gift_coins")){
                 val coins = data["coins"]?.toInt() ?: 0
                 userRepository.addCoins(coins)
+                showToast("Added $coins coins",context)
             }
         }
 
