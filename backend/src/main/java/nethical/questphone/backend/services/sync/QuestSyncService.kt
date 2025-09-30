@@ -9,7 +9,6 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -83,9 +82,10 @@ class QuestSyncService : Service() {
 
     private suspend fun performSync(isFirstTimeSync: Boolean, pullForSpecific: String? = null) {
         try {
-            val userId = Supabase.supabase.auth.currentUserOrNull()?.id
+            val sp = getSharedPreferences("authtoken", Context.MODE_PRIVATE)
+            var userId = sp.getString("key",null)
             if (userId == null) {
-                Log.w("QuestSyncService", "No user logged in, stopping sync")
+                Log.w("ProfileSyncService", "No user logged in, stopping sync")
                 return
             }
 

@@ -48,6 +48,7 @@ fun Context.isOnline(): Boolean {
 
 
 fun triggerQuestSync(context: Context, isFirstSync: Boolean = false, pullForQuest:String? = null) {
+    Log.d("Sync","Syncing Quest")
     val intent = Intent(context, QuestSyncService::class.java).apply {
         putExtra(EXTRA_IS_FIRST_TIME, isFirstSync)
         if(pullForQuest!=null){
@@ -58,9 +59,11 @@ fun triggerQuestSync(context: Context, isFirstSync: Boolean = false, pullForQues
 }
 
 fun triggerProfileSync(context: Context, isFirstLoginSync:Boolean = false) {
+    Log.d("Sync","Syncing profile")
     ProfileSyncService.start(context,isFirstLoginSync)
 }
 
 fun triggerStatsSync(context: Context, isFirstSync: Boolean = false,pullAllForToday:Boolean = false) {
+    Log.d("Sync","Syncing Stats")
     StatsSyncService.start(context,isFirstSync,pullAllForToday)
 }

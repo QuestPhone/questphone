@@ -23,8 +23,6 @@ class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-
-
         VibrationHelper.init(this)
         reloadServiceInfo(this)
         connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager

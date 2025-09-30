@@ -3,7 +3,10 @@ package nethical.questphone.backend.repositories
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import nethical.questphone.backend.Supabase
@@ -22,6 +25,11 @@ import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface UserRepositoryEntryPoint {
+    fun userRepository(): UserRepository
+}
 
 @Singleton
 class UserRepository @Inject constructor(

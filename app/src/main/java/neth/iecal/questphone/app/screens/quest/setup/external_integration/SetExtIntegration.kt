@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.AndroidViewModel
@@ -69,6 +71,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.Serializable
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.app.screens.quest.setup.external_integration.ExternalIntegrationQuestVM.Companion.ACTION_QUEST_CREATED
 import neth.iecal.questphone.data.IntegrationId
 import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.GenerateExtIntToken
@@ -77,18 +80,27 @@ import nethical.questphone.backend.repositories.QuestRepository
 import nethical.questphone.data.json
 import javax.inject.Inject
 
+class QuestCreatedReceiver(val onQuestCreated: () -> Unit) : android.content.BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: android.content.Intent?) {
+        if (intent?.action == ACTION_QUEST_CREATED) {
+            onQuestCreated()
+        }
+    }
+}
+
 @HiltViewModel
 class ExternalIntegrationQuestVM @Inject constructor(
     private val questRepository: QuestRepository,
-    application: Application
+    application: Application,
 ) : AndroidViewModel(application) {
 
     companion object {
         @Serializable
         data class Token(
             val token: String,
-            val createdAt: Long
+            val createdAt: Long,
         )
+        const val ACTION_QUEST_CREATED = "neth.iecal.questphone.ACTION_QUEST_CREATED"
     }
 
     private val prefs = application.getSharedPreferences("externalIntToken", Context.MODE_PRIVATE)
@@ -142,14 +154,18 @@ class ExternalIntegrationQuestVM @Inject constructor(
                 }
 
                 if (remoteQuests.isNotEmpty()) {
-                    prefs.edit(commit = true) { remove("token") }
-                    token.value = null
-                    isQuestCreated.value = true
+                    onQuestCreated()
                 }
             } finally {
                 isLoading.value = false
             }
         }
+    }
+
+    fun onQuestCreated(){
+        prefs.edit(commit = true) { remove("token") }
+        token.value = null
+        isQuestCreated.value = true
     }
 
     fun generateNewToken() = viewModelScope.launch {
@@ -161,7 +177,6 @@ class ExternalIntegrationQuestVM @Inject constructor(
                     cont.resume(it) {}
                 }
             }
-
             result.onSuccess {
                 val newToken = Token(it, System.currentTimeMillis())
                 prefs.edit(commit = true) { putString("token", json.encodeToString(newToken)) }
@@ -192,6 +207,29 @@ fun SetExtIntegration(navController: NavHostController, vm: ExternalIntegrationQ
     val isQuestCreated by vm.isQuestCreated.collectAsState()
     val context = LocalContext.current
 
+    val questCreatedReceiver = remember {
+        QuestCreatedReceiver {
+            vm.onQuestCreated()
+            Toast.makeText(context, "Quest created!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val filter = android.content.IntentFilter(ACTION_QUEST_CREATED)
+        ContextCompat.registerReceiver(
+            context,
+            questCreatedReceiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+    }
+
+    // Remember to unregister
+    DisposableEffect(Unit) {
+        onDispose {
+            context.unregisterReceiver(questCreatedReceiver)
+        }
+    }
     if (isQuestCreated) {
         AlertDialog(
             onDismissRequest = { navController.popBackStack() },
@@ -328,7 +366,7 @@ fun TokenCard(
     token: ExternalIntegrationQuestVM.Companion.Token,
     onCopy: () -> Unit,
     getTimeRemaining: () -> Long,
-    getProgress: () -> Float
+    getProgress: () -> Float,
 ) {
     var timeRemaining by remember { mutableStateOf(getTimeRemaining()) }
     var progress by remember { mutableStateOf(getProgress()) }
@@ -426,7 +464,7 @@ fun TimeDisplay(timeRemaining: Long) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(android.R.drawable.ic_lock_idle_alarm),
+            painter = painterResource(R.drawable.baseline_timer_24),
             contentDescription = null,
             modifier = Modifier.size(16.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant

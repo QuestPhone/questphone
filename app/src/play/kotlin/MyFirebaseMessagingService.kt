@@ -3,44 +3,38 @@ package neth.iecal.questphone
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import dagger.hilt.android.AndroidEntryPoint
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.UserRepository
-import nethical.questphone.backend.triggerProfileSync
-import nethical.questphone.backend.triggerQuestSync
-import nethical.questphone.backend.triggerStatsSync
-import javax.inject.Inject
+import dagger.hilt.android.EntryPointAccessors
+import neth.iecal.questphone.core.utils.FcmHandler
+import nethical.questphone.backend.repositories.UserRepositoryEntryPoint
 
-@AndroidEntryPoint(FirebaseMessagingService::class)
+
 class MyFirebaseMessagingService : FirebaseMessagingService() {
-
-    // Inject what you need
-    @Inject lateinit var userRepository: UserRepository
-    @Inject lateinit var questRepository: QuestRepository
-
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        Log.d("remoteMSg",remoteMessage.data.toString())
+        Log.d("remoteNotif", remoteMessage.notification?.body.toString())
+
+        val entryPoint = EntryPointAccessors.fromApplication(this, UserRepositoryEntryPoint::class.java)
+        val userRepository = entryPoint.userRepository()
+
         if(remoteMessage.data.isNotEmpty()){
-            if(remoteMessage.data.contains("refreshQuestId")){
-                triggerQuestSync(this, pullForQuest = remoteMessage.data["refreshQuestId"])
-                triggerStatsSync(this, pullAllForToday = true)
+            FcmHandler.handleData(this,remoteMessage.data,userRepository)
+            remoteMessage.notification?.let {
+                if(!remoteMessage.data.containsKey("no_notification")) {
+                    showNotification(remoteMessage.data["title"], remoteMessage.data["body"])
+                }
             }
-            if(remoteMessage.data.contains("refreshProfile")){
-                triggerProfileSync(this)
-            }
-        }
-        remoteMessage.notification?.let {
-            showNotification(it.title, it.body)
         }
     }
+
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Log.d("FCM", "New token: $token")
-        userRepository.saveFcmToken(token)
     }
 
     private fun showNotification(title: String?, message: String?) {
@@ -63,5 +57,22 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .build()
 
         notificationManager.notify(0, notification)
+    }
+    override fun handleIntent(intent: Intent) {
+        try {
+            if (intent.extras != null) {
+                val builder = RemoteMessage.Builder("MessagingService")
+
+                for (key in intent.extras!!.keySet()) {
+                    builder.addData(key, intent.extras!!.get(key).toString())
+                }
+
+                onMessageReceived(builder.build())
+            } else {
+                super.handleIntent(intent)
+            }
+        } catch (e: Exception) {
+            super.handleIntent(intent)
+        }
     }
 }

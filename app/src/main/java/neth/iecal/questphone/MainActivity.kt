@@ -35,6 +35,7 @@ import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.account.SetupProfileScreen
 import neth.iecal.questphone.app.screens.account.UserInfoScreen
 import neth.iecal.questphone.app.screens.etc.DocumentViewerScreen
+import neth.iecal.questphone.app.screens.etc.SetCoinRewardRatio
 import neth.iecal.questphone.app.screens.game.RewardDialogMaker
 import neth.iecal.questphone.app.screens.game.StoreScreen
 import neth.iecal.questphone.app.screens.launcher.AppList
@@ -45,7 +46,6 @@ import neth.iecal.questphone.app.screens.launcher.HomeScreenViewModel
 import neth.iecal.questphone.app.screens.launcher.widget.WidgetScreen
 import neth.iecal.questphone.app.screens.onboard.subscreens.SelectApps
 import neth.iecal.questphone.app.screens.onboard.subscreens.SelectAppsModes
-import neth.iecal.questphone.app.screens.etc.SetCoinRewardRatio
 import neth.iecal.questphone.app.screens.pet.TheSystemDialog
 import neth.iecal.questphone.app.screens.quest.ListAllQuests
 import neth.iecal.questphone.app.screens.quest.ViewQuest
@@ -57,6 +57,7 @@ import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
 import neth.iecal.questphone.app.theme.LauncherTheme
 import neth.iecal.questphone.app.theme.customThemes.PitchBlackTheme
 import neth.iecal.questphone.core.services.AppBlockerService
+import neth.iecal.questphone.core.utils.FcmHandler
 import neth.iecal.questphone.core.utils.receiver.AppInstallReceiver
 import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
 import neth.iecal.questphone.data.IntegrationId
@@ -81,7 +82,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        handleNotificationIntent(intent)
         val questId = intent.getStringExtra("quest_id")
         enableEdgeToEdge()
         val data = getSharedPreferences("onboard", MODE_PRIVATE)
@@ -277,5 +278,30 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        handleNotificationIntent(intent)
+        super.onResume()
+    }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleNotificationIntent(intent)
+    }
+    private fun handleNotificationIntent(intent: Intent?) {
+        intent?.extras?.let { extras ->
+            val data = mutableMapOf<String, String>()
+            for (key in extras.keySet()) {
+                val value = extras.get(key)?.toString() ?: ""
+                data[key] = value
+            }
+
+            Log.d("notification Data", data.toString())
+
+            FcmHandler.handleData(this, data,userRepository)
+        }
+    }
+
+
 }
+
 
