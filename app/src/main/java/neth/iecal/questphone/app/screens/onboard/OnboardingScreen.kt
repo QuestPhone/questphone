@@ -28,6 +28,8 @@ import neth.iecal.questphone.app.screens.onboard.subscreens.NotificationPerm
 import neth.iecal.questphone.app.screens.onboard.subscreens.OverlayScreenPerm
 import neth.iecal.questphone.app.screens.onboard.subscreens.ScheduleExactAlarmPerm
 import neth.iecal.questphone.app.screens.onboard.subscreens.SelectApps
+import neth.iecal.questphone.app.screens.onboard.subscreens.ShowSocialsScreen
+import neth.iecal.questphone.app.screens.onboard.subscreens.ShowTutorial
 import neth.iecal.questphone.app.screens.onboard.subscreens.TermsScreen
 import neth.iecal.questphone.app.screens.onboard.subscreens.UsageAccessPerm
 import neth.iecal.questphone.core.services.AppBlockerService
@@ -155,6 +157,12 @@ fun OnBoarderView(navController: NavHostController) {
             }else{
                 BlockedAppsView(viewModel)
             }
+        },
+        OnboardingContent.CustomPage {
+            ShowTutorial()
+        },
+        OnboardingContent.CustomPage {
+            ShowSocialsScreen()
         }
     )
 

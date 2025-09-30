@@ -180,7 +180,7 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
                             context.startActivity(intent)
                             (context as Activity).finish()
                         }
-                    })
+                    },navController)
                 }
                 Spacer(Modifier.size(32.dp))
 
@@ -315,7 +315,7 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Menu(isAnonymous: Boolean,onLogout: () -> Unit, ) {
+private fun Menu(isAnonymous: Boolean,onLogout: () -> Unit,navController: NavController ) {
     var expanded by remember { mutableStateOf(false) }
     var isLogoutInfoVisible by remember { mutableStateOf(false) }
 
@@ -340,6 +340,25 @@ private fun Menu(isAnonymous: Boolean,onLogout: () -> Unit, ) {
             }
         )
 
+        DropdownMenuItem(
+            text = { Text("Communicate with us") },
+            onClick = {
+                navController.navigate(RootRoute.ShowSocials.route)
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Donate") },
+            onClick = {
+                navController.navigate(RootRoute.ShowSocials.route)
+            }
+        )
+
+        DropdownMenuItem(
+            text = { Text("Open Tutorial") },
+            onClick = {
+                navController.navigate(RootRoute.ShowTutorials.route)
+            }
+        )
         DropdownMenuItem(
             text = { Text("Share Crash Log") },
             onClick = {

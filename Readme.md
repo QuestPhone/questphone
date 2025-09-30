@@ -52,7 +52,7 @@ Click on any image to enlarge.
     <td><img src='fastlane/metadata/android/en-US/images/phoneScreenshots/3.png' width='120'></td>
     <td><img src='fastlane/metadata/android/en-US/images/phoneScreenshots/4.png' width='120'></td>
     <td><img src='fastlane/metadata/android/en-US/images/phoneScreenshots/5.png' width='120'></td>
-
+    <td><img src='fastlane/metadata/android/en-US/images/phoneScreenshots/6.png' width='120'></td>
   </tr>
 </table>
 
@@ -67,14 +67,15 @@ Press on any title to get a detailed explanation about them
 - **[AI Snap](https://github.com/QuestPhone/docs/blob/main/integration/AiSnap.md)**: Prompts users to snap a photo after completing the task.
 - **[Deep Focus](https://github.com/QuestPhone/docs/blob/main/integration/DeepFocus.md)**: Blocks all but selected apps for focused time.
 - **[Swift Mark](https://github.com/QuestPhone/docs/blob/main/integration/HealthConnect.md)**: Simple tap-to-complete mode with no strict verification.
+- **External Integration**: Connect external apps to questphone
 
 ---
 
 ## 📝 Todo
 
-- [ ] Add an API for other developers to turn their apps into quests.
+- [x] Add an API for other developers to turn their apps into quests.
 - [ ] Add friends and social features.
-- [ ] AI-generated motivational reminders.
+- [x] AI-generated motivational reminders.
 
 ## Tech Stack
 - Compose

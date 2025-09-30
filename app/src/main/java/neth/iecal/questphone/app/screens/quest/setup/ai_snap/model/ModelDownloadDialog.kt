@@ -136,8 +136,11 @@ fun ModelDownloadDialog(
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text("Download Model", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 8.dp))
-                    Text("Performing this quest requires more additional files to be downloaded. Please select any one from the below to continue.", style = MaterialTheme.typography.labelSmall,  modifier = Modifier.padding(bottom = 20.dp))
-
+                    Text(
+                        "Hey F-Droid users! Offline quests don’t work here properly. Please use online mode for now (download the app from playstore), and if you know how to help us fix this, we’d love your support! I'm new to ai/ml and it would be great if you could help fine tune a model.",
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(bottom = 20.dp)
+                    )
                     if (isModelDownloading) {
                         Text(
                             "Please wait while the model downloads.",

@@ -33,5 +33,7 @@ sealed class RootRoute(val route: String) {
     data object IntegrationDocs : RootRoute("tutorial/")
     data object DocViewer : RootRoute("docViewer/")
     data object SetupProfile : RootRoute("setupProfile/")
+    data object ShowSocials : RootRoute("showSocials/")
+    data object ShowTutorials : RootRoute("showTutorial/")
 }
 

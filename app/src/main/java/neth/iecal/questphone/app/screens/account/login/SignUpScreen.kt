@@ -255,7 +255,7 @@ fun SignUpScreen(viewModel: LoginViewModel, onAnonymousSignInSuccess: () -> Unit
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        text = "If this page doesn't update even after you pressed the confirmation link. Try logging from the signup page with your credentials!",
+                        text = "If you dont find the email in your inbox, please check the spam folder. (Please mark it as not spam in case so1)",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center
                     )

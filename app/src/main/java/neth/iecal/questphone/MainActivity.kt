@@ -46,6 +46,8 @@ import neth.iecal.questphone.app.screens.launcher.HomeScreenViewModel
 import neth.iecal.questphone.app.screens.launcher.widget.WidgetScreen
 import neth.iecal.questphone.app.screens.onboard.subscreens.SelectApps
 import neth.iecal.questphone.app.screens.onboard.subscreens.SelectAppsModes
+import neth.iecal.questphone.app.screens.onboard.subscreens.ShowSocialsScreen
+import neth.iecal.questphone.app.screens.onboard.subscreens.ShowTutorial
 import neth.iecal.questphone.app.screens.pet.TheSystemDialog
 import neth.iecal.questphone.app.screens.quest.ListAllQuests
 import neth.iecal.questphone.app.screens.quest.ViewQuest
@@ -272,7 +274,15 @@ class MainActivity : ComponentActivity() {
                         composable(RootRoute.SetupProfile.route) {
                             SetupProfileScreen()
                         }
+                        composable(RootRoute.ShowSocials.route) {
+                            ShowSocialsScreen()
+                        }
+
+                        composable(RootRoute.ShowTutorials.route) {
+                            ShowTutorial()
+                        }
                     }
+
                 }
 
             }

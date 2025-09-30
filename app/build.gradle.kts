@@ -19,8 +19,8 @@ android {
         applicationId = "neth.iecal.questphone"
         minSdk = 26
         targetSdk = 36
-        versionCode = 16
-        versionName = "2.5.2"
+        versionCode = 20
+        versionName = "2.6.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
