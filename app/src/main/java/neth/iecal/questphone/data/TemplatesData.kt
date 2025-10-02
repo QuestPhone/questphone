@@ -1,7 +1,7 @@
 package neth.iecal.questphone.data
 
 import kotlinx.serialization.Serializable
-import nethical.questphone.backend.CommonQuestInfo
+import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.data.DayOfWeek
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap

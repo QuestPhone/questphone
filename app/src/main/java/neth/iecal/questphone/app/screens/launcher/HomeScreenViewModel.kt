@@ -15,28 +15,29 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.until
 import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.app.screens.game.handleStreakFreezers
 import neth.iecal.questphone.app.screens.game.showStreakUpDialog
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.StatsRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.core.utils.scheduleDailyNotification
+import neth.iecal.questphone.data.CommonQuestInfo
 import neth.iecal.questphone.homeWidgets
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.StatsRepository
-import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getCurrentDay
 import nethical.questphone.core.core.utils.getCurrentTime12Hr
 import nethical.questphone.core.core.utils.getCurrentTime24Hr
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
+import kotlin.time.toKotlinInstant
 
+@OptIn(ExperimentalTime::class)
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     application: Application,
@@ -81,8 +82,8 @@ class HomeScreenViewModel @Inject constructor(
         }
         val daysBeforeDonation = 3
 
-        val createdOn: Instant = userRepository.userInfo.created_on
-        val now = Clock.System.now()
+        val createdOn: kotlin.time.Instant = userRepository.userInfo.created_on.toKotlinInstant()
+        val now = kotlin.time.Clock.System.now()
 
         val createdDate = createdOn.toLocalDateTime(TimeZone.UTC).date
         val today = now.toLocalDateTime(TimeZone.UTC).date

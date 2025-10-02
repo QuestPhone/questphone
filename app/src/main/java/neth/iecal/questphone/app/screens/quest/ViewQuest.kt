@@ -25,10 +25,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.backed.repositories.QuestRepository
 import neth.iecal.questphone.core.utils.managers.QuestHelper
+import neth.iecal.questphone.data.CommonQuestInfo
 import neth.iecal.questphone.data.toAdv
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.repositories.QuestRepository
 
 @Composable
 fun ViewQuest(

@@ -72,12 +72,12 @@ import kotlinx.serialization.Serializable
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.quest.setup.external_integration.ExternalIntegrationQuestVM.Companion.ACTION_QUEST_CREATED
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.data.CommonQuestInfo
 import neth.iecal.questphone.data.IntegrationId
-import nethical.questphone.backend.CommonQuestInfo
 import nethical.questphone.backend.GenerateExtIntToken
-import nethical.questphone.backend.Supabase
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.core.Supabase
 import nethical.questphone.data.json
 import javax.inject.Inject
 

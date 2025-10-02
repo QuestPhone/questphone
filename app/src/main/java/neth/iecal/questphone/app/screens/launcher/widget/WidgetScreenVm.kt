@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import nethical.questphone.backend.repositories.AppWidgetConfig
-import nethical.questphone.backend.repositories.WidgetModule
+import neth.iecal.questphone.backed.repositories.AppWidgetConfig
+import neth.iecal.questphone.backed.repositories.WidgetModule
 
 data class PersistedWidget(
     val widgetId: Int,

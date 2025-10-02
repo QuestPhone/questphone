@@ -44,7 +44,7 @@ import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
-import nethical.questphone.backend.Supabase
+import neth.iecal.questphone.core.Supabase
 
 @Composable
 fun SetupNewPassword(navController: NavController) {

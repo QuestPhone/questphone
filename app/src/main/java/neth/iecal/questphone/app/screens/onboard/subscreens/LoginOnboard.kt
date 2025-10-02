@@ -21,11 +21,11 @@ import neth.iecal.questphone.app.screens.account.login.LoginScreen
 import neth.iecal.questphone.app.screens.account.login.LoginViewModel
 import neth.iecal.questphone.app.screens.account.login.SignUpScreen
 import neth.iecal.questphone.app.screens.onboard.StandardPageContent
-import nethical.questphone.backend.Supabase
-import nethical.questphone.backend.isOnline
-import nethical.questphone.backend.triggerProfileSync
-import nethical.questphone.backend.triggerQuestSync
-import nethical.questphone.backend.triggerStatsSync
+import neth.iecal.questphone.core.Supabase
+import neth.iecal.questphone.backed.isOnline
+import neth.iecal.questphone.backed.triggerProfileSync
+import neth.iecal.questphone.backed.triggerQuestSync
+import neth.iecal.questphone.backed.triggerStatsSync
 
 @Composable
 fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostController){
@@ -39,6 +39,9 @@ fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostCon
             Log.d("authState",authState.toString())
             when (authState) {
                 is SessionStatus.Authenticated -> {
+                    triggerProfileSync(context,true)
+                    triggerQuestSync(context.applicationContext, true)
+                    triggerStatsSync(context, true)
                     authStep.value = AuthStep.COMPLETE
                     isNextEnabled.value = true
                 }

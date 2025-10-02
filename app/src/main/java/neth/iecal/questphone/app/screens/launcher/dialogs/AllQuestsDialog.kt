@@ -55,9 +55,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.navigation.RootRoute
+import neth.iecal.questphone.backed.repositories.QuestRepository
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.repositories.QuestRepository
+import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getCurrentDay

@@ -8,7 +8,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import neth.iecal.questphone.app.screens.game.handleStreakFreezers
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import javax.inject.Inject
 
 class NewDayReceiver : BroadcastReceiver() {

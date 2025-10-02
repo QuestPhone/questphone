@@ -1,4 +1,4 @@
-package nethical.questphone.backend
+package neth.iecal.questphone.data
 
 import android.content.Context
 import androidx.room.Dao
@@ -19,7 +19,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -33,6 +32,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import javax.inject.Singleton
 
+@OptIn(kotlin.time.ExperimentalTime::class)
 @Entity
 @Serializable
 @TypeConverters(StatsConverter::class)
@@ -42,7 +42,7 @@ data class StatsInfo(
     val quest_id: String,
     val user_id: String,
     @Serializable(with = LocalDateSerializer::class)
-    val date: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date,
+    val date: LocalDate = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date,
     @Transient
     val isSynced: Boolean = false
 )

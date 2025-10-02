@@ -34,7 +34,7 @@ import neth.iecal.questphone.app.screens.quest.view.components.MdPad
 import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
 import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.app.theme.smoothYellow
-import nethical.questphone.backend.CommonQuestInfo
+import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.data.game.InventoryItem

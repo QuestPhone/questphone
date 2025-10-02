@@ -67,7 +67,7 @@ import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.theme.customThemes.BaseTheme
 import neth.iecal.questphone.homeWidgets
 import neth.iecal.questphone.themes
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.core.core.utils.toHex
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.StoreCategory

@@ -3,7 +3,7 @@ package neth.iecal.questphone.core.utils.managers
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import nethical.questphone.backend.CommonQuestInfo
+import neth.iecal.questphone.data.CommonQuestInfo
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Calendar

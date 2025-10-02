@@ -22,7 +22,7 @@ import neth.iecal.questphone.app.screens.onboard.OnBoarderView
 import neth.iecal.questphone.app.screens.onboard.subscreens.TermsScreen
 import neth.iecal.questphone.app.theme.LauncherTheme
 import neth.iecal.questphone.app.theme.customThemes.PitchBlackTheme
-import nethical.questphone.backend.Supabase
+import neth.iecal.questphone.core.Supabase
 
 
 @AndroidEntryPoint(ComponentActivity::class)

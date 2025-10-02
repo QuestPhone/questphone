@@ -110,22 +110,22 @@
             android:foregroundServiceType="dataSync" />
 
         <service
-            android:name="nethical.questphone.backend.services.sync.QuestSyncService"
+            android:name="neth.iecal.questphone.core.services.QuestSyncService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
         <service
-            android:name="nethical.questphone.backend.services.sync.StatsSyncService"
+            android:name="neth.iecal.questphone.core.services.StatsSyncService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <service
-            android:name="nethical.questphone.backend.services.sync.ProfileSyncService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
+<!--        <service-->
+<!--            android:name="nethical.questphone.backend.services.sync.ProfileSyncService"-->
+<!--            android:enabled="true"-->
+<!--            android:exported="false"-->
+<!--            android:foregroundServiceType="dataSync" />-->
 
         <receiver
             android:name=".core.utils.reminder.ReminderBroadcastReceiver"
@@ -150,6 +150,7 @@
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
             </intent-filter>
         </receiver>
+       
     </application>
 
 </manifest>

@@ -77,8 +77,8 @@ import neth.iecal.questphone.app.screens.game.InventoryBox
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
 import neth.iecal.questphone.app.theme.LocalCustomTheme
 import nethical.questphone.backend.BuildConfig
-import nethical.questphone.backend.repositories.UserRepository
-import nethical.questphone.backend.triggerProfileSync
+import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.backed.triggerProfileSync
 import nethical.questphone.core.core.utils.formatNumber
 import nethical.questphone.data.UserInfo
 import nethical.questphone.data.game.InventoryItem

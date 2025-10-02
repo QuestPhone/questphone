@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.data.CommonQuestInfo
 import neth.iecal.questphone.data.QuestInfoState
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
 
 open class QuestSetupViewModel(

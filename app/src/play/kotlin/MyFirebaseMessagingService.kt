@@ -10,7 +10,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.EntryPointAccessors
 import neth.iecal.questphone.core.utils.FcmHandler
-import nethical.questphone.backend.repositories.UserRepositoryEntryPoint
+import neth.iecal.questphone.backed.repositories.UserRepositoryEntryPoint
 
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {

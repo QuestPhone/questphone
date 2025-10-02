@@ -12,8 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.screens.account.ForgotPasswordStep
-import nethical.questphone.backend.Supabase
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.core.Supabase
+import neth.iecal.questphone.backed.repositories.UserRepository
 import javax.inject.Inject
 
 @HiltViewModel

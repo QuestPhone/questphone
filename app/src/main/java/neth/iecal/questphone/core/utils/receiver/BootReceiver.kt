@@ -6,7 +6,7 @@ import android.content.Intent
 import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
 import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
-import nethical.questphone.backend.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
 import javax.inject.Inject
 
 /**

@@ -1,9 +1,9 @@
 package neth.iecal.questphone.data
 
 import androidx.navigation.NavController
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.StatsRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.StatsRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 
 data class InventoryExecParams(
     val navController: NavController,

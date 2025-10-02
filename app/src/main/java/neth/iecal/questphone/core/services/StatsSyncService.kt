@@ -1,4 +1,4 @@
-package nethical.questphone.backend.services.sync
+package neth.iecal.questphone.core.services
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -18,20 +18,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
-import nethical.questphone.backend.StatsInfo
-import nethical.questphone.backend.Supabase
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.StatsRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.StatsRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.core.Supabase
+import neth.iecal.questphone.data.StatsInfo
 import nethical.questphone.core.R
 import nethical.questphone.core.core.utils.calculateMonthsPassedAndRoundedStart
 import nethical.questphone.data.SyncStatus
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
 
 //Todo: Convert to worker
 @AndroidEntryPoint(Service::class)
@@ -152,20 +152,14 @@ class StatsSyncService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        syncJob?.cancel()
+//        syncJob?.cancel()
         cleanup()
 
     }
 
     private suspend fun performSync(isFirstTimeSync: Boolean, isPullForToday: Boolean) {
         try {
-            val sp = getSharedPreferences("authtoken", Context.MODE_PRIVATE)
-            var userId = sp.getString("key",null)
-            if (userId == null) {
-                Log.w("ProfileSyncService", "No user logged in, stopping sync")
-                return
-            }
-
+            var userId = userRepository.getUserId()
             Log.d("StatsSyncService", "Starting stats sync for $userId, firstTime: $isFirstTimeSync")
             sendSyncBroadcast(SyncStatus.ONGOING)
 
@@ -186,10 +180,11 @@ class StatsSyncService : Service() {
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun performFirstTimeSync(userId: String) {
         waitForSyncCompletion {
             receiverScope.launch {
-                val today = Clock.System.now().toLocalDateTime(TimeZone.UTC).date
+                val today = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.UTC).date
                 val startDate = calculateMonthsPassedAndRoundedStart(userRepository.userInfo.created_on)
 
                 val start = startDate.toString()  // e.g., "2023-01-01"
@@ -226,8 +221,9 @@ class StatsSyncService : Service() {
         Log.d("StatsSyncService", "Regular sync completed, synced ${unSyncedStats.size} stats")
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun pullEverythingForToday(userId: String) {
-        val today = Clock.System.now().toLocalDateTime(TimeZone.UTC).date.toString()
+        val today = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.UTC).date.toString()
 
         // Get the most recent stat date from local DB
         val lastStatDate = statsRepository.getLastStatDate()

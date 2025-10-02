@@ -41,8 +41,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.navigation.RootRoute
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.data.CommonQuestInfo
 import javax.inject.Inject
 
 @HiltViewModel

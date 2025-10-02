@@ -42,7 +42,7 @@ import neth.iecal.questphone.app.screens.etc.MdComponent
 import neth.iecal.questphone.app.screens.etc.generateComponentMarkdown
 import neth.iecal.questphone.app.screens.etc.generateMarkdown
 import neth.iecal.questphone.app.screens.etc.parseMarkdown
-import nethical.questphone.backend.CommonQuestInfo
+import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.core.core.utils.getCurrentDate
 
 @Composable

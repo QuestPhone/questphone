@@ -1,4 +1,4 @@
-package nethical.questphone.backend.repositories
+package neth.iecal.questphone.backed.repositories
 
 import android.content.Context
 import androidx.room.Dao

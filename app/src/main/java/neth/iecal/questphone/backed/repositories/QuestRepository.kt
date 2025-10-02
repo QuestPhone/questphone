@@ -1,8 +1,8 @@
-package nethical.questphone.backend.repositories
+package neth.iecal.questphone.backed.repositories
 
 import kotlinx.coroutines.flow.Flow
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.QuestDao
+import neth.iecal.questphone.data.CommonQuestInfo
+import neth.iecal.questphone.data.QuestDao
 import javax.inject.Inject
 
 class QuestRepository @Inject constructor(

@@ -18,13 +18,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.core.services.AppBlockerServiceInfo
 import neth.iecal.questphone.core.services.INTENT_ACTION_UNLOCK_APP
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.core.core.utils.ScreenUsageStatsHelper
 import nethical.questphone.core.core.utils.managers.getCachedApps
 import nethical.questphone.core.core.utils.managers.reloadApps
@@ -32,6 +31,8 @@ import nethical.questphone.data.AppInfo
 import java.time.LocalDate
 import javax.inject.Inject
 import kotlin.math.roundToInt
+import kotlin.time.ExperimentalTime
+import kotlin.time.toKotlinInstant
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
@@ -175,12 +176,14 @@ class AppListViewModel @Inject constructor(
     }
 
 
+    @OptIn(ExperimentalTime::class)
     fun calculateAvailableFreePasses(screenTimes: List<Double>): Int {
         if (screenTimes.size < 7) return 3 // Fallback for partial data
 
-        val now = Clock.System.now()
+        val now = kotlin.time.Clock.System.now()
         val questStreak = userRepository.userInfo.streak.currentStreak
-        val daysSinceCreated = userRepository.userInfo.created_on.daysUntil(now, TimeZone.currentSystemDefault())
+        val daysSinceCreated = userRepository.userInfo.created_on.toKotlinInstant()
+            .daysUntil(now, TimeZone.currentSystemDefault())
         val weeksSinceFirstUse = daysSinceCreated / 7.0
         val userLevel = userRepository.userInfo.level
 

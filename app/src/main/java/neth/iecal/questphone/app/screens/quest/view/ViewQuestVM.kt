@@ -6,12 +6,12 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.screens.game.rewardUserForQuestCompl
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.StatsRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.StatsInfo
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.StatsRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.data.CommonQuestInfo
+import neth.iecal.questphone.data.StatsInfo
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.data.game.InventoryItem
 import java.util.UUID

@@ -1,4 +1,4 @@
-package nethical.questphone.backend
+package neth.iecal.questphone.backed
 
 import android.Manifest
 import android.content.Context
@@ -7,13 +7,15 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.annotation.RequiresPermission
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import nethical.questphone.backend.services.sync.ProfileSyncService
-import nethical.questphone.backend.services.sync.QuestSyncService
-import nethical.questphone.backend.services.sync.QuestSyncService.Companion.EXTRA_IS_FIRST_TIME
-import nethical.questphone.backend.services.sync.QuestSyncService.Companion.EXTRA_IS_PULL_SPECIFIC_QUEST
-import nethical.questphone.backend.services.sync.StatsSyncService
+import neth.iecal.questphone.core.services.QuestSyncService
+import neth.iecal.questphone.core.services.QuestSyncService.Companion.EXTRA_IS_FIRST_TIME
+import neth.iecal.questphone.core.services.QuestSyncService.Companion.EXTRA_IS_PULL_SPECIFIC_QUEST
+import neth.iecal.questphone.core.services.StatsSyncService
+import neth.iecal.questphone.core.workers.ProfileSyncWorker
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -60,7 +62,11 @@ fun triggerQuestSync(context: Context, isFirstSync: Boolean = false, pullForQues
 
 fun triggerProfileSync(context: Context, isFirstLoginSync:Boolean = false) {
     Log.d("Sync","Syncing profile")
-    ProfileSyncService.start(context,isFirstLoginSync)
+    val workRequest = OneTimeWorkRequestBuilder<ProfileSyncWorker>()
+        .setInputData(ProfileSyncWorker.buildInputData(isFirstLoginPull = isFirstLoginSync))
+        .build()
+
+    WorkManager.getInstance(context).enqueue(workRequest)
 }
 
 fun triggerStatsSync(context: Context, isFirstSync: Boolean = false,pullAllForToday:Boolean = false) {

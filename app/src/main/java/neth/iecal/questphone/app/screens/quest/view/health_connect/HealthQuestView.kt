@@ -42,10 +42,10 @@ import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.app.theme.smoothYellow
 import neth.iecal.questphone.core.utils.managers.HealthConnectManager
 import neth.iecal.questphone.core.utils.managers.HealthConnectManager.Companion.requiredPermissions
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.StatsRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.data.CommonQuestInfo
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.StatsRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.json

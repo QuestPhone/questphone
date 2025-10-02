@@ -1,4 +1,4 @@
-package nethical.questphone.backend
+package neth.iecal.questphone.data
 
 import android.content.Context
 import androidx.room.Dao
@@ -21,7 +21,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import nethical.questphone.backend.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.data.BaseIntegrationId
 import nethical.questphone.data.DayOfWeek

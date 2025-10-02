@@ -44,7 +44,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.screens.etc.DocumentViewerScreen
 import neth.iecal.questphone.data.IntegrationId
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.core.core.utils.VibrationHelper
 import javax.inject.Inject
 

@@ -63,8 +63,8 @@ import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.app.screens.quest.setup.ai_snap.model.ModelDownloadDialog
 import neth.iecal.questphone.data.IntegrationId
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap

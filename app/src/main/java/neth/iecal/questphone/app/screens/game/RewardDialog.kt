@@ -17,8 +17,8 @@ import neth.iecal.questphone.app.screens.game.dialogs.QuestCompletionDialog
 import neth.iecal.questphone.app.screens.game.dialogs.StreakFailedDialog
 import neth.iecal.questphone.app.screens.game.dialogs.StreakFreezersUsedDialog
 import neth.iecal.questphone.app.screens.game.dialogs.StreakUpDialog
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.StreakFreezerReturn
 import nethical.questphone.data.game.xpFromStreak

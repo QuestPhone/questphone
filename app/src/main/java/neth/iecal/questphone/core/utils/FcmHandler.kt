@@ -10,11 +10,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.screens.quest.setup.external_integration.ExternalIntegrationQuestVM.Companion.ACTION_QUEST_CREATED
-import nethical.questphone.backend.Supabase
-import nethical.questphone.backend.repositories.UserRepository
-import nethical.questphone.backend.triggerProfileSync
-import nethical.questphone.backend.triggerQuestSync
-import nethical.questphone.backend.triggerStatsSync
+import neth.iecal.questphone.core.Supabase
+import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.backed.triggerProfileSync
+import neth.iecal.questphone.backed.triggerQuestSync
+import neth.iecal.questphone.backed.triggerStatsSync
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.json
 

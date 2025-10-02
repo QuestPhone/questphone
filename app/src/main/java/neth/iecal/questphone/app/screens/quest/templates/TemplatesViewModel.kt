@@ -19,10 +19,10 @@ import neth.iecal.questphone.data.TemplateContent
 import neth.iecal.questphone.data.VariableName
 import neth.iecal.questphone.data.convertToTemplate
 import neth.iecal.questphone.data.toAdv
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.fetchUrlContent
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.data.CommonQuestInfo
+import neth.iecal.questphone.backed.fetchUrlContent
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.data.json
 import javax.inject.Inject
 

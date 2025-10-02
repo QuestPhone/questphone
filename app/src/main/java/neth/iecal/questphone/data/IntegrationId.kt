@@ -15,7 +15,7 @@ import neth.iecal.questphone.app.screens.quest.view.ExternalIntegrationQuestView
 import neth.iecal.questphone.app.screens.quest.view.SwiftMarkQuestView
 import neth.iecal.questphone.app.screens.quest.view.ai_snap.AiSnapQuestView
 import neth.iecal.questphone.app.screens.quest.view.health_connect.HealthQuestView
-import nethical.questphone.backend.CommonQuestInfo
+import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.data.BaseIntegrationId
 
 /**

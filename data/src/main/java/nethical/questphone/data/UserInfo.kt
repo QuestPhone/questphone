@@ -1,14 +1,19 @@
 package nethical.questphone.data
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nethical.questphone.data.game.Achievements
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.StreakData
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 import kotlin.time.ExperimentalTime
 
 /**
@@ -17,7 +22,7 @@ import kotlin.time.ExperimentalTime
  *     timeStamp format: yyyy-dd-mm-hh-mm
  */
 @Serializable
-data class UserInfo @OptIn(ExperimentalTime::class) constructor(
+data class UserInfo constructor(
     var username: String = "",
     var full_name: String = "",
     var has_profile: Boolean = false,
@@ -29,7 +34,7 @@ data class UserInfo @OptIn(ExperimentalTime::class) constructor(
     val achievements: List<Achievements> = listOf(Achievements.THE_EARLY_FEW),
     var active_boosts: HashMap<InventoryItem,String> = hashMapOf(),
     var last_updated: Long = System.currentTimeMillis(),
-    var created_on: Instant = Clock.System.now(),
+    @Serializable(with = JavaInstantSerializer::class) var created_on: Instant = Clock.system(ZoneId.systemDefault()).instant(),
     var streak : StreakData = StreakData(),
     var blockedAndroidPackages: Set<String>? = setOf(),
     var unlockedAndroidPackages: MutableMap<String, Long>? = mutableMapOf(),
@@ -53,8 +58,22 @@ data class UserInfo @OptIn(ExperimentalTime::class) constructor(
  * format: yyyy-MM-dd
  */
 private fun formatInstantToDate(instant: Instant): String {
-    val localDate = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
+    val localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate()
     return localDate.toString() // yyyy-MM-dd
+}
+
+
+object JavaInstantSerializer : KSerializer<Instant> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("Instant", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: Instant) {
+        encoder.encodeString(value.toString()) // ISO-8601
+    }
+
+    override fun deserialize(decoder: Decoder): Instant {
+        return Instant.parse(decoder.decodeString())
+    }
 }
 
 /**

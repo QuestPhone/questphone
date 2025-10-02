@@ -1,4 +1,4 @@
-package nethical.questphone.backend.worker
+package neth.iecal.questphone.core.workers
 
 import android.R
 import android.app.NotificationChannel

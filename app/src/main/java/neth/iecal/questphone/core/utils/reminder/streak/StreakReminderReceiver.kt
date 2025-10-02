@@ -7,7 +7,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import neth.iecal.questphone.app.screens.game.handleStreakFreezers
 import neth.iecal.questphone.core.utils.reminder.HiltBroadcastReceiver
 import neth.iecal.questphone.core.utils.scheduleDailyNotification
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import javax.inject.Inject
 
 @AndroidEntryPoint(BroadcastReceiver::class)

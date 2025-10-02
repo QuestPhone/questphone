@@ -22,11 +22,11 @@ import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
 import nethical.questphone.ai.padTokenIds
 import nethical.questphone.ai.preprocessBitmapToFloatBuffer
 import nethical.questphone.ai.tokenizeText
-import nethical.questphone.backend.Supabase
+import neth.iecal.questphone.core.Supabase
 import nethical.questphone.backend.TaskValidationClient
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.StatsRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.StatsRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap
 import java.io.File

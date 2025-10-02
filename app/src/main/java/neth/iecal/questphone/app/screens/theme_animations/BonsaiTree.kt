@@ -28,7 +28,7 @@ import kotlinx.serialization.Serializable
 import neth.iecal.questphone.app.screens.theme_animations.BonsaiTree.Branch
 import neth.iecal.questphone.app.screens.theme_animations.BonsaiTree.Leaf
 import neth.iecal.questphone.app.screens.theme_animations.BonsaiTree.SimpleBranch
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.data.json
 import javax.inject.Inject
 import kotlin.math.cos

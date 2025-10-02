@@ -7,11 +7,11 @@ import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import neth.iecal.questphone.core.Supabase
 import neth.iecal.questphone.core.utils.reminder.streak.getLine
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.ReminderData
-import nethical.questphone.backend.ReminderDatabaseProvider
-import nethical.questphone.backend.Supabase
+import neth.iecal.questphone.data.CommonQuestInfo
+import neth.iecal.questphone.data.ReminderData
+import neth.iecal.questphone.data.ReminderDatabaseProvider
 import nethical.questphone.core.core.utils.convertToDayOfWeek
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.unixToReadable
@@ -20,6 +20,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import kotlin.random.Random
+
 fun generateQuestReminder(context: Context, quest: CommonQuestInfo) {
     val dao = ReminderDatabaseProvider.getInstance(context).reminderDao()
     val userId = Supabase.supabase.auth.currentAccessTokenOrNull().toString()

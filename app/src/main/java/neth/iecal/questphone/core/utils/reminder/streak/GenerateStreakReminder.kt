@@ -15,7 +15,7 @@ import androidx.core.net.toUri
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.screens.game.DialogState
 import neth.iecal.questphone.app.screens.game.RewardDialogInfo
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.core.core.utils.daysSince
 import java.io.BufferedReader
 import java.time.DayOfWeek

@@ -49,9 +49,9 @@ import neth.iecal.questphone.app.screens.account.ActiveBoostsItem
 import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.core.utils.managers.executeItem
 import neth.iecal.questphone.data.InventoryExecParams
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.StatsRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.StatsRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.core.core.utils.formatRemainingTime
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.game.StoreCategory

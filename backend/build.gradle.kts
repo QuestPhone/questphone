@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     kotlin("plugin.serialization") version "2.0.20"
     id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
 
 }
 
@@ -64,29 +63,11 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-
-    implementation(libs.supabase.auth)
-    implementation(libs.supabase.storage)
-    implementation(libs.postgrest.kt)
-
     implementation(libs.ktor.client.okhttp)
     implementation (libs.guava)
     implementation (libs.kotlinx.serialization.json)
 
     implementation (libs.androidx.work.runtime.ktx)
-
-
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
-
-
-    implementation(libs.hilt.android)
-    implementation(libs.androidx.hilt.navigation.compose)
-    ksp(libs.hilt.android.compiler)
-
-    implementation(libs.kotlinx.datetime)
-
     implementation(project(":data"))
     implementation(project(":core"))
 

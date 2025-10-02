@@ -1,4 +1,4 @@
-package nethical.questphone.backend.repositories
+package neth.iecal.questphone.backed.repositories
 
 import android.content.Context
 import android.util.Log
@@ -9,8 +9,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
-import nethical.questphone.backend.Supabase
-import nethical.questphone.backend.triggerProfileSync
+import neth.iecal.questphone.backed.triggerProfileSync
+import neth.iecal.questphone.core.Supabase
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getFullTimeAfter
 import nethical.questphone.core.core.utils.isTimeOver
@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.ExperimentalTime
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
@@ -228,6 +229,7 @@ class UserRepository @Inject constructor(
     }
 
 
+    @OptIn(ExperimentalTime::class)
     fun loadUserInfo(): UserInfo {
         val sharedPreferences = context.getSharedPreferences("user_info", Context.MODE_PRIVATE)
         val userInfoJson = sharedPreferences.getString("user_info", null)

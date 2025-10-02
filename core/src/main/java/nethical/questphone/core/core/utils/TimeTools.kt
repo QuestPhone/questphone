@@ -1,17 +1,18 @@
 package nethical.questphone.core.core.utils
 
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.minus
+import kotlinx.datetime.number
 import kotlinx.datetime.plus
+import kotlinx.datetime.toJavaDayOfWeek
 import kotlinx.datetime.toLocalDateTime
 import nethical.questphone.data.DayOfWeek
 import java.text.SimpleDateFormat
 import java.time.Duration
+import java.time.Instant
 import java.time.Instant.ofEpochSecond
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -19,6 +20,9 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.toKotlinInstant
 
 
 /**
@@ -187,12 +191,13 @@ fun getAllDatesBetween(startDate: Date, endDate: Date): List<Date> {
 }
 
 
+@OptIn(ExperimentalTime::class)
 fun daysSince(
     dateString: String,
     allowedDays: Set<java.time.DayOfWeek>
 ): Int {
     val inputDate = LocalDate.parse(dateString)
-    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    val today = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
     val start = minOf(inputDate, today)
     val end = maxOf(inputDate, today)
@@ -201,7 +206,7 @@ fun daysSince(
     var current = start
 
     while (current <= end) {
-        if (current.dayOfWeek in allowedDays) {
+        if (current.dayOfWeek.toJavaDayOfWeek() in allowedDays) {
             count++
         }
         current = current.plus(1, DateTimeUnit.DAY)
@@ -215,15 +220,16 @@ fun LocalDate.getStartOfWeek(): LocalDate {
     return this.minus(dayOfWeek - 1, DateTimeUnit.DAY)
 }
 
+@OptIn(ExperimentalTime::class)
 fun calculateMonthsPassedAndRoundedStart(input: Instant): LocalDate?{
     val now = Clock.System.now()
 
     // Convert both to LocalDate in UTC
     val today = now.toLocalDateTime(TimeZone.UTC).date
-    val startDate = input.toLocalDateTime(TimeZone.UTC).date
-
+    val startDate = input.toKotlinInstant().toLocalDateTime(TimeZone.UTC).date
+//    val startDate = input.toLocalDateTime(TimeZone.UTC).date
     // Calculate how many months have passed
-    val monthsPassed = ((today.year - startDate.year) * 12) + (today.monthNumber - startDate.monthNumber)
+    val monthsPassed = ((today.year - startDate.year) * 12) + (today.month.number - startDate.month.number)
 
     // If more than 12 months, return rounded start date (next Jan 1)
     val roundedStart = if (monthsPassed > 12) {

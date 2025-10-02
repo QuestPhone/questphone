@@ -61,8 +61,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
-import nethical.questphone.backend.Supabase
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.core.Supabase
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.data.UserInfo
 import java.io.File
 import java.io.FileOutputStream

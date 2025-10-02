@@ -49,8 +49,8 @@ import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
 import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.data.IntegrationId
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.data.BaseIntegrationId
 import javax.inject.Inject
 

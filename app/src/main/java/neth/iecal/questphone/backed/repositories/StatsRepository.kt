@@ -1,11 +1,12 @@
-package nethical.questphone.backend.repositories
+package neth.iecal.questphone.backed.repositories
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.LocalDate
-import nethical.questphone.backend.StatsInfo
-import nethical.questphone.backend.StatsInfoDao
+import neth.iecal.questphone.data.StatsInfo
+import neth.iecal.questphone.data.StatsInfoDao
 import javax.inject.Inject
+import kotlin.collections.maxByOrNull
 
 class StatsRepository @Inject constructor(
     private val statsInfoDao: StatsInfoDao
@@ -26,7 +27,7 @@ class StatsRepository @Inject constructor(
         return statsInfoDao.getStatsByQuestId(id)
     }
 
-    suspend fun getStatsForUserOnDate(date: kotlinx.datetime.LocalDate): StatsInfo? {
+    suspend fun getStatsForUserOnDate(date: LocalDate): StatsInfo? {
         return statsInfoDao.getStatsForUserOnDate(date)
     }
 

@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.io.IOException
 import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
-import nethical.questphone.backend.CommonQuestInfo
+import neth.iecal.questphone.data.CommonQuestInfo
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request

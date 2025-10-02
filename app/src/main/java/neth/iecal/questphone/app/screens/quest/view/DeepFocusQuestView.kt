@@ -56,10 +56,10 @@ import neth.iecal.questphone.core.services.AppBlockerServiceInfo
 import neth.iecal.questphone.core.services.INTENT_ACTION_START_DEEP_FOCUS
 import neth.iecal.questphone.core.services.INTENT_ACTION_STOP_DEEP_FOCUS
 import neth.iecal.questphone.core.utils.managers.QuestHelper
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.StatsRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.data.CommonQuestInfo
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.StatsRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.core.core.utils.managers.sendRefreshRequest

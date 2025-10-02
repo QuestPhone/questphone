@@ -15,7 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.jeziellago.compose.markdowntext.MarkdownText
-import nethical.questphone.backend.fetchUrlContent
+import neth.iecal.questphone.backed.fetchUrlContent
 
 @Composable
 fun DocumentViewerScreen(url: String){

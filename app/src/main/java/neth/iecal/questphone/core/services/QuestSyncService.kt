@@ -1,4 +1,4 @@
-package nethical.questphone.backend.services.sync
+package neth.iecal.questphone.core.services
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -15,9 +15,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.Supabase
-import nethical.questphone.backend.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.data.CommonQuestInfo
+import neth.iecal.questphone.core.Supabase
 import nethical.questphone.core.R
 import nethical.questphone.data.SyncStatus
 import javax.inject.Inject
@@ -28,7 +29,8 @@ class QuestSyncService : Service() {
 
     @Inject
     lateinit var questRepository: QuestRepository
-
+    @Inject
+    lateinit var userRepository: UserRepository
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
     private var syncJob: Job? = null
 
@@ -70,6 +72,8 @@ class QuestSyncService : Service() {
             }
         }
 
+
+
         return START_NOT_STICKY
     }
 
@@ -77,18 +81,12 @@ class QuestSyncService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        syncJob?.cancel()
+//        syncJob?.cancel()
     }
 
     private suspend fun performSync(isFirstTimeSync: Boolean, pullForSpecific: String? = null) {
         try {
-            val sp = getSharedPreferences("authtoken", Context.MODE_PRIVATE)
-            var userId = sp.getString("key",null)
-            if (userId == null) {
-                Log.w("ProfileSyncService", "No user logged in, stopping sync")
-                return
-            }
-
+            var userId = userRepository.getUserId()
             Log.d("QuestSyncService", "Starting quest sync for $userId, firstTime: $isFirstTimeSync")
             sendSyncBroadcast(SyncStatus.ONGOING)
 
@@ -99,6 +97,7 @@ class QuestSyncService : Service() {
             }else {
                 performRegularSync()
             }
+
 
             sendSyncBroadcast(SyncStatus.ONGOING)
             Log.d("QuestSyncService", "Quest sync completed successfully")
@@ -121,7 +120,11 @@ class QuestSyncService : Service() {
             .decodeList<CommonQuestInfo>()
 
         remoteQuests.forEach { quest ->
-            questRepository.upsertQuest(quest.copy(synced = true))
+            try {
+                questRepository.upsertQuest(quest.copy(synced = true))
+            }catch (e: Exception){
+                Log.e("QuestSyncService", "Sync failed", e)
+            }
         }
 
         Log.d("QuestSyncService", "First time sync completed, synced ${remoteQuests.size} quests")

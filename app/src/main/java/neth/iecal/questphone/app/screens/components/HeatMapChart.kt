@@ -40,19 +40,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import neth.iecal.questphone.app.theme.LocalCustomTheme
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.StatsRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.StatsRepository
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
 
 // --- Data class to hold daily quest information ---
 data class DailyQuestInfo(
@@ -101,6 +102,7 @@ class HeatMapChartVM @Inject constructor(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 @Composable
 fun HeatMapChart(
     modifier: Modifier = Modifier,
@@ -114,11 +116,11 @@ fun HeatMapChart(
 
     // Determine the date range and pad with empty days
     val dateRange = remember(statsMap) {
-        val today = Clock.System.todayIn(currentSystemTimeZone)
+        val today = kotlin.time.Clock.System.todayIn(currentSystemTimeZone)
 
         // The start date is still calculated from the first data point or today.
         val minDate = statsMap.keys.minOrNull() ?: today
-        val daysFromMondayStart = minDate.dayOfWeek.value - DayOfWeek.MONDAY.value
+        val daysFromMondayStart = minDate.dayOfWeek.isoDayNumber - DayOfWeek.MONDAY.isoDayNumber
         val startDate = minDate.minus(daysFromMondayStart, DateTimeUnit.DAY)
 
         // The end date is now forced to extend to the start of the next year.
@@ -126,7 +128,7 @@ fun HeatMapChart(
         val endOfYearTarget = LocalDate(nextYear, Month.JANUARY, 1)
 
         // We still pad the final week to the following Sunday for a complete grid.
-        val daysToSundayEnd = DayOfWeek.SUNDAY.value - endOfYearTarget.dayOfWeek.value
+        val daysToSundayEnd = DayOfWeek.SUNDAY.isoDayNumber - endOfYearTarget.dayOfWeek.isoDayNumber
         val endDate = endOfYearTarget.plus(daysToSundayEnd, DateTimeUnit.DAY)
 
         startDate to endDate
@@ -149,7 +151,7 @@ fun HeatMapChart(
     // Group padded days by week (starting Monday)
     val weeksData = remember(allDaysData) {
         allDaysData.groupBy {
-            val daysFromMonday = it.date.dayOfWeek.value - DayOfWeek.MONDAY.value
+            val daysFromMonday = it.date.dayOfWeek.isoDayNumber - DayOfWeek.MONDAY.isoDayNumber
             it.date.minus(daysFromMonday, DateTimeUnit.DAY)
         }
             .toSortedMap() // Ensure weeks are ordered
@@ -286,7 +288,7 @@ private fun ContributionGrid(
                     // Use data if present, otherwise create a placeholder
                     val dayData = daysInWeekMap[dayOfWeek] ?: DailyQuestInfo(
                         // Calculate the correct date for the placeholder cell
-                        date = weekStartDate.plus(dayOfWeek.value - DayOfWeek.MONDAY.value, DateTimeUnit.DAY),
+                        date = weekStartDate.plus(dayOfWeek.isoDayNumber - DayOfWeek.MONDAY.isoDayNumber, DateTimeUnit.DAY),
                         quests = emptyList(),
                         isPlaceholder = true // Mark as placeholder
                     )

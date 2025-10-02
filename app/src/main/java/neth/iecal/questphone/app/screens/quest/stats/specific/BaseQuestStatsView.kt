@@ -67,7 +67,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
@@ -75,11 +74,11 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toLocalDateTime
 import neth.iecal.questphone.R
-import nethical.questphone.backend.CommonQuestInfo
-import nethical.questphone.backend.StatsInfo
-import nethical.questphone.backend.repositories.QuestRepository
-import nethical.questphone.backend.repositories.StatsRepository
-import nethical.questphone.backend.repositories.UserRepository
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.StatsRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.data.CommonQuestInfo
+import neth.iecal.questphone.data.StatsInfo
 import nethical.questphone.core.core.utils.daysSince
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.core.core.utils.getStartOfWeek
@@ -92,6 +91,7 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
 
 @HiltViewModel
 class BaseQuestStatsViewVM @Inject constructor(
@@ -255,6 +255,7 @@ class BaseQuestStatsViewVM @Inject constructor(
 }
 
 // Updated Composable
+@OptIn(ExperimentalTime::class)
 @Composable
 fun BaseQuestStatsView(
     id: String,
@@ -570,12 +571,13 @@ fun StatCard(title: String, value: String, icon: Int, modifier: Modifier = Modif
         }
     }
 }
+@ExperimentalTime
 @Composable
 fun CalendarSection(
     questStats: Set<kotlinx.datetime.LocalDate>,
     onShowFullCalendar: () -> Unit
 ) {
-    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    val today = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
     val pastWeekDates = (0..6).map { offset ->
         today.minus(offset, DateTimeUnit.DAY)
@@ -1042,6 +1044,7 @@ private fun UseItemDialog(item: InventoryItem,doesUserOwnEditor:Boolean, onDismi
     }
 }
 
+@OptIn(ExperimentalTime::class)
 fun calculateCurrentStreak(
     completed: Collection<StatsInfo>,
     questDays: Set<DayOfWeek>
@@ -1049,10 +1052,11 @@ fun calculateCurrentStreak(
     val completedDates: HashSet<kotlinx.datetime.LocalDate> = completed.map { it.date }.toHashSet()
 
     var streak = 0
-    var currentDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    var currentDate = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
     while (true) {
-        if (currentDate.dayOfWeek !in questDays) {
+        val javaDay = DayOfWeek.valueOf(currentDate.dayOfWeek.name)
+        if (javaDay !in questDays) {
             currentDate = currentDate.minus(1, DateTimeUnit.DAY)
             continue
         }
@@ -1086,7 +1090,8 @@ fun calculateLongestStreak(
     var longestStreak = 0
 
     while (currentDate <= endDate) {
-        if (currentDate.dayOfWeek in allowedDays) {
+        val javaDay = DayOfWeek.valueOf(currentDate.dayOfWeek.name)
+        if (javaDay in allowedDays) {
             if (currentDate in completedDates) {
                 currentStreak++
                 longestStreak = maxOf(longestStreak, currentStreak)
