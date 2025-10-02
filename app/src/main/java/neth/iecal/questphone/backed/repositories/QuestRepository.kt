@@ -1,10 +1,21 @@
 package neth.iecal.questphone.backed.repositories
 
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import neth.iecal.questphone.data.CommonQuestInfo
 import neth.iecal.questphone.data.QuestDao
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface QuestRepositoryEntryPoint {
+    fun questRepository(): QuestRepository
+}
+
+@Singleton
 class QuestRepository @Inject constructor(
     private val questDao: QuestDao
 ){

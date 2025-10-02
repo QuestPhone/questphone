@@ -58,17 +58,18 @@ import neth.iecal.questphone.app.screens.quest.templates.SetupTemplate
 import neth.iecal.questphone.app.screens.quest.templates.TemplatesViewModel
 import neth.iecal.questphone.app.theme.LauncherTheme
 import neth.iecal.questphone.app.theme.customThemes.PitchBlackTheme
-import neth.iecal.questphone.core.services.AppBlockerService
-import neth.iecal.questphone.core.utils.FcmHandler
-import neth.iecal.questphone.core.utils.receiver.AppInstallReceiver
-import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
-import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.backed.isOnline
 import neth.iecal.questphone.backed.repositories.QuestRepository
 import neth.iecal.questphone.backed.repositories.StatsRepository
 import neth.iecal.questphone.backed.repositories.UserRepository
 import neth.iecal.questphone.backed.triggerQuestSync
+import neth.iecal.questphone.backed.triggerStatsSync
+import neth.iecal.questphone.core.services.AppBlockerService
+import neth.iecal.questphone.core.utils.FcmHandler
+import neth.iecal.questphone.core.utils.receiver.AppInstallReceiver
+import neth.iecal.questphone.core.utils.reminder.NotificationScheduler
 import neth.iecal.questphone.core.workers.FileDownloadWorker
+import neth.iecal.questphone.data.IntegrationId
 import nethical.questphone.core.core.utils.fromHex
 import java.io.File
 import javax.inject.Inject
@@ -144,7 +145,7 @@ class MainActivity : ComponentActivity() {
                         }
                         unSyncedStatsItems.collect {
                             if (context.isOnline() && !userRepository.userInfo.isAnonymous ) {
-                                triggerQuestSync(applicationContext)
+                                triggerStatsSync(applicationContext)
                             }
                         }
                     }

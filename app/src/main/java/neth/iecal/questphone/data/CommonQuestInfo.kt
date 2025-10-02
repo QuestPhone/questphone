@@ -18,10 +18,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.core.Supabase
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.data.BaseIntegrationId
 import nethical.questphone.data.DayOfWeek
@@ -47,6 +49,7 @@ import javax.inject.Singleton
 data class CommonQuestInfo(
     @PrimaryKey
     val id: String = UUID.randomUUID().toString(),
+    val user_id: String = Supabase.supabase.auth.currentUserOrNull()?.id.toString(),
     var title: String = "",
     var reward: Int = 5,
     var integration_id : BaseIntegrationId = BaseIntegrationId.DEEP_FOCUS,
@@ -131,7 +134,7 @@ interface QuestDao {
 
 @Database(
     entities = [CommonQuestInfo::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(BaseQuestConverter::class)
@@ -148,10 +151,10 @@ object QuestModule {
     @Singleton
     fun provideQuestDatabase(@ApplicationContext context: Context): QuestDatabase {
         return Room.databaseBuilder(
-            context,
-            QuestDatabase::class.java,
-            "quest_database"
-        ).build()
+                context,
+                QuestDatabase::class.java,
+                "quest_database"
+            ).fallbackToDestructiveMigration(true).build()
     }
 
     @Singleton
@@ -166,3 +169,4 @@ object QuestModule {
         return QuestRepository(dao)
     }
 }
+

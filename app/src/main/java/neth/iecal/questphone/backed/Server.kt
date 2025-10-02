@@ -2,20 +2,18 @@ package neth.iecal.questphone.backed
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.annotation.RequiresPermission
+import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import neth.iecal.questphone.core.services.QuestSyncService
-import neth.iecal.questphone.core.services.QuestSyncService.Companion.EXTRA_IS_FIRST_TIME
-import neth.iecal.questphone.core.services.QuestSyncService.Companion.EXTRA_IS_PULL_SPECIFIC_QUEST
-import neth.iecal.questphone.core.services.StatsSyncService
 import neth.iecal.questphone.core.workers.ProfileSyncWorker
+import neth.iecal.questphone.core.workers.QuestSyncWorker
+import neth.iecal.questphone.core.workers.StatsSyncWorker
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -49,16 +47,6 @@ fun Context.isOnline(): Boolean {
 
 
 
-fun triggerQuestSync(context: Context, isFirstSync: Boolean = false, pullForQuest:String? = null) {
-    Log.d("Sync","Syncing Quest")
-    val intent = Intent(context, QuestSyncService::class.java).apply {
-        putExtra(EXTRA_IS_FIRST_TIME, isFirstSync)
-        if(pullForQuest!=null){
-            putExtra(EXTRA_IS_PULL_SPECIFIC_QUEST, pullForQuest)
-        }
-    }
-    context.startForegroundService(intent)
-}
 
 fun triggerProfileSync(context: Context, isFirstLoginSync:Boolean = false) {
     Log.d("Sync","Syncing profile")
@@ -69,7 +57,33 @@ fun triggerProfileSync(context: Context, isFirstLoginSync:Boolean = false) {
     WorkManager.getInstance(context).enqueue(workRequest)
 }
 
-fun triggerStatsSync(context: Context, isFirstSync: Boolean = false,pullAllForToday:Boolean = false) {
-    Log.d("Sync","Syncing Stats")
-    StatsSyncService.start(context,isFirstSync,pullAllForToday)
+
+fun triggerStatsSync(context: Context, isFirstSync: Boolean = false, pullAllForToday: Boolean = false) {
+    Log.d("Sync", "Syncing Stats")
+
+    val input = Data.Builder()
+        .putBoolean(StatsSyncWorker.EXTRA_IS_FIRST_TIME, isFirstSync)
+        .putBoolean(StatsSyncWorker.EXTRA_IS_PULL_FOR_TODAY, pullAllForToday)
+        .build()
+
+    val workRequest = OneTimeWorkRequestBuilder<StatsSyncWorker>()
+        .setInputData(input)
+        .build()
+
+    WorkManager.getInstance(context).enqueue(workRequest)
+}
+
+fun triggerQuestSync(context: Context, isFirstSync: Boolean = false, pullForQuest: String? = null) {
+    Log.d("Sync", "Syncing Quest")
+
+    val input = Data.Builder()
+        .putBoolean(QuestSyncWorker.EXTRA_IS_FIRST_TIME, isFirstSync)
+
+    pullForQuest?.let { input.putString(QuestSyncWorker.EXTRA_IS_PULL_SPECIFIC_QUEST, it) }
+
+    val workRequest = OneTimeWorkRequestBuilder<QuestSyncWorker>()
+        .setInputData(input.build())
+        .build()
+
+    WorkManager.getInstance(context).enqueue(workRequest)
 }

@@ -61,8 +61,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.R
-import neth.iecal.questphone.core.Supabase
 import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.core.Supabase
 import nethical.questphone.data.UserInfo
 import java.io.File
 import java.io.FileOutputStream
@@ -95,11 +95,12 @@ class SetupProfileViewModel @Inject constructor(
     private val _profileUrl = MutableStateFlow<String?>(null)
     val profileUrl: StateFlow<String?> = _profileUrl.asStateFlow()
 
-    fun initializeProfile() {
+    suspend fun initializeProfile() {
         viewModelScope.launch {
             if (userRepository.userInfo.isAnonymous) {
                 _isLoading.value = false
             }else {
+                Supabase.awaitSession()
                 val userId = Supabase.supabase.auth.currentUserOrNull()!!.id
 
                 val profile = Supabase.supabase.from("profiles")
@@ -250,7 +251,7 @@ fun SetupProfileScreen(
         viewModel.updateProfileImage(uri)
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isNextEnabledSetupProfile.value) {
         viewModel.initializeProfile()
         isNextEnabledSetupProfile.value = true
     }

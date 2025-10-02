@@ -109,18 +109,6 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <service
-            android:name="neth.iecal.questphone.core.services.QuestSyncService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
-
-        <service
-            android:name="neth.iecal.questphone.core.services.StatsSyncService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
-
 <!--        <service-->
 <!--            android:name="nethical.questphone.backend.services.sync.ProfileSyncService"-->
 <!--            android:enabled="true"-->

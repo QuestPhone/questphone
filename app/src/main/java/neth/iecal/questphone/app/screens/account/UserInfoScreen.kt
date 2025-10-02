@@ -1,6 +1,7 @@
 package neth.iecal.questphone.app.screens.account
 
 import android.app.Activity
+import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -62,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -76,9 +78,9 @@ import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.game.InventoryBox
 import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
 import neth.iecal.questphone.app.theme.LocalCustomTheme
-import nethical.questphone.backend.BuildConfig
 import neth.iecal.questphone.backed.repositories.UserRepository
 import neth.iecal.questphone.backed.triggerProfileSync
+import nethical.questphone.backend.BuildConfig
 import nethical.questphone.core.core.utils.formatNumber
 import nethical.questphone.data.UserInfo
 import nethical.questphone.data.game.InventoryItem
@@ -115,6 +117,8 @@ class UserInfoViewModel @Inject constructor(
     fun logOut(onLoggedOut: () -> Unit) {
         viewModelScope.launch {
             userRepository.signOut()
+            val activityManager = application.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            activityManager.clearApplicationUserData()
             withContext(Dispatchers.Main) {
                 onLoggedOut()
             }

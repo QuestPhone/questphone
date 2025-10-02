@@ -1,13 +1,23 @@
 package neth.iecal.questphone.backed.repositories
 
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.LocalDate
 import neth.iecal.questphone.data.StatsInfo
 import neth.iecal.questphone.data.StatsInfoDao
 import javax.inject.Inject
-import kotlin.collections.maxByOrNull
+import javax.inject.Singleton
 
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface StatsRepositoryEntryPoint {
+    fun statsRepository(): StatsRepository
+}
+
+@Singleton
 class StatsRepository @Inject constructor(
     private val statsInfoDao: StatsInfoDao
 ) {
