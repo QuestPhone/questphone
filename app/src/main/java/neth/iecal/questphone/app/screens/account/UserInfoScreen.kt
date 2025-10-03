@@ -154,9 +154,9 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
                 ) {
                 Row(
                     modifier = Modifier.padding( WindowInsets.statusBarsIgnoringVisibility.asPaddingValues()),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-
                     // Profile Header
                     Text(
                         text = "Profile",

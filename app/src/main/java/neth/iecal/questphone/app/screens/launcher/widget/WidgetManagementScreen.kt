@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -104,19 +103,10 @@ fun WidgetManagementScreen(
     val pickWidgetLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                val appWidgetId =
-                    result.data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
-                        ?: return@rememberLauncherForActivityResult
-                val info = appWidgetManager.getAppWidgetInfo(appWidgetId)
-                if (info != null) {
-                    if (info.configure != null) {
-                        val configIntent =
-                            Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE).apply {
-                                component = info.configure
-                                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                            }
-                        configureWidgetLauncher.launch(configIntent)
-                    } else {
+                val appWidgetId = result.data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) ?: -1
+                if (appWidgetId != -1) {
+                    val info = appWidgetManager.getAppWidgetInfo(appWidgetId)
+                    if (info != null) {
                         viewModel.addWidget(appWidgetId, info)
                     }
                 }
