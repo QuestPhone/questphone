@@ -106,10 +106,14 @@ class AppListViewModel @Inject constructor(
 
     }
 
-     suspend fun loadApps() {
+    fun loadMinutePer5Coins(){
         val prefs = context.getSharedPreferences("minutes_per_5", Context.MODE_PRIVATE)
         minutesPerFiveCoins.value = prefs.getInt("minutes_per_5", 10)
 
+    }
+
+     suspend fun loadApps() {
+         loadMinutePer5Coins()
         val cached = getCachedApps(context)
         if (cached.isNotEmpty()) {
             _apps.value = cached
@@ -143,6 +147,7 @@ class AppListViewModel @Inject constructor(
 
     fun onAppClick(packageName: String) {
         reloadDistractions()
+        loadMinutePer5Coins()
         reloadUnlockedApps()
         val cooldownUntil = unlockedDistractions.value[packageName] ?: 0L
         val isDistraction = _distractions.value.contains(packageName)
