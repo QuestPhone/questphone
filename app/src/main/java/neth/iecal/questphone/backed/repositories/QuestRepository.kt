@@ -47,6 +47,10 @@ class QuestRepository @Inject constructor(
         return questDao.getAllQuests()
     }
 
+    fun getHardLockedQuests(): Flow<List<CommonQuestInfo>> {
+        return questDao.getHardLockQuests()
+    }
+
     fun getUnSyncedQuests(): Flow<List<CommonQuestInfo>> {
         return questDao.getUnSyncedQuests()
     }

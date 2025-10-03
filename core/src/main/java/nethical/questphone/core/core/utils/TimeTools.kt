@@ -172,8 +172,9 @@ fun DayOfWeek.toJavaDayOfWeek(): java.time.DayOfWeek {
 
 fun formatHour(hour: Int): String {
     return when (hour) {
-        0, 24 -> "12 AM" // Midnight fix
+        0 -> "12 AM"
         12 -> "12 PM"
+        24 -> "End Of Day"
         in 1..11 -> "$hour AM"
         else -> "${hour - 12} PM"
     }

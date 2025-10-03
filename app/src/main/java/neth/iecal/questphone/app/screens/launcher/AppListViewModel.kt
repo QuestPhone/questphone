@@ -16,15 +16,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.core.services.AppBlockerServiceInfo
 import neth.iecal.questphone.core.services.INTENT_ACTION_UNLOCK_APP
-import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.core.utils.managers.QuestHelper
 import nethical.questphone.core.core.utils.ScreenUsageStatsHelper
+import nethical.questphone.core.core.utils.getCurrentDate
+import nethical.questphone.core.core.utils.getCurrentDay
 import nethical.questphone.core.core.utils.managers.getCachedApps
 import nethical.questphone.core.core.utils.managers.reloadApps
 import nethical.questphone.data.AppInfo
@@ -37,7 +42,8 @@ import kotlin.time.toKotlinInstant
 @HiltViewModel
 class AppListViewModel @Inject constructor(
     application: Application,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val questRepository: QuestRepository
 ) : AndroidViewModel(application) {
 
     @SuppressLint("StaticFieldLeak")
@@ -76,13 +82,28 @@ class AppListViewModel @Inject constructor(
 
     var remainingFreePassesToday = MutableStateFlow(0)
 
+    val isHardLockedQuestsToday = MutableStateFlow<Boolean>(false)
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             loadApps()
             initFreePasses()
             reloadDistractions()
             reloadUnlockedApps()
+            loadHardLockedQuests()
         }
+    }
+
+    suspend fun loadHardLockedQuests() {
+        questRepository.getHardLockedQuests().collectLatest { unfiltered ->
+            val todayDay = getCurrentDay()
+            val filtered = unfiltered.filter {
+                !it.is_destroyed && it.selected_days.contains(todayDay) && it.last_completed_on != getCurrentDate() &&
+                !QuestHelper.isTimeOver(it)
+            }
+            isHardLockedQuestsToday.value = filtered.isNotEmpty()
+        }
+
     }
 
      suspend fun loadApps() {

@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.data.BaseIntegrationId
 import nethical.questphone.data.DayOfWeek
 import nethical.questphone.data.json
@@ -23,6 +22,7 @@ class QuestInfoState(
     initialSelectedDays: Set<DayOfWeek> = emptySet(),
     initialAutoDestruct: String = "9999-12-31",
     initialTimeRange: List<Int> = listOf(0,24),
+    isHardLock: Boolean = false
 ) {
     var id = UUID.randomUUID().toString()
     var title by mutableStateOf(initialTitle)
@@ -32,6 +32,7 @@ class QuestInfoState(
     var instructions by mutableStateOf(initialInstructions)
     var initialAutoDestruct by mutableStateOf(initialAutoDestruct)
     var initialTimeRange by mutableStateOf(initialTimeRange)
+    var isHardLock by mutableStateOf(isHardLock)
     inline fun < reified T : Any> toBaseQuest(questInfo: T? = null) = CommonQuestInfo(
         id = id,
         title = title,
@@ -41,7 +42,8 @@ class QuestInfoState(
         auto_destruct = initialAutoDestruct,
         time_range = initialTimeRange,
         instructions = instructions,
-        quest_json = if(questInfo!=null) json.encodeToString(questInfo) else ""
+        quest_json = if(questInfo!=null) json.encodeToString(questInfo) else "",
+        isHardLock = isHardLock
     )
     fun fromBaseQuest(commonQuestInfo: CommonQuestInfo){
         id = commonQuestInfo.id
@@ -52,5 +54,6 @@ class QuestInfoState(
         initialAutoDestruct = commonQuestInfo.auto_destruct
         instructions = commonQuestInfo.instructions
         initialTimeRange = commonQuestInfo.time_range
+        isHardLock = commonQuestInfo.isHardLock
     }
 }

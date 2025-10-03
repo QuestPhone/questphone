@@ -61,6 +61,7 @@ fun AppList(navController: NavController, viewModel: AppListViewModel) {
     val keyboardController = LocalSoftwareKeyboardController.current
     var textFieldLoaded by remember { mutableStateOf(false) }
     val minutesPer5Coins by viewModel.minutesPerFiveCoins.collectAsState()
+    val areHardLockedQuestsAvailable by viewModel.isHardLockedQuestsToday.collectAsState()
 
     val coins by viewModel.coins.collectAsState()
     val remainingFreePasses by viewModel.remainingFreePassesToday.collectAsState()
@@ -108,13 +109,16 @@ fun AppList(navController: NavController, viewModel: AppListViewModel) {
                 unlockApp = {
                     viewModel.onConfirmUnlockApp(it)
                 },
-                startDestination = if (coins >= 5) {
+                startDestination = if (areHardLockedQuestsAvailable)
+                    LauncherDialogRoutes.ShowAllQuest.route
+                        else if (coins >= 5) {
                     LauncherDialogRoutes.UnlockAppDialog.route
                 } else {
                     LauncherDialogRoutes.LowCoins.route
                 },
                 remainingFreePasses = remainingFreePasses,
-                onFreePassUsed = { viewModel.useFreePass() }
+                onFreePassUsed = { viewModel.useFreePass() },
+                areHardLockQuestsPresent = areHardLockedQuestsAvailable
             )
         }
 

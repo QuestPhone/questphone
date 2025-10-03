@@ -1,16 +1,19 @@
 package neth.iecal.questphone.app.screens.quest.setup
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,6 +24,7 @@ import neth.iecal.questphone.app.screens.quest.setup.components.AutoDestruct
 import neth.iecal.questphone.app.screens.quest.setup.components.SelectDaysOfWeek
 import neth.iecal.questphone.app.screens.quest.setup.components.SetTimeRange
 import neth.iecal.questphone.data.QuestInfoState
+import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.getCurrentDay
 
@@ -73,6 +77,32 @@ fun CommonSetBaseQuest(createdOnDate:String,questInfoState: QuestInfoState, isTi
 
     if(isTimeRangeSupported){
         SetTimeRange(questInfoState)
+    }
+
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clickable {
+                questInfoState.isHardLock = !questInfoState.isHardLock
+            }
+    ) {
+        Text(
+            text = "Turn on HardLock? distracting apps stay locked for the full time " +
+                    "(${formatHour(questInfoState.initialTimeRange[0])} to " +
+                    "${formatHour(questInfoState.initialTimeRange[1])}) until this quest is complete. " +
+                    "Coins won’t unlock apps during this time.",
+            modifier = Modifier.weight(1f) // ✅ allow wrapping inside row
+        )
+
+        Spacer(Modifier.width(8.dp))
+
+        Switch(
+            checked = questInfoState.isHardLock,
+            onCheckedChange = {
+                questInfoState.isHardLock = it
+            }
+        )
     }
 
 }

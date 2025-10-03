@@ -64,6 +64,7 @@ data class CommonQuestInfo(
     @Transient
     var synced: Boolean = false,
     var last_updated: Long = System.currentTimeMillis(),  // Epoch millis
+    var isHardLock: Boolean = false
 )
 
 
@@ -113,6 +114,9 @@ interface QuestDao {
 
     @Query("SELECT * FROM CommonQuestInfo WHERE synced = 0")
     fun getUnSyncedQuests(): Flow<List<CommonQuestInfo>>
+
+    @Query("SELECT * FROM CommonQuestInfo WHERE isHardLock = 1")
+    fun getHardLockQuests(): Flow<List<CommonQuestInfo>>
 
     @Delete
     suspend fun deleteQuest(quest: CommonQuestInfo)

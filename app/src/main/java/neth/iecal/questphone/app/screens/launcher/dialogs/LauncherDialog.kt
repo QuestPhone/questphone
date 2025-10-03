@@ -20,7 +20,8 @@ fun LauncherDialog(
     unlockApp: (Int) -> Unit = {},
     startDestination: String,
     remainingFreePasses :Int= 0,
-    onFreePassUsed : ()->Unit = {}
+    onFreePassUsed : ()->Unit = {},
+    areHardLockQuestsPresent: Boolean = false
 ) {
     val navController = rememberNavController()
 
@@ -37,7 +38,7 @@ fun LauncherDialog(
             startDestination = startDestination
         ) {
             composable(LauncherDialogRoutes.ShowAllQuest.route) {
-                AllQuestsDialog(rootNavController = rootNavController, onDismiss = onDismiss)
+                AllQuestsDialog(rootNavController = rootNavController, onDismiss = onDismiss, showOnlyHardLockedQuests = areHardLockQuestsPresent)
             }
             composable(LauncherDialogRoutes.FreePassInfo.route) {
                 FreePassInfo(

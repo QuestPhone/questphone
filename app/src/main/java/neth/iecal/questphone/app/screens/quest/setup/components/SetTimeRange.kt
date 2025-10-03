@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.data.QuestInfoState
+import nethical.questphone.core.core.utils.formatHour
 
 @Composable
 fun SetTimeRange(initialTimeRange: QuestInfoState) {
@@ -234,7 +235,7 @@ fun HourPicker(selectedHour: Int, availableHours: List<Int>, onHourSelected: (In
                 )
 
                 Text(
-                    text =  if(hour == 24) "End Of Day" else formatHour(hour),
+                    text =   formatHour(hour),
                     fontSize = if (isSelected) 22.sp else 18.sp,
                     color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
@@ -256,16 +257,5 @@ fun HourPicker(selectedHour: Int, availableHours: List<Int>, onHourSelected: (In
                 )
             }
         }
-    }
-}
-
-// Helper function to format hour (unchanged)
-fun formatHour(hour: Int): String {
-    return when (hour) {
-        0 -> "12 AM"
-        12 -> "12 PM"
-        24 -> "12 AM"
-        in 1..11 -> "$hour AM"
-        else -> "${hour - 12} PM"
     }
 }

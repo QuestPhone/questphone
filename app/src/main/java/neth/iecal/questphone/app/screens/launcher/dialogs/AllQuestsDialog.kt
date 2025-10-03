@@ -34,7 +34,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -52,8 +54,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.backed.repositories.QuestRepository
 import neth.iecal.questphone.core.utils.managers.QuestHelper
@@ -70,7 +74,10 @@ class AllQuestDialogViewModel @Inject constructor(
 ) : AndroidViewModel(application){
 
     val completedQuests = SnapshotStateList<String>()
-    val questList = mutableStateListOf<CommonQuestInfo>()
+
+    private val allQuests = MutableStateFlow<List<CommonQuestInfo>>(emptyList())
+
+    val questList = MutableStateFlow<List<CommonQuestInfo>>(mutableListOf())
     val isLoading = mutableStateOf(true)
 
     init {
@@ -81,8 +88,8 @@ class AllQuestDialogViewModel @Inject constructor(
                     !it.is_destroyed && it.selected_days.contains(todayDay)
                 }
 
-                questList.clear()
-                questList.addAll(filtered)
+                allQuests.value = filtered
+                questList.value = filtered
 
                 completedQuests.clear()
                 completedQuests.addAll(
@@ -94,6 +101,14 @@ class AllQuestDialogViewModel @Inject constructor(
             }
         }
     }
+
+    fun showOnlyHardLocked() {
+        questList.value = allQuests.value.filter { it.isHardLock }
+    }
+
+    fun showAll() {
+        questList.value = allQuests.value
+    }
 }
 
 @Composable
@@ -101,14 +116,23 @@ fun AllQuestsDialog(
     rootNavController: NavController?,
     viewModel: AllQuestDialogViewModel = hiltViewModel(),
     onDismiss: () -> Unit,
+    showOnlyHardLockedQuests : Boolean = false
     ) {
     val completedQuests = viewModel.completedQuests
-    val questList = viewModel.questList
+    val questList by viewModel.questList.collectAsState()
     val isLoading = viewModel.isLoading
 
 
     val progress =
         (completedQuests.size.toFloat() / questList.size.toFloat()).coerceIn(0f, 1f)
+
+    LaunchedEffect(showOnlyHardLockedQuests) {
+        if (showOnlyHardLockedQuests) {
+            viewModel.showOnlyHardLocked()
+        } else {
+            viewModel.showAll()
+        }
+    }
 
     Surface(
         modifier = Modifier
@@ -132,11 +156,11 @@ fun AllQuestsDialog(
                 Surface(
                     modifier = Modifier.size(48.dp),
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Icon(
                         painter = painterResource(neth.iecal.questphone.R.drawable.baseline_gamepad_24),
                         contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .padding(12.dp)
                             .size(24.dp),
@@ -147,8 +171,8 @@ fun AllQuestsDialog(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "Today's Quests",
-                        style = MaterialTheme.typography.headlineSmall,
+                        text = if(showOnlyHardLockedQuests) "Please perform all your Hard Locked quests first" else "Today's Quests",
+                        style = if(showOnlyHardLockedQuests)MaterialTheme.typography.bodyMedium else MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     if (!isLoading.value && questList.isNotEmpty()) {
@@ -257,21 +281,30 @@ fun AllQuestsDialog(
                                     val isFailed = QuestHelper.isTimeOver(baseQuest)
                                     val isCompleted = completedQuests.contains(baseQuest.id)
 
-                                    Text(
-                                        text = if (QuestHelper.Companion.isInTimeRange(baseQuest) && isFailed) baseQuest.title else prefix + baseQuest.title,
-                                        fontWeight = FontWeight.ExtraLight,
-                                        fontSize = 23.sp,
-                                        color = if (isFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                                        textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
-                                        modifier = Modifier.clickable(
-                                            onClick = {
-                                                onDismiss()
-                                                rootNavController?.navigate(RootRoute.ViewQuest.route + baseQuest.id)
-                                            },
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = ripple(bounded = false)
+                                    Row (verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = if (QuestHelper.Companion.isInTimeRange(baseQuest) && isFailed) baseQuest.title else prefix + baseQuest.title,
+                                            fontWeight = FontWeight.ExtraLight,
+                                            fontSize = 23.sp,
+                                            color = if (isFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                                            textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
+                                            modifier = Modifier.clickable(
+                                                onClick = {
+                                                    onDismiss()
+                                                    rootNavController?.navigate(RootRoute.ViewQuest.route + baseQuest.id)
+                                                },
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = ripple(bounded = false),
+                                            ).weight(1f)
                                         )
-                                    )
+                                        if (baseQuest.isHardLock) {
+                                            Spacer(Modifier.size(4.dp))
+                                            Icon(
+                                                painter = painterResource(R.drawable.outline_lock_24),
+                                                contentDescription = "Locked Quest"
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
