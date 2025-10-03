@@ -88,7 +88,7 @@ fun OnBoarderView(navController: NavHostController) {
         ),
         OnboardingContent.StandardPage(
             "We're here to save you",
-            "Those wasted years? We turn them into growth. Every time you want a distracting app, you’ll first complete a real-life Quest. Walk, study, meditate, anything that builds you up. Quests give you Coins and XP: spend 5 Coins for 10 mins of app time, level up, and watch your habits (and your life) transform."
+            "Do a Quest → Earn growth → Unlock your app"
         ),
                 OnboardingContent.CustomPage(
             isNextEnabled = isNextEnabledLogin){ ->

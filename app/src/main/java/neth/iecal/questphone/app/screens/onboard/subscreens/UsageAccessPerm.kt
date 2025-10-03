@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import neth.iecal.questphone.app.screens.components.NeuralMeshAsymmetrical
 
 @Composable
 fun UsageAccessPerm() {
@@ -23,6 +25,8 @@ fun UsageAccessPerm() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
     ) {
+        NeuralMeshAsymmetrical(Modifier.size(200.dp).padding(bottom = 16.dp))
+
         Text(
             text = "Your Phone is Eating Your Life.\nWanna Know How Much?",
             style = MaterialTheme.typography.headlineLarge,

@@ -61,7 +61,8 @@ fun ShowSocialsScreen() {
                         "If you'd like to help us grow, here are some ways:\n\n" +
                         "• Support development with a donation\n" +
                         "• Join our Discord community\n" +
-                        "• Connect with us on Telegram",
+                        "• Connect with us on Telegram" +
+                        "• Follow us on instagram and other platforms",
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.87f),
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
@@ -72,7 +73,7 @@ fun ShowSocialsScreen() {
                     .verticalScroll(verticalScroll)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Donate button
             Button(

@@ -6,12 +6,25 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.collectLatest
@@ -20,12 +33,12 @@ import neth.iecal.questphone.app.screens.account.login.AuthStep
 import neth.iecal.questphone.app.screens.account.login.LoginScreen
 import neth.iecal.questphone.app.screens.account.login.LoginViewModel
 import neth.iecal.questphone.app.screens.account.login.SignUpScreen
-import neth.iecal.questphone.app.screens.onboard.StandardPageContent
-import neth.iecal.questphone.core.Supabase
+import neth.iecal.questphone.app.screens.components.NeuralMeshSymmetrical
 import neth.iecal.questphone.backed.isOnline
 import neth.iecal.questphone.backed.triggerProfileSync
 import neth.iecal.questphone.backed.triggerQuestSync
 import neth.iecal.questphone.backed.triggerStatsSync
+import neth.iecal.questphone.core.Supabase
 
 @Composable
 fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostController){
@@ -80,7 +93,33 @@ fun LoginOnboard(isNextEnabled: MutableState<Boolean>, navController: NavHostCon
             AuthStep.FORGOT_PASSWORD -> ForgotPasswordScreen(viewModel)
             AuthStep.COMPLETE ->
             {
-                StandardPageContent("A New Journey Begins Here!", "Press Next to continue!")
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+
+
+                    NeuralMeshSymmetrical(Modifier.size(200.dp).padding(bottom = 16.dp))
+
+                    Text(
+                        text = "A New Journey Begins Here!",
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Black
+                    )
+
+
+                    MarkdownText(
+                        markdown = "Press *Next* to continue!",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.ExtraLight,
+                            textAlign = TextAlign.Center),
+                        )
+
+                }
             }
 
         }

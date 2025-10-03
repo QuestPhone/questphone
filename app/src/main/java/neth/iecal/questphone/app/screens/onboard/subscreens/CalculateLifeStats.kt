@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -109,11 +110,9 @@ fun CalculateLifeStats() {
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(16.dp))
-                Text(
-                    text = "over the span of the next 54 years if you don't fix your habits TODAY!\n(Based on your screen time the last 7 days)",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Light,
-                    textAlign = TextAlign.Center
+                MarkdownText(
+                    markdown = "over the span of the next **54 years** if you don't fix your habits TODAY!\n(Based on your screen time the last 7 days)",
+                    style = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.Center, fontWeight = FontWeight.Light),
                 )
             }
         }

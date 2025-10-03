@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -265,11 +266,11 @@ fun StandardPageContent(
         )
 
 
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.ExtraLight,
-            textAlign = TextAlign.Center,
+        MarkdownText(
+            markdown = description,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.ExtraLight,
+                textAlign = TextAlign.Center),
+
         )
 
     }

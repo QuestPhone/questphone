@@ -118,7 +118,7 @@ class SetupProfileViewModel @Inject constructor(
                             "https://hplszhlnchhfwngbojnc.supabase.co/storage/v1/object/public/profile/$userId/profile"
                     }
                 } else {
-                    userRepository.userInfo.username = squashUserIdToUsername(userId)
+                    userRepository.userInfo.username = squashUserIdToUsername(userId).lowercase()
                     Supabase.supabase.postgrest["profiles"].upsert(userRepository.userInfo)
                 }
                 userRepository.saveUserInfo()
@@ -138,7 +138,7 @@ class SetupProfileViewModel @Inject constructor(
     fun updateUsername(username: String) {
         val filtered = username.filter { ch -> ch.isLetterOrDigit() || ch == '_' || ch == '-' }
         if (filtered == username) {
-            _username.value = filtered
+            _username.value = filtered.lowercase()
             _errorMessage.value = null
         }
     }
@@ -402,7 +402,7 @@ private fun getBytesFromUri(context: Context, uri: Uri): ByteArray? {
 private fun squashUserIdToUsername(userId: String): String {
     val bytes = userId.toByteArray(Charsets.UTF_8)
     val base64 = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
-    return base64.take(5)  // first 5 chars
+    return base64.take(5) + "_" +System.currentTimeMillis().toString().take(3)  // first 5 chars
 }
 
 private fun copyFileFromUriToAppStorage(
