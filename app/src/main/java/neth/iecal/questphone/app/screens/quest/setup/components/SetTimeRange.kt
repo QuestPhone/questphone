@@ -234,7 +234,7 @@ fun HourPicker(selectedHour: Int, availableHours: List<Int>, onHourSelected: (In
                 )
 
                 Text(
-                    text = formatHour(hour),
+                    text =  if(hour == 24) "End Of Day" else formatHour(hour),
                     fontSize = if (isSelected) 22.sp else 18.sp,
                     color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,

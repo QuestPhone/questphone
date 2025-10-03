@@ -1,7 +1,6 @@
 package neth.iecal.questphone.data
 
 import kotlinx.serialization.Serializable
-import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.data.DayOfWeek
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap
@@ -17,7 +16,8 @@ data class Template(
     val integration: IntegrationId,
     val category: String,
     val id: String,
-    val setupLink:String? = null
+    val setupLink:String? = null,
+    val isFeatured: Boolean? = false
 )
 
 @Serializable

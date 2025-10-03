@@ -14,15 +14,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import neth.iecal.questphone.backed.fetchUrlContent
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.data.CommonQuestInfo
 import neth.iecal.questphone.data.Template
 import neth.iecal.questphone.data.TemplateContent
 import neth.iecal.questphone.data.VariableName
 import neth.iecal.questphone.data.convertToTemplate
 import neth.iecal.questphone.data.toAdv
-import neth.iecal.questphone.data.CommonQuestInfo
-import neth.iecal.questphone.backed.fetchUrlContent
-import neth.iecal.questphone.backed.repositories.QuestRepository
-import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.data.json
 import javax.inject.Inject
 
@@ -72,13 +72,14 @@ class TemplatesViewModel @Inject constructor(
         list.filter { activity ->
             val matchesSearch = query.isBlank() ||
                     activity.name.contains(query, ignoreCase = true) ||
+                    activity.integration.label.contains(query, ignoreCase = true) ||
                     activity.description.contains(query, ignoreCase = true) ||
                     activity.category.contains(query, ignoreCase = true)
 
             val matchesCategory = category == null || activity.category == category
 
             matchesSearch && matchesCategory
-        }
+        }.sortedBy{it.isFeatured}
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {

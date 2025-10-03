@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
@@ -227,9 +228,10 @@ fun SelectFromTemplates(
 
                         // Results count
                         Text(
-                            text = "${filteredTemplates.size} templates found",
+                            text = "${filteredTemplates.size} templates found. These are contributed by the community and are not created or endorsed by QuestPhone.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -253,8 +255,8 @@ fun SelectFromTemplates(
                                     navController.navigate("${IntegrationId.EXTERNAL_INTEGRATION.name}/ntg")
 
                                 }else{
-                                navController.navigate(RootRoute.SetupTemplate.route)
-                                    }
+                                    navController.navigate(RootRoute.SetupTemplate.route)
+                                }
                             }
                         }
                     )
@@ -457,6 +459,19 @@ private fun ActivityCard(
                             )
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
+                    if(template.integration == IntegrationId.EXTERNAL_INTEGRATION){
+                        Text(
+                            text = "Unofficial",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.errorContainer,
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
                 }
             }
         }
