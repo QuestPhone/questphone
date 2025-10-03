@@ -106,6 +106,7 @@ class UserRepository @Inject constructor(
         }
         context.getSharedPreferences("user_info", Context.MODE_PRIVATE)
             .edit { putString("user_info", json.encodeToString(userInfo)) }
+        coinsState.value = userInfo.coins
     }
 
     fun getInventoryItemCount(item: InventoryItem): Int {
