@@ -7,7 +7,9 @@ import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -52,9 +54,11 @@ fun triggerProfileSync(context: Context, isFirstLoginSync:Boolean = false) {
     Log.d("Sync","Syncing profile")
     val workRequest = OneTimeWorkRequestBuilder<ProfileSyncWorker>()
         .setInputData(ProfileSyncWorker.buildInputData(isFirstLoginPull = isFirstLoginSync))
+        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
         .build()
 
-    WorkManager.getInstance(context).enqueue(workRequest)
+    WorkManager.getInstance(context)
+        .enqueueUniqueWork("profile_sync", ExistingWorkPolicy.REPLACE, workRequest)
 }
 
 
@@ -67,10 +71,12 @@ fun triggerStatsSync(context: Context, isFirstSync: Boolean = false, pullAllForT
         .build()
 
     val workRequest = OneTimeWorkRequestBuilder<StatsSyncWorker>()
+        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
         .setInputData(input)
         .build()
 
-    WorkManager.getInstance(context).enqueue(workRequest)
+    WorkManager.getInstance(context)
+        .enqueueUniqueWork("stat_sync", ExistingWorkPolicy.REPLACE, workRequest)
 }
 
 fun triggerQuestSync(context: Context, isFirstSync: Boolean = false, pullForQuest: String? = null) {
@@ -82,8 +88,10 @@ fun triggerQuestSync(context: Context, isFirstSync: Boolean = false, pullForQues
     pullForQuest?.let { input.putString(QuestSyncWorker.EXTRA_IS_PULL_SPECIFIC_QUEST, it) }
 
     val workRequest = OneTimeWorkRequestBuilder<QuestSyncWorker>()
+        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
         .setInputData(input.build())
         .build()
 
-    WorkManager.getInstance(context).enqueue(workRequest)
+    WorkManager.getInstance(context)
+        .enqueueUniqueWork("quest_sync", ExistingWorkPolicy.REPLACE, workRequest)
 }

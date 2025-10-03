@@ -1,10 +1,16 @@
 package neth.iecal.questphone.core.workers
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+import android.os.Build
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.Data
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import dagger.hilt.android.EntryPointAccessors
 import io.github.jan.supabase.postgrest.from
@@ -14,12 +20,13 @@ import neth.iecal.questphone.core.Supabase
 import nethical.questphone.data.SyncStatus
 import nethical.questphone.data.UserInfo
 
-class ProfileSyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext,
+class ProfileSyncWorker(val appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext,
     params
 ) {
 
 
     override suspend fun doWork(): Result {
+        setForeground(createForegroundInfo(appContext))
         val isFirstTimeSync = inputData.getBoolean(EXTRA_IS_FIRST_TIME, false)
 
         return try {
@@ -32,6 +39,9 @@ class ProfileSyncWorker(appContext: Context, params: WorkerParameters) : Corouti
         }
     }
 
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        return createForegroundInfo(appContext)
+    }
     private suspend fun performSync(isFirstTimeSync: Boolean) {
 
         val entryPoint = EntryPointAccessors.fromApplication(applicationContext, UserRepositoryEntryPoint::class.java)
@@ -82,3 +92,31 @@ class ProfileSyncWorker(appContext: Context, params: WorkerParameters) : Corouti
     }
 
 }
+
+private fun createForegroundInfo(context: Context): ForegroundInfo {
+    val channelId = "profile_sync_channel"
+    val channelName = "Profile Sync"
+
+    val channel = NotificationChannel(
+        channelId,
+        channelName,
+        NotificationManager.IMPORTANCE_LOW
+    )
+    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    manager.createNotificationChannel(channel)
+
+    val notification = NotificationCompat.Builder(context, channelId)
+        .setContentTitle("Syncing profile")
+        .setContentText("Profile data is being synced with server…")
+        .setSmallIcon(android.R.drawable.stat_notify_sync)
+        .setOngoing(true)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .build()
+
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        ForegroundInfo(69, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+    } else {
+        ForegroundInfo(69, notification)
+    }
+}
+

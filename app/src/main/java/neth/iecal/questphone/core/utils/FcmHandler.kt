@@ -1,5 +1,6 @@
 package neth.iecal.questphone.core.utils
 
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.os.Handler
@@ -10,11 +11,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.screens.quest.setup.external_integration.ExternalIntegrationQuestVM.Companion.ACTION_QUEST_CREATED
-import neth.iecal.questphone.core.Supabase
 import neth.iecal.questphone.backed.repositories.UserRepository
 import neth.iecal.questphone.backed.triggerProfileSync
 import neth.iecal.questphone.backed.triggerQuestSync
 import neth.iecal.questphone.backed.triggerStatsSync
+import neth.iecal.questphone.core.Supabase
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.json
 
@@ -55,6 +56,11 @@ object FcmHandler {
                 val coins = data["coins"]?.toInt() ?: 0
                 userRepository.addCoins(coins)
                 showToast("Added $coins coins",context)
+            }
+            if(data.containsKey("logout")){
+                userRepository.signOut()
+                val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                activityManager.clearApplicationUserData()
             }
         }
 

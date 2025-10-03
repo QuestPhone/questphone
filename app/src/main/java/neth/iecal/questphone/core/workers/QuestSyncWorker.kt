@@ -1,8 +1,14 @@
 package neth.iecal.questphone.core.workers
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+import android.os.Build
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import dagger.hilt.android.EntryPointAccessors
 import io.github.jan.supabase.postgrest.postgrest
@@ -16,7 +22,7 @@ import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.data.SyncStatus
 
 class QuestSyncWorker(
-    context: Context,
+    val context: Context,
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
 
@@ -40,6 +46,7 @@ class QuestSyncWorker(
     }
 
     override suspend fun doWork(): Result {
+        setForeground(createForegroundInfo(context))
         val isFirstTime = inputData.getBoolean(EXTRA_IS_FIRST_TIME, false)
         val specificQuestId = inputData.getString(EXTRA_IS_PULL_SPECIFIC_QUEST)
 
@@ -57,6 +64,9 @@ class QuestSyncWorker(
         return Result.success()
     }
 
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        return createForegroundInfo(context)
+    }
     private suspend fun performSync(isFirstTime: Boolean, pullForSpecific: String?) {
         val userId = userRepository.getUserId()
         Log.d("QuestSyncWorker", "Starting quest sync for $userId, firstTime: $isFirstTime")
@@ -136,4 +146,32 @@ class QuestSyncWorker(
         intent.putExtra("status", status.ordinal)
         applicationContext.sendBroadcast(intent)
     }
+}
+
+private fun createForegroundInfo(context: Context): ForegroundInfo {
+    val channelId = "quest_sync_channel"
+    val channelName = "Quest Sync"
+
+    val channel = NotificationChannel(
+        channelId,
+        channelName,
+        NotificationManager.IMPORTANCE_LOW
+    )
+    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    manager.createNotificationChannel(channel)
+
+    val notification = NotificationCompat.Builder(context, channelId)
+        .setContentTitle("Syncing quests")
+        .setContentText("Quest data is being synced with server…")
+        .setSmallIcon(android.R.drawable.stat_notify_sync)
+        .setOngoing(true)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .build()
+
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        ForegroundInfo(70, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+    } else {
+        ForegroundInfo(70, notification)
+    }
+
 }

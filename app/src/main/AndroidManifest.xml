@@ -109,11 +109,10 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-<!--        <service-->
-<!--            android:name="nethical.questphone.backend.services.sync.ProfileSyncService"-->
-<!--            android:enabled="true"-->
-<!--            android:exported="false"-->
-<!--            android:foregroundServiceType="dataSync" />-->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false" />
 
         <receiver
             android:name=".core.utils.reminder.ReminderBroadcastReceiver"

@@ -132,32 +132,33 @@ class HomeScreenViewModel @Inject constructor(
     suspend fun filterQuests() {
         Log.d("HomeScreenViewModel", "quest list state changed")
 
-        // Reload full list from repo
         val rawQuests = questRepository.getAllQuests().first()
-        val today = getCurrentDay()
-        val todayDate = getCurrentDate()
+        val today = getCurrentDay()          // e.g. "MONDAY"
+        val todayDate = getCurrentDate()     // e.g. LocalDate.now()
 
         // Step 1: filter valid quests for today
         val filtered = rawQuests.filter { quest ->
-            !quest.is_destroyed && quest.selected_days.contains(today)
+            !quest.is_destroyed &&
+                    quest.selected_days.any { it == today }
         }
 
         // Step 2: split into completed & uncompleted
         val completedIds = filtered
-            .filter { it.last_completed_on == todayDate }
+            .filter { quest ->
+                quest.last_completed_on == todayDate
+            }
             .map { it.id }
 
-        val uncompleted = filtered.filter { it.id !in completedIds }
+        val uncompleted = filtered.filterNot { it.id in completedIds }.sortedWith(
+            compareByDescending<CommonQuestInfo> { QuestHelper.isInTimeRange(it) }
+                .thenBy { it.title.lowercase() } )
         val completed = filtered.filter { it.id in completedIds }
 
         // Step 3: sort — uncompleted first, then completed
-        val merged = (uncompleted + completed).sortedWith(
-            compareByDescending<CommonQuestInfo> { QuestHelper.isInTimeRange(it) } // in-range first
-                .thenBy { it.title }
-        )
+        val merged = (uncompleted + completed)
 
         // Step 4: handle streak continuation
-        if (completed.size == filtered.size) {
+        if (completed.size == filtered.size && filtered.isNotEmpty()) {
             if (userRepository.continueStreak()) {
                 showStreakUpDialog()
             }
@@ -166,6 +167,8 @@ class HomeScreenViewModel @Inject constructor(
         // Step 5: update state
         questList.value = merged.take(4)
         completedQuests.value = completedIds
+
+        Log.d("quests", questList.value.toString())
     }
 
     fun handleCheckStreakFailure() {

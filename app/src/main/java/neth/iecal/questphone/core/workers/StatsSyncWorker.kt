@@ -1,9 +1,15 @@
 package neth.iecal.questphone.core.workers
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+import android.os.Build
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import dagger.hilt.android.EntryPointAccessors
 import io.github.jan.supabase.postgrest.postgrest
@@ -26,7 +32,7 @@ import kotlin.time.toKotlinInstant
 
 
 class StatsSyncWorker(
-    context: Context,
+    val context: Context,
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
 
@@ -56,8 +62,13 @@ class StatsSyncWorker(
         const val EXTRA_IS_PULL_FOR_TODAY = "is_today_pull"
     }
 
+
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        return createForegroundInfo(context)
+    }
     @OptIn(ExperimentalTime::class)
     override suspend fun doWork(): Result {
+        setForeground(createForegroundInfo(context))
         val isFirstTime = inputData.getBoolean(EXTRA_IS_FIRST_TIME, false)
         val isPullForToday = inputData.getBoolean(EXTRA_IS_PULL_FOR_TODAY, false)
 
@@ -147,5 +158,32 @@ class StatsSyncWorker(
         val intent = Intent("launcher.launcher.quest_sync_stats")
         intent.putExtra("status", status.ordinal)
         applicationContext.sendBroadcast(intent)
+    }
+}
+
+private fun createForegroundInfo(context: Context): ForegroundInfo {
+    val channelId = "stat_sync_channel"
+    val channelName = "Stat Sync"
+
+    val channel = NotificationChannel(
+        channelId,
+        channelName,
+        NotificationManager.IMPORTANCE_LOW
+    )
+    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    manager.createNotificationChannel(channel)
+
+    val notification = NotificationCompat.Builder(context, channelId)
+        .setContentTitle("Syncing stats")
+        .setContentText("Stat data is being synced with server…")
+        .setSmallIcon(android.R.drawable.stat_notify_sync)
+        .setOngoing(true)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .build()
+
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        ForegroundInfo(71, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+    } else {
+        ForegroundInfo(71, notification)
     }
 }
