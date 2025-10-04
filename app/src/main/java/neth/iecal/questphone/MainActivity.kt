@@ -27,7 +27,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
+import androidx.work.workDataOf
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,6 +37,7 @@ import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.account.SetupProfileScreen
 import neth.iecal.questphone.app.screens.account.UserInfoScreen
 import neth.iecal.questphone.app.screens.etc.DocumentViewerScreen
+import neth.iecal.questphone.app.screens.etc.ScreentimeStatsScreen
 import neth.iecal.questphone.app.screens.etc.SetCoinRewardRatio
 import neth.iecal.questphone.app.screens.game.RewardDialogMaker
 import neth.iecal.questphone.app.screens.game.StoreScreen
@@ -64,6 +67,7 @@ import neth.iecal.questphone.backed.repositories.StatsRepository
 import neth.iecal.questphone.backed.repositories.UserRepository
 import neth.iecal.questphone.backed.triggerQuestSync
 import neth.iecal.questphone.backed.triggerStatsSync
+import neth.iecal.questphone.core.Supabase.url
 import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.core.utils.FcmHandler
 import neth.iecal.questphone.core.utils.receiver.AppInstallReceiver
@@ -101,12 +105,13 @@ class MainActivity : ComponentActivity() {
                 .putString(FileDownloadWorker.KEY_FILE_NAME, "tokenizer.model")
                 .putString(FileDownloadWorker.KEY_MODEL_ID, "tokenizer")
                 .build()
-
-            val downloadWork = OneTimeWorkRequestBuilder<FileDownloadWorker>()
+            val workRequest = OneTimeWorkRequestBuilder<FileDownloadWorker>()
                 .setInputData(inputData)
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()
 
-            WorkManager.getInstance(applicationContext).enqueue(downloadWork)
+            WorkManager.getInstance(applicationContext).enqueue(workRequest)
+
         }
 
         val currentTheme = themes[userRepository.userInfo.customization_info.equippedTheme]!!
@@ -281,6 +286,9 @@ class MainActivity : ComponentActivity() {
 
                         composable(RootRoute.ShowTutorials.route) {
                             ShowTutorial()
+                        }
+                        composable(RootRoute.ShowScreentimeStats.route) {
+                            ScreentimeStatsScreen()
                         }
                     }
 

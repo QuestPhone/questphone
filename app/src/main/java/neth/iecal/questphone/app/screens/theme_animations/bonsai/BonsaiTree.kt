@@ -1,4 +1,4 @@
-package neth.iecal.questphone.app.screens.theme_animations
+package neth.iecal.questphone.app.screens.theme_animations.bonsai
 
 import android.app.Application
 import androidx.compose.foundation.Canvas
@@ -25,20 +25,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.AndroidViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.serialization.Serializable
-import neth.iecal.questphone.app.screens.theme_animations.BonsaiTree.Branch
-import neth.iecal.questphone.app.screens.theme_animations.BonsaiTree.Leaf
-import neth.iecal.questphone.app.screens.theme_animations.BonsaiTree.SimpleBranch
+import neth.iecal.questphone.app.screens.theme_animations.bonsai.BonsaiTree.Branch
+import neth.iecal.questphone.app.screens.theme_animations.bonsai.BonsaiTree.Leaf
+import neth.iecal.questphone.app.screens.theme_animations.bonsai.BonsaiTree.SimpleBranch
 import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.data.json
 import javax.inject.Inject
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 @Serializable
 private data class BonsaiTreeInfo(
     var seed: Long = Random.nextLong(),
-    var lastStreak: Int = 1,
+    var lastStreak: Int = -1,
 )
 
 @HiltViewModel
@@ -55,8 +56,9 @@ class BonsaiTreeViewModel
         val bonsaiInfoJsonRaw = userRepository.userInfo.customization_info.themeData["Bonsai Tree"]
         val bonsaiInfoJson = if (bonsaiInfoJsonRaw != null)
             json.decodeFromString<BonsaiTreeInfo>(bonsaiInfoJsonRaw)
-        else
+        else {
             BonsaiTreeInfo()
+        }
         if (streak == 0) {
             if (bonsaiInfoJson.lastStreak != 0) {
                 bonsaiInfoJson.seed = Random.nextLong()
@@ -111,8 +113,13 @@ class BonsaiTreeViewModel
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BonsaiTree(vm: BonsaiTreeViewModel = hiltViewModel(), innerPadding: PaddingValues) {
-    Box(Modifier.fillMaxSize().zIndex(-1f)) {
-        Canvas(modifier = Modifier.fillMaxSize().zIndex(-1f).padding(WindowInsets.statusBarsIgnoringVisibility.asPaddingValues())) {
+    Box(Modifier
+        .fillMaxSize()
+        .zIndex(-1f)) {
+        Canvas(modifier = Modifier
+            .fillMaxSize()
+            .zIndex(-1f)
+            .padding(WindowInsets.statusBarsIgnoringVisibility.asPaddingValues())) {
             vm.generate(this.size.width, this.size.height)
 
             vm.branchList?.forEach { branch ->
@@ -157,7 +164,7 @@ private fun generateTree(rand: Random, start: Offset, length: Float, angle: Floa
     val dy = end.y - start.y
     val mid = Offset(start.x + dx * 0.5f, start.y + dy * 0.5f)
     val perpLen = rand.nextFloat(-0.3f, 0.3f) * length
-    val branchLength = kotlin.math.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+    val branchLength = sqrt((dx * dx + dy * dy).toDouble()).toFloat()
     val perpX = if (branchLength != 0f) -dy / branchLength * perpLen else 0f
     val perpY = if (branchLength != 0f) dx / branchLength * perpLen else 0f
 

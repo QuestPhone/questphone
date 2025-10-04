@@ -5,7 +5,8 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import neth.iecal.questphone.app.screens.theme_animations.BonsaiTree
+import neth.iecal.questphone.app.screens.theme_animations.bonsai.BonsaiTree
+import neth.iecal.questphone.app.screens.theme_animations.bonsai.RandomBonsaiTree
 import neth.iecal.questphone.app.theme.data.CustomColor
 
 class BonsaiTheme(): BaseTheme {
@@ -42,6 +43,15 @@ class BonsaiTheme(): BaseTheme {
     @Composable
     override fun ThemeObjects(innerPadding: PaddingValues) {
         BonsaiTree(innerPadding = innerPadding)
+    }
+
+    @Composable
+    override fun DeepFocusThemeObjects(
+        innerPadding: PaddingValues,
+        progress: Float,
+        uniqueIdentifier:String
+    ) {
+        RandomBonsaiTree(progress, innerPadding = innerPadding, seedKey = uniqueIdentifier)
     }
 
     override val name: String

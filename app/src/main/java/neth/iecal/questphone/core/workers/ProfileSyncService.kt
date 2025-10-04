@@ -26,7 +26,7 @@ class ProfileSyncWorker(val appContext: Context, params: WorkerParameters) : Cor
 
 
     override suspend fun doWork(): Result {
-        setForeground(createForegroundInfo(appContext))
+        setForegroundAsync(createForegroundInfo(appContext))
         val isFirstTimeSync = inputData.getBoolean(EXTRA_IS_FIRST_TIME, false)
 
         return try {

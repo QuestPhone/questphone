@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.delay
 import okhttp3.OkHttpClient
@@ -53,31 +54,51 @@ class FileDownloadWorker(
         val url = inputData.getString(KEY_URL) ?: return Result.failure()
         val fileName = inputData.getString(KEY_FILE_NAME) ?: "downloaded_file.zip"
         val modelId = inputData.getString(KEY_MODEL_ID) ?: return Result.failure()
-        val isOneShotModel = inputData.getBoolean(KEY_IS_ONE_SHOT,false)
+        val isOneShotModel = inputData.getBoolean(KEY_IS_ONE_SHOT, false)
         val modelVersion = inputData.getString(KEY_MODEL_VERSION) ?: "0.0.0"
 
         val notificationId = fileName.hashCode()
         val file = File(applicationContext.filesDir, fileName)
 
         return try {
+            // CRITICAL FIX: Create channel and set foreground FIRST
             createNotificationChannel()
-            showInitialNotification(fileName, notificationId)
+            setForeground(createForegroundInfo(fileName, notificationId))
 
+            // Now proceed with the download
             downloadFile(url, file, fileName, notificationId)
 
-            updateSharedPrefsOnSuccess(modelId, modelVersion,isOneShotModel)
+            updateSharedPrefsOnSuccess(modelId, modelVersion, isOneShotModel)
             showSuccessNotification(fileName, notificationId)
             Log.i(TAG, "Download successful for $fileName.")
             Result.success()
 
         } catch (e: Exception) {
-            // 4. On failure, log, clean up, show error, and fail the worker
             Log.e(TAG, "Download failed permanently for $fileName.", e)
             updateSharedPrefsOnFailure()
             showErrorNotification(fileName, notificationId, e.message ?: "An unknown error occurred")
             file.delete() // IMPORTANT: Delete partial file on unrecoverable failure
             Result.failure()
         }
+    }
+
+    // CRITICAL FIX: Override getForegroundInfo for immediate foreground promotion
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val fileName = inputData.getString(KEY_FILE_NAME) ?: "downloading..."
+        val notificationId = fileName.hashCode()
+        return createForegroundInfo(fileName, notificationId)
+    }
+
+    private fun createForegroundInfo(fileName: String, notificationId: Int): ForegroundInfo {
+        notificationBuilder = NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.stat_sys_download)
+            .setContentTitle("Starting Download")
+            .setContentText(fileName)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .setProgress(100, 0, true)
+
+        return ForegroundInfo(notificationId, notificationBuilder.build())
     }
 
     private suspend fun downloadFile(url: String, file: File, fileName: String, notificationId: Int) {
@@ -190,14 +211,13 @@ class FileDownloadWorker(
         isOneShotModel: Boolean
     ) {
         applicationContext.getSharedPreferences("models", Context.MODE_PRIVATE).edit(commit = true) {
-            if(isOneShotModel) {
+            if (isOneShotModel) {
                 putString("selected_one_shot_model", modelId)
             }
             putBoolean("is_downloaded_$modelId", true)
             putString("version_$modelId", version)
             remove("downloading")
         }
-
     }
 
     private fun updateSharedPrefsOnFailure() {
@@ -216,18 +236,6 @@ class FileDownloadWorker(
             description = "Shows file download progress."
         }
         notificationManager.createNotificationChannel(channel)
-    }
-
-    private fun showInitialNotification(fileName: String, notificationId: Int) {
-        notificationBuilder = NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.stat_sys_download)
-            .setContentTitle("Starting Download")
-            .setContentText(fileName)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setOngoing(true)
-            .setProgress(100, 0, true) // Indeterminate progress bar initially.
-
-        notificationManager.notify(notificationId, notificationBuilder.build())
     }
 
     private fun updateProgressNotification(fileName: String, notificationId: Int, progress: Int) {

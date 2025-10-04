@@ -9,6 +9,7 @@ interface BaseTheme  {
     fun getRootColorScheme() : ColorScheme
     fun getExtraColorScheme() : CustomColor
     @Composable fun ThemeObjects(innerPadding: PaddingValues)
+    @Composable fun DeepFocusThemeObjects(innerPadding: PaddingValues,progres: Float, uniqueIdentifier:String) {}
     val name: String
     val price: Int
         get() =50
@@ -18,4 +19,5 @@ interface BaseTheme  {
 
     val docLink: String?
         get() = null
+
 }

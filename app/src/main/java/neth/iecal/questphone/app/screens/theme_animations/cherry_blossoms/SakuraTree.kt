@@ -1,7 +1,6 @@
-package neth.iecal.questphone.app.screens.theme_animations
+package neth.iecal.questphone.app.screens.theme_animations.cherry_blossoms
 
 import android.app.Application
-import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -34,7 +33,7 @@ import kotlin.random.Random
 @Serializable
 private data class SakuraTreeInfo(
     var seed: Long = Random.nextLong(),
-    var lastStreak: Int = 1,
+    var lastStreak: Int = -1,
 )
 @HiltViewModel
 class SakuraTreeViewModel
@@ -45,7 +44,6 @@ class SakuraTreeViewModel
         private set
     var blossoms: List<Blossom> = emptyList()
     private var generatedStreak: Int = -1
-    private val sp = application.getSharedPreferences("sakuraTreeSeed", Context.MODE_PRIVATE)
 
     fun getSeed(streak: Int): Long {
         val sakuraInfoJsonRaw = userRepository.userInfo.customization_info.themeData["Sakura Tree"]

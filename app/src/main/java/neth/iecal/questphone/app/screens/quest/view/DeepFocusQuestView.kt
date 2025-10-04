@@ -9,15 +9,21 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -26,7 +32,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -51,17 +56,18 @@ import neth.iecal.questphone.app.screens.quest.view.components.MdPad
 import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
 import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.app.theme.smoothYellow
+import neth.iecal.questphone.backed.repositories.QuestRepository
+import neth.iecal.questphone.backed.repositories.StatsRepository
+import neth.iecal.questphone.backed.repositories.UserRepository
 import neth.iecal.questphone.core.services.AppBlockerService
 import neth.iecal.questphone.core.services.AppBlockerServiceInfo
 import neth.iecal.questphone.core.services.INTENT_ACTION_START_DEEP_FOCUS
 import neth.iecal.questphone.core.services.INTENT_ACTION_STOP_DEEP_FOCUS
 import neth.iecal.questphone.core.utils.managers.QuestHelper
 import neth.iecal.questphone.data.CommonQuestInfo
-import neth.iecal.questphone.backed.repositories.QuestRepository
-import neth.iecal.questphone.backed.repositories.StatsRepository
-import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
+import nethical.questphone.core.core.utils.getCurrentDate
 import nethical.questphone.core.core.utils.managers.sendRefreshRequest
 import nethical.questphone.data.game.InventoryItem
 import nethical.questphone.data.json
@@ -191,7 +197,7 @@ fun DeepFocusQuestView(
 
     val duration by viewModel.focusDuration.collectAsState()
 
-    val isHideStartButton =  isQuestComplete || isQuestRunning || !isInTimeRange
+    val isHideStartButton = isQuestComplete || isQuestRunning || !isInTimeRange
 
     val scrollState = rememberScrollState()
     // Observe app lifecycle for notification management
@@ -249,34 +255,30 @@ fun DeepFocusQuestView(
     BackHandler(isQuestRunning) {}
 
     Scaffold(
-        Modifier.safeDrawingPadding(),
+        contentWindowInsets = WindowInsets(0),
         containerColor = LocalCustomTheme.current.getRootColorScheme().surface,
-        topBar = {
-            TopAppBar(
-                title = {},
-                actions = {
-                    TopBarActions(coins, 0, isCoinsVisible = true)
-                }
-            )
-        },
         floatingActionButton = {
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(
+                    bottom = WindowInsets.navigationBars.asPaddingValues()
+                        .calculateBottomPadding() + 8.dp
+                )
             ) {
-                if(!isQuestComplete && viewModel.getInventoryItemCount(InventoryItem.QUEST_SKIPPER) > 0){
+                if (!isQuestComplete && viewModel.getInventoryItemCount(InventoryItem.QUEST_SKIPPER) > 0) {
                     Image(
                         painter = painterResource(nethical.questphone.data.R.drawable.quest_skipper),
                         contentDescription = "use quest skipper",
                         modifier = Modifier.size(30.dp)
-                            .clickable{
+                            .clickable {
                                 VibrationHelper.vibrate(50)
                                 viewModel.isQuestSkippedDialogVisible.value = true
                             }
                     )
 
                 }
-                if(!isHideStartButton) {
+                if (!isHideStartButton) {
                     Spacer(modifier = Modifier.width(15.dp))
                     Button(
                         onClick = {
@@ -289,115 +291,136 @@ fun DeepFocusQuestView(
                 }
             }
         }) { innerPadding ->
+
+        if (isQuestRunning && progress < 1f || isQuestComplete) {
+            LocalCustomTheme.current.DeepFocusThemeObjects(
+                innerPadding,
+                progress,
+                commonQuestInfo.id + getCurrentDate()
+            )
+        }
+
         QuestSkipperDialog(viewModel)
 
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(8.dp)
-                .verticalScroll(scrollState)
+        Box(Modifier.fillMaxSize()) {
+            Column(Modifier.padding(WindowInsets.statusBarsIgnoringVisibility.asPaddingValues())) {
+                TopBarActions(coins, 0, isCoinsVisible = true)
+            Column(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .verticalScroll(scrollState)
 
-        ) {
-            Text(
-                text =  commonQuestInfo.title,
-                textDecoration = if(!isInTimeRange) TextDecoration.LineThrough else TextDecoration.None,
-                style = MaterialTheme.typography.headlineLarge.copy(),
-            )
+                ) {
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = (if (!isQuestComplete) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
-                        xpToRewardForQuest(
-                            viewModel.level
+                    Text(
+                        text = commonQuestInfo.title,
+                        textDecoration = if (!isInTimeRange) TextDecoration.LineThrough else TextDecoration.None,
+                        style = MaterialTheme.typography.headlineLarge.copy(),
+                    )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = (if (!isQuestComplete) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
+                                xpToRewardForQuest(
+                                    viewModel.level
+                                )
+                            } xp",
+                            style = MaterialTheme.typography.bodyLarge
                         )
-                    } xp",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                if(!isQuestComplete && viewModel.isBoosterActive(InventoryItem.XP_BOOSTER)) {
-                    Text(
-                        text = " + ",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Black,
-                        color = smoothYellow
-                    )
-                    Image(painter = painterResource( InventoryItem.XP_BOOSTER.icon),
-                        contentDescription = InventoryItem.XP_BOOSTER.simpleName,
-                        Modifier.size(20.dp))
-                    Text(
-                        text = " ${
-                            xpToRewardForQuest(
-                                viewModel.level
+                        if (!isQuestComplete && viewModel.isBoosterActive(InventoryItem.XP_BOOSTER)) {
+                            Text(
+                                text = " + ",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Black,
+                                color = smoothYellow
                             )
-                        } xp",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Black,
-                        color = smoothYellow
-                    )
-                }
-            }
+                            Image(
+                                painter = painterResource(InventoryItem.XP_BOOSTER.icon),
+                                contentDescription = InventoryItem.XP_BOOSTER.simpleName,
+                                Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = " ${
+                                    xpToRewardForQuest(
+                                        viewModel.level
+                                    )
+                                } xp",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Black,
+                                color = smoothYellow
+                            )
+                        }
+                    }
 
 
-            Text(
-                text = "Time: ${formatHour(commonQuestInfo.time_range[0])} to ${
-                    formatHour(
-                        commonQuestInfo.time_range[1]
-                    )
-                }",
-                style = MaterialTheme.typography.bodyLarge
-            )
-            // Show remaining time
-            if (isQuestRunning && progress < 1f) {
-                val remainingSeconds = ((duration * (1 - progress)) / 1000).toInt()
-                val minutes = remainingSeconds / 60
-                val seconds = remainingSeconds % 60
-
-                Text(
-                    text = "Remaining: $minutes:${seconds.toString().padStart(2, '0')}",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
-            Text(
-                text = if (!isQuestComplete) "Duration: ${duration / 60_000}m" else "Next Duration: ${duration / 60_000}m",
-                style = MaterialTheme.typography.bodyLarge
-            )
-
-            val pm = context.packageManager
-            val apps = viewModel.deepFocus.unrestrictedApps.mapNotNull { packageName ->
-                try {
-                    pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString() to packageName
-                } catch (_: PackageManager.NameNotFoundException) {
-                    null
-                }
-            }
-
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 8.dp)
-            ) {
-                Text(
-                    text = "Unrestricted Apps: ",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                )
-                apps.forEach { (appName, packageName) ->
                     Text(
-                        text = "$appName, ",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier
-                            .clickable {
-                                val intent = pm.getLaunchIntentForPackage(packageName)
-                                intent?.let { context.startActivity(it) }
-                            }
+                        text = "Time: ${formatHour(commonQuestInfo.time_range[0])} to ${
+                            formatHour(
+                                commonQuestInfo.time_range[1]
+                            )
+                        }",
+                        style = MaterialTheme.typography.bodyLarge
                     )
+                    // Show remaining time
+                    if (isQuestRunning && progress < 1f) {
+                        val remainingSeconds = ((duration * (1 - progress)) / 1000).toInt()
+                        val minutes = remainingSeconds / 60
+                        val seconds = remainingSeconds % 60
+
+                        Text(
+                            text = "Remaining: $minutes:${seconds.toString().padStart(2, '0')}",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+
+                    Text(
+                        text = if (!isQuestComplete) "Duration: ${duration / 60_000}m" else "Next Duration: ${duration / 60_000}m",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+
+                    val pm = context.packageManager
+                    val apps = viewModel.deepFocus.unrestrictedApps.mapNotNull { packageName ->
+                        try {
+                            pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0))
+                                .toString() to packageName
+                        } catch (_: PackageManager.NameNotFoundException) {
+                            null
+                        }
+                    }
+
+                    FlowRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = "Unrestricted Apps: ",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        )
+                        apps.forEach { (appName, packageName) ->
+                            Text(
+                                text = "$appName, ",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .clickable {
+                                        val intent = pm.getLaunchIntentForPackage(packageName)
+                                        intent?.let { context.startActivity(it) }
+                                    }
+                            )
+                        }
+                    }
+
+
+                    MdPad(commonQuestInfo)
+                    Spacer(Modifier.size(1.dp).padding(
+                            bottom = WindowInsets.navigationBarsIgnoringVisibility.asPaddingValues()
+                                .calculateBottomPadding() * 2
+                            ))
                 }
             }
-
-
-            MdPad(commonQuestInfo)
-
         }
+
     }
 
 }

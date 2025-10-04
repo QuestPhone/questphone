@@ -46,7 +46,7 @@ class QuestSyncWorker(
     }
 
     override suspend fun doWork(): Result {
-        setForeground(createForegroundInfo(context))
+        setForegroundAsync(createForegroundInfo(context))
         val isFirstTime = inputData.getBoolean(EXTRA_IS_FIRST_TIME, false)
         val specificQuestId = inputData.getString(EXTRA_IS_PULL_SPECIFIC_QUEST)
 

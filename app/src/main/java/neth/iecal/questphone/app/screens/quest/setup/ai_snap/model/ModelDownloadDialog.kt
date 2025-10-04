@@ -35,6 +35,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.content.edit
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
@@ -197,11 +198,13 @@ fun ModelDownloadDialog(
                                                     .putBoolean(FileDownloadWorker.KEY_IS_ONE_SHOT, true)
                                                     .build()
 
-                                                val downloadWork = OneTimeWorkRequestBuilder<FileDownloadWorker>()
+                                                val workRequest = OneTimeWorkRequestBuilder<FileDownloadWorker>()
                                                     .setInputData(inputData)
+                                                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                                                     .build()
 
-                                                WorkManager.getInstance(context).enqueue(downloadWork)
+                                                WorkManager.getInstance(context).enqueue(workRequest)
+
                                                 Toast.makeText(context, "Download Started", Toast.LENGTH_SHORT).show()
                                             }
                                         }

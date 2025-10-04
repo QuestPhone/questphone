@@ -5,7 +5,8 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import neth.iecal.questphone.app.screens.theme_animations.SakuraTree
+import neth.iecal.questphone.app.screens.theme_animations.cherry_blossoms.FocusSakura
+import neth.iecal.questphone.app.screens.theme_animations.cherry_blossoms.SakuraTree
 import neth.iecal.questphone.app.theme.data.CustomColor
 
 class CherryBlossomsTheme(): BaseTheme {
@@ -42,6 +43,15 @@ class CherryBlossomsTheme(): BaseTheme {
     @Composable
     override fun ThemeObjects(innerPadding: PaddingValues) {
         SakuraTree(innerPadding = innerPadding)
+    }
+
+    @Composable
+    override fun DeepFocusThemeObjects(
+        innerPadding: PaddingValues,
+        progres: Float,
+        uniqueIdentifier: String
+    ) {
+        FocusSakura(progres,innerPadding = innerPadding, seedKey = uniqueIdentifier)
     }
 
     override val name: String

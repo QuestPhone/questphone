@@ -501,28 +501,48 @@ fun HomeScreen(
                         ),
                     horizontalAlignment = Alignment.End
                 ) {
-                    if (shortcuts.isEmpty()) {
-                        TextButton(onClick = {
-                            isAppSelectorVisible = true
-                        }) {
-                            Row {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Add Shortcuts"
-                                )
-                                Spacer(Modifier.size(4.dp))
-                                Text(
-                                    text = "Add Shortcuts",
-                                    fontWeight = FontWeight.ExtraLight,
-                                    fontSize = 23.sp
-                                )
-                            }
-                        }
-                    }
+
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalAlignment = Alignment.End
                     ) {
+                        if (shortcuts.isEmpty()) {
+                            item{
+                                TextButton(onClick = {
+                                    isAppSelectorVisible = true
+                                }) {
+                                    Row {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = "Add Shortcuts"
+                                        )
+                                        Spacer(Modifier.size(4.dp))
+                                        Text(
+                                            text = "Add Shortcuts",
+                                            fontWeight = FontWeight.ExtraLight,
+                                            fontSize = 23.sp
+                                        )
+                                    }
+                                }
+                            }
+
+                        }
+                        item{
+
+                            Text(
+                                text = "Screentime",
+                                fontWeight = FontWeight.ExtraLight,
+                                fontSize = 23.sp,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                                    .combinedClickable(onClick = {
+                                        navController?.navigate(RootRoute.ShowScreentimeStats.route)
+                                    }, onLongClick = {
+                                        isAppSelectorVisible = true
+                                    })
+                            )
+                        }
                         itemsIndexed(shortcuts) { index, it ->
                             val name = try {
                                 val appInfo = context.packageManager.getApplicationInfo(it, 0)
