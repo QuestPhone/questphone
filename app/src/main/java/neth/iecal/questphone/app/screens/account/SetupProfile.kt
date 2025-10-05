@@ -100,32 +100,37 @@ class SetupProfileViewModel @Inject constructor(
             if (userRepository.userInfo.isAnonymous) {
                 _isLoading.value = false
             }else {
-                Supabase.awaitSession()
-                val userId = Supabase.supabase.auth.currentUserOrNull()!!.id
+                try {
+                    Supabase.awaitSession()
+                    val userId = Supabase.supabase.auth.currentUserOrNull()?.id.toString()
 
-                val profile = Supabase.supabase.from("profiles")
-                    .select {
-                        filter {
-                            eq("id", userId)
+                    val profile = Supabase.supabase.from("profiles")
+                        .select {
+                            filter {
+                                eq("id", userId)
+                            }
                         }
-                    }
-                    .decodeSingleOrNull<UserInfo>()
+                        .decodeSingleOrNull<UserInfo>()
 
-                if (profile != null) {
-                    userRepository.userInfo = profile
-                    if (profile.has_profile) {
-                        _profileUrl.value =
-                            "https://hplszhlnchhfwngbojnc.supabase.co/storage/v1/object/public/profile/$userId/profile"
+                    if (profile != null) {
+                        userRepository.userInfo = profile
+                        if (profile.has_profile) {
+                            _profileUrl.value =
+                                "https://hplszhlnchhfwngbojnc.supabase.co/storage/v1/object/public/profile/$userId/profile"
+                        }
+                    } else {
+                        userRepository.userInfo.username =
+                            squashUserIdToUsername(userId).lowercase()
+                        Supabase.supabase.postgrest["profiles"].upsert(userRepository.userInfo)
                     }
-                } else {
-                    userRepository.userInfo.username = squashUserIdToUsername(userId).lowercase()
-                    Supabase.supabase.postgrest["profiles"].upsert(userRepository.userInfo)
+                    userRepository.saveUserInfo()
+
+                    _name.value = userRepository.userInfo.full_name
+                    _username.value = userRepository.userInfo.username
+                    _isLoading.value = false
+                }catch (e: Exception){
+                    _errorMessage.value = e.message.toString()
                 }
-                userRepository.saveUserInfo()
-
-                _name.value = userRepository.userInfo.full_name
-                _username.value = userRepository.userInfo.username
-                _isLoading.value = false
             }
         }
     }
@@ -252,10 +257,11 @@ fun SetupProfileScreen(
     }
 
     LaunchedEffect(isNextEnabledSetupProfile.value) {
-        viewModel.initializeProfile()
-        isNextEnabledSetupProfile.value = true
+        if (isNextEnabledSetupProfile.value == false) {
+            viewModel.initializeProfile()
+            isNextEnabledSetupProfile.value = true
+        }
     }
-
     Box(
         modifier = Modifier
             .fillMaxSize()

@@ -95,7 +95,6 @@ fun OnBoarderView(navController: NavHostController) {
             LoginOnboard(isNextEnabledLogin, navController)
         },
 
-
         OnboardingContent.CustomPage(
             content = {
                 OverlayScreenPerm()

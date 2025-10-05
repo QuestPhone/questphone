@@ -200,7 +200,7 @@ fun ModelDownloadDialog(
 
                                                 val workRequest = OneTimeWorkRequestBuilder<FileDownloadWorker>()
                                                     .setInputData(inputData)
-                                                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                                                    .setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
                                                     .build()
 
                                                 WorkManager.getInstance(context).enqueue(workRequest)

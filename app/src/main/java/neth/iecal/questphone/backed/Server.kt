@@ -55,7 +55,7 @@ fun triggerProfileSync(context: Context, isFirstLoginSync:Boolean = false) {
         Log.d("Sync", "Syncing profile")
         val workRequest = OneTimeWorkRequestBuilder<ProfileSyncWorker>()
             .setInputData(ProfileSyncWorker.buildInputData(isFirstLoginPull = isFirstLoginSync))
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
             .build()
 
         WorkManager.getInstance(context)
@@ -76,7 +76,7 @@ fun triggerStatsSync(context: Context, isFirstSync: Boolean = false, pullAllForT
             .build()
 
         val workRequest = OneTimeWorkRequestBuilder<StatsSyncWorker>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
             .setInputData(input)
             .build()
 
@@ -97,7 +97,7 @@ fun triggerQuestSync(context: Context, isFirstSync: Boolean = false, pullForQues
         pullForQuest?.let { input.putString(QuestSyncWorker.EXTRA_IS_PULL_SPECIFIC_QUEST, it) }
 
         val workRequest = OneTimeWorkRequestBuilder<QuestSyncWorker>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
             .setInputData(input.build())
             .build()
 
