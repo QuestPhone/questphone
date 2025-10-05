@@ -15,7 +15,6 @@ import neth.iecal.questphone.app.screens.quest.view.ExternalIntegrationQuestView
 import neth.iecal.questphone.app.screens.quest.view.SwiftMarkQuestView
 import neth.iecal.questphone.app.screens.quest.view.ai_snap.AiSnapQuestView
 import neth.iecal.questphone.app.screens.quest.view.health_connect.HealthQuestView
-import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.data.BaseIntegrationId
 
 /**
@@ -130,7 +129,6 @@ enum class IntegrationId(
         viewScreen = {baseQuest ->
             ExternalIntegrationQuestView(baseQuest)
         },
-        isLoginRequired = true,
         docLink = "https://raw.githubusercontent.com/questphone/docs/refs/heads/main/integration/externalIntegration.md"
     )
 }

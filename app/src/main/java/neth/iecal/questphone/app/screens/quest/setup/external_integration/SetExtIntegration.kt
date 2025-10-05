@@ -62,6 +62,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -72,6 +73,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.Serializable
+import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.quest.setup.external_integration.ExternalIntegrationQuestVM.Companion.ACTION_QUEST_CREATED
@@ -177,19 +179,29 @@ class ExternalIntegrationQuestVM @Inject constructor(
 
     fun generateNewToken() = viewModelScope.launch {
         try {
-            isLoading.value = true
-            val generateExtIntToken = GenerateExtIntToken()
-            val result = suspendCancellableCoroutine<Result<String>> { cont ->
-                generateExtIntToken.generateToken(Supabase.supabase.auth.currentAccessTokenOrNull()!!.toString()) {
-                    cont.resume(it) {}
+            if(!userRepository.userInfo.isAnonymous && !BuildConfig.IS_FDROID) {
+                isLoading.value = true
+                val generateExtIntToken = GenerateExtIntToken()
+                val result = suspendCancellableCoroutine<Result<String>> { cont ->
+                    generateExtIntToken.generateToken(
+                        Supabase.supabase.auth.currentAccessTokenOrNull()!!.toString()
+                    ) {
+                        cont.resume(it) {}
+                    }
                 }
-            }
-            result.onSuccess {
-                val newToken = Token(it, System.currentTimeMillis())
-                prefs.edit(commit = true) { putString("token", json.encodeToString(newToken)) }
-                token.value = newToken
-            }.onFailure { e ->
-                Toast.makeText(getApplication(), e.message ?: "Unknown error", Toast.LENGTH_SHORT).show()
+                result.onSuccess {
+                    val newToken = Token(it, System.currentTimeMillis())
+                    prefs.edit(commit = true) { putString("token", json.encodeToString(newToken)) }
+                    token.value = newToken
+                }.onFailure { e ->
+                    Toast.makeText(
+                        getApplication(),
+                        e.message ?: "Unknown error",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }else{
+                Toast.makeText(application,"Please login or use playstore variant", Toast.LENGTH_SHORT).show()
             }
         } finally {
             isLoading.value = false

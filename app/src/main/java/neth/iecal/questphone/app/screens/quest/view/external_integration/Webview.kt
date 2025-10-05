@@ -2,21 +2,33 @@ package neth.iecal.questphone.app.screens.quest.view.external_integration
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import android.view.ViewGroup
 import android.webkit.JavascriptInterface
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.keepScreenOn
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.io.IOException
 import neth.iecal.questphone.app.screens.quest.view.ExternalIntegrationQuestViewVM
@@ -37,9 +49,11 @@ fun WebView(
     val context = LocalContext.current
 
     var lastUrl by remember { mutableStateOf<String?>(null) }
-    var webView by remember { mutableStateOf<WebView?>(null) } // Track WebView instance
+    var webView by remember { mutableStateOf<WebView?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var isError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
-    // Initialize or reinitialize WebView
     fun createWebView(): WebView {
         return WebView(context).apply {
             settings.apply {
@@ -56,11 +70,18 @@ fun WebView(
             addJavascriptInterface(WebAppInterface(context, this, viewQuestVM), "WebAppInterface")
 
             webViewClient = object : WebViewClient() {
+
+                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                    super.onPageStarted(view, url, favicon)
+                    isLoading = true
+                    isError = false
+                }
+
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
-                    url?.let { lastUrl = it } // Save the current URL
+                    isLoading = false
+                    url?.let { lastUrl = it }
 
-                    // Apply MaterialTheme colors via JS
                     val themeJson = JSONObject().apply {
                         put("primary", colors.primary.toColorHex())
                         put("onPrimary", colors.onPrimary.toColorHex())
@@ -80,9 +101,32 @@ fun WebView(
                     view?.evaluateJavascript("injectData(${commonQuestInfo.quest_json});", null)
                     Log.d("data", commonQuestInfo.quest_json)
                 }
+
+                override fun onReceivedError(
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                    error: WebResourceError?
+                ) {
+                    super.onReceivedError(view, request, error)
+                    isLoading = false
+                    isError = true
+                    errorMessage = error?.description?.toString() ?: "Unknown error"
+                }
+
+                // For older devices
+                override fun onReceivedError(
+                    view: WebView?,
+                    errorCode: Int,
+                    description: String?,
+                    failingUrl: String?
+                ) {
+                    super.onReceivedError(view, errorCode, description, failingUrl)
+                    isLoading = false
+                    isError = true
+                    errorMessage = description ?: "Unknown error"
+                }
             }
 
-            // Load initial URL
             val json = JSONObject(commonQuestInfo.quest_json)
             if (json.has("webviewUrl")) {
                 val url = json.getString("webviewUrl")
@@ -92,29 +136,54 @@ fun WebView(
         }
     }
 
+    Box(modifier = Modifier.fillMaxSize().keepScreenOn() ) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { webView ?: createWebView().also { webView = it } }
+        )
 
-    // Attach WebView to Compose
-    AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { webView ?: createWebView().also { webView = it } }
-    )
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x80000000)), // semi-transparent overlay
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = colors.primary)
+            }
+        }
 
+        if (isError) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x80FF0000)), // semi-transparent red overlay
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Error loading page: $errorMessage",
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+    }
 }
+
 class WebAppInterface(private val context: Context, private val webView: WebView, private val viewQuestVM: ExternalIntegrationQuestViewVM) {
 
     private val client = OkHttpClient()
 
     @JavascriptInterface
     fun onQuestCompleted() {
-        if (!viewQuestVM.isQuestComplete.value) {
-            viewQuestVM.saveMarkedQuestToDb()
-            Log.d("WebAppInterface", "Quest Completed")
-            android.widget.Toast.makeText(
-                context,
-                "Quest completed!",
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
-        }
+        viewQuestVM.saveMarkedQuestToDb()
+        Log.d("WebAppInterface", "Quest Completed")
+        android.widget.Toast.makeText(
+            context,
+            "Quest completed!",
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
     }
 
     @JavascriptInterface
