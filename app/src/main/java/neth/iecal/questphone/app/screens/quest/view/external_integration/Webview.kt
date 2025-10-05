@@ -10,11 +10,17 @@ import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.io.IOException
-import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
+import neth.iecal.questphone.app.screens.quest.view.ExternalIntegrationQuestViewVM
+import neth.iecal.questphone.core.utils.reminder.simpleAlarm.AlarmHelper
 import neth.iecal.questphone.data.CommonQuestInfo
 import okhttp3.Headers
 import okhttp3.OkHttpClient
@@ -23,13 +29,19 @@ import org.json.JSONObject
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun WebView(commonQuestInfo: CommonQuestInfo, viewQuestVM: ViewQuestVM) {
-    val colors = MaterialTheme.colorScheme // use MaterialTheme.colors for M2
-    AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { context ->
+fun WebView(
+    commonQuestInfo: CommonQuestInfo,
+    viewQuestVM: ExternalIntegrationQuestViewVM
+) {
+    val colors = MaterialTheme.colorScheme
+    val context = LocalContext.current
 
-        WebView(context).apply {
+    var lastUrl by remember { mutableStateOf<String?>(null) }
+    var webView by remember { mutableStateOf<WebView?>(null) } // Track WebView instance
+
+    // Initialize or reinitialize WebView
+    fun createWebView(): WebView {
+        return WebView(context).apply {
             settings.apply {
                 javaScriptEnabled = true
                 domStorageEnabled = true
@@ -40,14 +52,15 @@ fun WebView(commonQuestInfo: CommonQuestInfo, viewQuestVM: ViewQuestVM) {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            addJavascriptInterface(WebAppInterface(context, this,viewQuestVM), "WebAppInterface")
 
+            addJavascriptInterface(WebAppInterface(context, this, viewQuestVM), "WebAppInterface")
 
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
+                    url?.let { lastUrl = it } // Save the current URL
 
-                    // Page is fully loaded, now you can run JS
+                    // Apply MaterialTheme colors via JS
                     val themeJson = JSONObject().apply {
                         put("primary", colors.primary.toColorHex())
                         put("onPrimary", colors.onPrimary.toColorHex())
@@ -65,31 +78,43 @@ fun WebView(commonQuestInfo: CommonQuestInfo, viewQuestVM: ViewQuestVM) {
 
                     view?.evaluateJavascript("applyTheme($themeJson);", null)
                     view?.evaluateJavascript("injectData(${commonQuestInfo.quest_json});", null)
-                    Log.d("data",commonQuestInfo.quest_json)
+                    Log.d("data", commonQuestInfo.quest_json)
                 }
             }
 
+            // Load initial URL
             val json = JSONObject(commonQuestInfo.quest_json)
-            if(json.has("webviewUrl")){
-                loadUrl(json.getString("webviewUrl"))
+            if (json.has("webviewUrl")) {
+                val url = json.getString("webviewUrl")
+                lastUrl = url
+                loadUrl(url)
             }
-//            loadUrl("http://localhost:8000/profile.html")
-
         }
+    }
 
-    })
+
+    // Attach WebView to Compose
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { webView ?: createWebView().also { webView = it } }
+    )
+
 }
-
-
-class WebAppInterface(private val context: Context, private val webView: WebView, private val viewQuestVM: ViewQuestVM) {
+class WebAppInterface(private val context: Context, private val webView: WebView, private val viewQuestVM: ExternalIntegrationQuestViewVM) {
 
     private val client = OkHttpClient()
 
     @JavascriptInterface
     fun onQuestCompleted() {
-        viewQuestVM.saveMarkedQuestToDb()
-        Log.d("WebAppInterface","Quest Completed")
-        android.widget.Toast.makeText(context, "Quest completed!", android.widget.Toast.LENGTH_SHORT).show()
+        if (!viewQuestVM.isQuestComplete.value) {
+            viewQuestVM.saveMarkedQuestToDb()
+            Log.d("WebAppInterface", "Quest Completed")
+            android.widget.Toast.makeText(
+                context,
+                "Quest completed!",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     @JavascriptInterface
@@ -97,8 +122,28 @@ class WebAppInterface(private val context: Context, private val webView: WebView
         Log.d("WebAppInterfaceToast",msg)
         android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
     }
+    @JavascriptInterface
+    fun isQuestCompleted():Boolean{
+        return viewQuestVM.isQuestComplete.value
+    }
+    @JavascriptInterface
+    fun enableFullScreen() {
+        viewQuestVM.isFullScreen.value = true
+    }
+    fun disableFullScreen(){
+        viewQuestVM.isFullScreen.value = false
+    }
+    @JavascriptInterface
+    fun setAlarmedNotification(triggerMillis: Long,title:String,description: String){
+        val alarmManager = AlarmHelper(context)
+        alarmManager.setAlarm(triggerMillis,title,description)
+    }
 
-
+    @JavascriptInterface
+    fun getCoinRewardRatio():Int{
+        val sp = context.getSharedPreferences("minutes_per_5", Context.MODE_PRIVATE)
+        return sp.getInt("minutes_per_5",10)
+    }
     @JavascriptInterface
     fun fetchDataWithoutCorsAsync(url: String, headersJson: String?, callback: String) {
         Log.d("Webview","Fetching without cors")

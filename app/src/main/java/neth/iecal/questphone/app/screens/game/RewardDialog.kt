@@ -14,6 +14,7 @@ import neth.iecal.questphone.app.screens.game.RewardDialogInfo.currentDialog
 import neth.iecal.questphone.app.screens.game.RewardDialogInfo.streakFreezerReturn
 import neth.iecal.questphone.app.screens.game.dialogs.LevelUpDialog
 import neth.iecal.questphone.app.screens.game.dialogs.QuestCompletionDialog
+import neth.iecal.questphone.app.screens.game.dialogs.QuickRewardDialog
 import neth.iecal.questphone.app.screens.game.dialogs.StreakFailedDialog
 import neth.iecal.questphone.app.screens.game.dialogs.StreakFreezersUsedDialog
 import neth.iecal.questphone.app.screens.game.dialogs.StreakUpDialog
@@ -24,7 +25,7 @@ import nethical.questphone.data.game.StreakFreezerReturn
 import nethical.questphone.data.game.xpFromStreak
 import nethical.questphone.data.xpToRewardForQuest
 
-enum class DialogState { QUEST_COMPLETED, LEVEL_UP, STREAK_UP,STREAK_FREEZER_USED, STREAK_FAILED, NONE }
+enum class DialogState { QUEST_COMPLETED,QUICK_QUEST_REWARD, LEVEL_UP, STREAK_UP,STREAK_FREEZER_USED, STREAK_FAILED, NONE }
 
 /**
  * This values in here must be set to true in order to show the dialog [RewardDialogMaker]
@@ -61,6 +62,7 @@ fun RewardDialogMaker(userRepository: UserRepository) {
                 userRepository.addXp(xp)
                 xpEarned.intValue = xp
             }
+            DialogState.QUICK_QUEST_REWARD -> {}
 
             DialogState.LEVEL_UP -> {
                 Log.d("Level Up","User levelled up")
@@ -150,6 +152,15 @@ fun RewardDialogMaker(userRepository: UserRepository) {
         }
 
         DialogState.NONE -> {}
+        DialogState.QUICK_QUEST_REWARD -> {
+
+            QuickRewardDialog(
+                coinReward = coinsEarned,
+                onDismiss = {
+                    RewardDialogInfo.currentDialog = DialogState.NONE
+                }
+            )
+        }
     }
 }
 
@@ -160,6 +171,10 @@ fun RewardDialogMaker(userRepository: UserRepository) {
 fun rewardUserForQuestCompl(commonQuestInfo: CommonQuestInfo){
     coinsEarned =  commonQuestInfo.reward
     currentDialog = DialogState.QUEST_COMPLETED
+}
+fun quickRewardUser(coins:Int){
+    coinsEarned =  coins
+    currentDialog = DialogState.QUICK_QUEST_REWARD
 }
 
 

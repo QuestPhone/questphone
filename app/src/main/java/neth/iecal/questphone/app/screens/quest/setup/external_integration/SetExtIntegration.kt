@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,6 +46,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,12 +75,13 @@ import kotlinx.serialization.Serializable
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.quest.setup.external_integration.ExternalIntegrationQuestVM.Companion.ACTION_QUEST_CREATED
+import neth.iecal.questphone.app.screens.quest.setup.swift_mark.SetSwiftMarkViewModelQuest
 import neth.iecal.questphone.backed.repositories.QuestRepository
 import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.core.Supabase
 import neth.iecal.questphone.data.CommonQuestInfo
 import neth.iecal.questphone.data.IntegrationId
 import nethical.questphone.backend.GenerateExtIntToken
-import neth.iecal.questphone.core.Supabase
 import nethical.questphone.data.json
 import javax.inject.Inject
 
@@ -204,19 +208,21 @@ class ExternalIntegrationQuestVM @Inject constructor(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SetExtIntegration(navController: NavHostController, vm: ExternalIntegrationQuestVM = hiltViewModel()) {
+fun SetExtIntegration(navController: NavHostController, vm: ExternalIntegrationQuestVM = hiltViewModel(),swVm : SetSwiftMarkViewModelQuest = hiltViewModel()) {
     val token by vm.token.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
     val isQuestCreated by vm.isQuestCreated.collectAsState()
     val context = LocalContext.current
 
+    var questJson by remember { mutableStateOf("") }
     val questCreatedReceiver = remember {
         QuestCreatedReceiver {
             vm.onQuestCreated()
             Toast.makeText(context, "Quest created!", Toast.LENGTH_SHORT).show()
         }
     }
-
+    val cScope = rememberCoroutineScope()
+    var jsonError by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
         val filter = android.content.IntentFilter(ACTION_QUEST_CREATED)
         ContextCompat.registerReceiver(
@@ -350,12 +356,15 @@ fun SetExtIntegration(navController: NavHostController, vm: ExternalIntegrationQ
                     } else {
                         Button(
                             onClick = {
-                                if(vm.isProfileSynced){
+                                if (vm.isProfileSynced) {
                                     vm.generateNewToken()
                                 } else {
-                                    Toast.makeText(context,"Sync ongoing, comeback after a few mins!",
-                                        Toast.LENGTH_SHORT).show()
-                                }},
+                                    Toast.makeText(
+                                        context, "Sync ongoing, comeback after a few mins!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp),
@@ -363,8 +372,63 @@ fun SetExtIntegration(navController: NavHostController, vm: ExternalIntegrationQ
                         ) {
                             Text("Generate Token", fontSize = 16.sp)
                         }
+                        if(jsonError.isNotEmpty()) {
+                            Text(jsonError)
+                        }
                     }
                 }
+            }
+
+
+            Text(
+                "OR",
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center
+            )
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                OutlinedTextField(
+                    value = questJson,
+                    onValueChange = {
+                        questJson = it
+                    },
+                    label = {
+                        Text("Quest Json")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
+                if (questJson.isNotEmpty()) {
+                    Spacer(Modifier.size(12.dp))
+                    Button(
+                        onClick = {
+                            cScope.launch {
+                                try {
+                                    val commonQuestInfo =
+                                        json.decodeFromString<CommonQuestInfo>(questJson)
+                                    val json = json.decodeFromString<Map<String, String>>(commonQuestInfo.quest_json)
+                                    swVm.loadQuestUpperData(commonQuestInfo)
+
+                                    swVm.addQuestToDb(commonQuestInfo.quest_json, 5) {
+                                        navController.popBackStack()
+                                        Toast.makeText(context,"Quest Creation Success", Toast.LENGTH_SHORT).show()
+                                    }
+                                }catch (e: Exception){
+                                    jsonError = e.message.toString()
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Generate Quest From Json", fontSize = 16.sp)
+                    }
+                }
+
             }
         }
     }

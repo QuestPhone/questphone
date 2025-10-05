@@ -17,7 +17,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,15 +30,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import neth.iecal.questphone.app.screens.components.TopBarActions
+import neth.iecal.questphone.app.screens.game.quickRewardUser
 import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
 import neth.iecal.questphone.app.screens.quest.view.external_integration.WebView
 import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.app.theme.smoothYellow
-import neth.iecal.questphone.data.CommonQuestInfo
 import neth.iecal.questphone.backed.repositories.QuestRepository
 import neth.iecal.questphone.backed.repositories.StatsRepository
 import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
 import nethical.questphone.data.game.InventoryItem
@@ -47,18 +48,23 @@ import nethical.questphone.data.xpToRewardForQuest
 import javax.inject.Inject
 
 @HiltViewModel
-class ExternalIntegrationQuestVM @Inject constructor (questRepository: QuestRepository,
+class ExternalIntegrationQuestViewVM @Inject constructor (questRepository: QuestRepository,
                                                     userRepository: UserRepository, statsRepository: StatsRepository,
                                                     application: Application
-) : ViewQuestVM(questRepository, userRepository, statsRepository, application)
+) : ViewQuestVM(questRepository, userRepository, statsRepository, application){
+    val isFullScreen = MutableStateFlow(false)
+    fun addQuickReward(coins:Int){
+        quickRewardUser(coins)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExternalIntegrationQuestView(
     commonQuestInfo: CommonQuestInfo,
-    viewModel: ExternalIntegrationQuestVM = hiltViewModel()
+    viewModel: ExternalIntegrationQuestViewVM = hiltViewModel()
 ) {
-
+    val isFullScreen by viewModel.isFullScreen.collectAsState()
     val isQuestComplete by viewModel.isQuestComplete.collectAsState()
     val isInTimeRange by viewModel.isInTimeRange.collectAsState()
     val progress by viewModel.progress.collectAsState()
@@ -75,25 +81,19 @@ fun ExternalIntegrationQuestView(
     Scaffold(
         Modifier.safeDrawingPadding(),
         containerColor = LocalCustomTheme.current.getRootColorScheme().surface,
-        topBar = {
-            TopAppBar(
-                title = {},
-                actions = {
-                    TopBarActions(coins, 0, isCoinsVisible = true)
-                }
-            )
-        },
+
+
         floatingActionButton = {
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if(!isQuestComplete && viewModel.getInventoryItemCount(InventoryItem.QUEST_SKIPPER) > 0){
+                if (!isQuestComplete && viewModel.getInventoryItemCount(InventoryItem.QUEST_SKIPPER) > 0) {
                     Image(
                         painter = painterResource(nethical.questphone.data.R.drawable.quest_skipper),
                         contentDescription = "use quest skipper",
                         modifier = Modifier.size(30.dp)
-                            .clickable{
+                            .clickable {
                                 VibrationHelper.vibrate(50)
                                 viewModel.isQuestSkippedDialogVisible.value = true
                             }
@@ -103,61 +103,66 @@ fun ExternalIntegrationQuestView(
             }
         }) { innerPadding ->
 
-        QuestSkipperDialog(viewModel)
         Box(Modifier.fillMaxSize().zIndex(-1f)) {
-            WebView(commonQuestInfo,viewModel)
+            WebView(commonQuestInfo, viewModel)
         }
-        Column(
-            modifier = Modifier.padding(innerPadding)
-                .padding(8.dp)
-                .verticalScroll(scrollState)
-        ) {
-            Text(
-                text = commonQuestInfo.title,
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                textDecoration = if(hideStartQuestBtn) TextDecoration.LineThrough else TextDecoration.None
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        QuestSkipperDialog(viewModel)
+        if (!isFullScreen) {
+            Column(
+                modifier = Modifier.padding(innerPadding)
+                    .padding(8.dp)
+                    .verticalScroll(scrollState)
+            ) {
+                TopBarActions(coins, 0, isCoinsVisible = true)
+
                 Text(
-                    text = (if (!isQuestComplete) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
-                        xpToRewardForQuest(
-                            viewModel.level
-                        )
-                    } xp",
-                    style = MaterialTheme.typography.bodyLarge
+                    text = commonQuestInfo.title,
+                    style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+                    textDecoration = if (hideStartQuestBtn) TextDecoration.LineThrough else TextDecoration.None
                 )
-                if(!isQuestComplete && viewModel.isBoosterActive(InventoryItem.XP_BOOSTER)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = " + ",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Black,
-                        color = smoothYellow
-                    )
-                    Image(painter = painterResource( InventoryItem.XP_BOOSTER.icon),
-                        contentDescription = InventoryItem.XP_BOOSTER.simpleName,
-                        Modifier.size(20.dp))
-                    Text(
-                        text = " ${
+                        text = (if (!isQuestComplete) "Reward" else "Next Reward") + ": ${commonQuestInfo.reward} coins + ${
                             xpToRewardForQuest(
                                 viewModel.level
                             )
                         } xp",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Black,
-                        color = smoothYellow
+                        style = MaterialTheme.typography.bodyLarge
                     )
+                    if (!isQuestComplete && viewModel.isBoosterActive(InventoryItem.XP_BOOSTER)) {
+                        Text(
+                            text = " + ",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Black,
+                            color = smoothYellow
+                        )
+                        Image(
+                            painter = painterResource(InventoryItem.XP_BOOSTER.icon),
+                            contentDescription = InventoryItem.XP_BOOSTER.simpleName,
+                            Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = " ${
+                                xpToRewardForQuest(
+                                    viewModel.level
+                                )
+                            } xp",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Black,
+                            color = smoothYellow
+                        )
+                    }
                 }
+
+                Text(
+                    text = "Time: ${formatHour(commonQuestInfo.time_range[0])} to ${
+                        formatHour(
+                            commonQuestInfo.time_range[1]
+                        )
+                    }",
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
-
-            Text(
-                text = "Time: ${formatHour(commonQuestInfo.time_range[0])} to ${
-                    formatHour(
-                        commonQuestInfo.time_range[1]
-                    )
-                }",
-                style = MaterialTheme.typography.bodyLarge
-            )
-
         }
     }
 }

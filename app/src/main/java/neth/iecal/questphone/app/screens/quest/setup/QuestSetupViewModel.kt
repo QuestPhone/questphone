@@ -32,6 +32,9 @@ open class QuestSetupViewModel(
         val quest = loadQuestData(id.toString())
         questInfoState.value.fromBaseQuest(quest ?: CommonQuestInfo(integration_id = integrationId))
     }
+    fun loadQuestUpperData(commonQuestInfo: CommonQuestInfo){
+        questInfoState.value.fromBaseQuest(commonQuestInfo)
+    }
 
     /**
      * loads the [CommonQuestInfo] object with all fields

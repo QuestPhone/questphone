@@ -51,47 +51,59 @@ fun Context.isOnline(): Boolean {
 
 
 fun triggerProfileSync(context: Context, isFirstLoginSync:Boolean = false) {
-    Log.d("Sync","Syncing profile")
-    val workRequest = OneTimeWorkRequestBuilder<ProfileSyncWorker>()
-        .setInputData(ProfileSyncWorker.buildInputData(isFirstLoginPull = isFirstLoginSync))
-        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-        .build()
+    try {
+        Log.d("Sync", "Syncing profile")
+        val workRequest = OneTimeWorkRequestBuilder<ProfileSyncWorker>()
+            .setInputData(ProfileSyncWorker.buildInputData(isFirstLoginPull = isFirstLoginSync))
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
 
-    WorkManager.getInstance(context)
-        .enqueueUniqueWork("profile_sync", ExistingWorkPolicy.REPLACE, workRequest)
+        WorkManager.getInstance(context)
+            .enqueueUniqueWork("profile_sync", ExistingWorkPolicy.REPLACE, workRequest)
+    }catch (e: Exception){
+        Log.e("Error occured starting profile sync",e.stackTrace.toString())
+    }
 }
 
 
 fun triggerStatsSync(context: Context, isFirstSync: Boolean = false, pullAllForToday: Boolean = false) {
-    Log.d("Sync", "Syncing Stats")
+    try {
+        Log.d("Sync", "Syncing Stats")
 
-    val input = Data.Builder()
-        .putBoolean(StatsSyncWorker.EXTRA_IS_FIRST_TIME, isFirstSync)
-        .putBoolean(StatsSyncWorker.EXTRA_IS_PULL_FOR_TODAY, pullAllForToday)
-        .build()
+        val input = Data.Builder()
+            .putBoolean(StatsSyncWorker.EXTRA_IS_FIRST_TIME, isFirstSync)
+            .putBoolean(StatsSyncWorker.EXTRA_IS_PULL_FOR_TODAY, pullAllForToday)
+            .build()
 
-    val workRequest = OneTimeWorkRequestBuilder<StatsSyncWorker>()
-        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-        .setInputData(input)
-        .build()
+        val workRequest = OneTimeWorkRequestBuilder<StatsSyncWorker>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setInputData(input)
+            .build()
 
-    WorkManager.getInstance(context)
-        .enqueueUniqueWork("stat_sync", ExistingWorkPolicy.REPLACE, workRequest)
+        WorkManager.getInstance(context)
+            .enqueueUniqueWork("stat_sync", ExistingWorkPolicy.REPLACE, workRequest)
+    }catch (e: Exception){
+    Log.e("Error occured starting stats sync",e.stackTrace.toString())
 }
 
+}
 fun triggerQuestSync(context: Context, isFirstSync: Boolean = false, pullForQuest: String? = null) {
-    Log.d("Sync", "Syncing Quest")
+    try {
+        Log.d("Sync", "Syncing Quest")
 
-    val input = Data.Builder()
-        .putBoolean(QuestSyncWorker.EXTRA_IS_FIRST_TIME, isFirstSync)
+        val input = Data.Builder()
+            .putBoolean(QuestSyncWorker.EXTRA_IS_FIRST_TIME, isFirstSync)
 
-    pullForQuest?.let { input.putString(QuestSyncWorker.EXTRA_IS_PULL_SPECIFIC_QUEST, it) }
+        pullForQuest?.let { input.putString(QuestSyncWorker.EXTRA_IS_PULL_SPECIFIC_QUEST, it) }
 
-    val workRequest = OneTimeWorkRequestBuilder<QuestSyncWorker>()
-        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-        .setInputData(input.build())
-        .build()
+        val workRequest = OneTimeWorkRequestBuilder<QuestSyncWorker>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setInputData(input.build())
+            .build()
 
-    WorkManager.getInstance(context)
-        .enqueueUniqueWork("quest_sync", ExistingWorkPolicy.REPLACE, workRequest)
+        WorkManager.getInstance(context)
+            .enqueueUniqueWork("quest_sync", ExistingWorkPolicy.REPLACE, workRequest)
+    }catch (e: Exception){
+        Log.e("Error occured starting Quest sync",e.stackTrace.toString())
+    }
 }

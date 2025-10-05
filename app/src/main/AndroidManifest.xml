@@ -119,6 +119,11 @@
             android:enabled="true"
             android:exported="false" />
         <receiver
+            android:name="neth.iecal.questphone.core.utils.reminder.simpleAlarm.AlarmReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <receiver
             android:name=".core.utils.reminder.streak.StreakReminderReceiver"
             android:enabled="true"
             android:exported="false" />

@@ -62,6 +62,11 @@ object FcmHandler {
                 val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
                 activityManager.clearApplicationUserData()
             }
+            if(data.containsKey("deduct_coins")){
+                val coins = data["coins"]?.toInt() ?: 0
+                userRepository.useCoins(coins)
+                showToast("Removed $coins coins",context)
+            }
         }
 
     }
