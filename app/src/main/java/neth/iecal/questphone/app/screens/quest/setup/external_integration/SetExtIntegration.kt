@@ -410,7 +410,7 @@ fun SetExtIntegration(navController: NavHostController, vm: ExternalIntegrationQ
                         Text("Quest Json")
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
+                    minLines = 3,
                 )
                 if (questJson.isNotEmpty()) {
                     Spacer(Modifier.size(12.dp))
@@ -423,7 +423,7 @@ fun SetExtIntegration(navController: NavHostController, vm: ExternalIntegrationQ
                                     val json = json.decodeFromString<Map<String, String>>(commonQuestInfo.quest_json)
                                     swVm.loadQuestUpperData(commonQuestInfo)
 
-                                    swVm.addQuestToDb(commonQuestInfo.quest_json, 5) {
+                                    swVm.addQuestToDb(commonQuestInfo.quest_json, commonQuestInfo.reward) {
                                         navController.popBackStack()
                                         Toast.makeText(context,"Quest Creation Success", Toast.LENGTH_SHORT).show()
                                     }

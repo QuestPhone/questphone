@@ -4,6 +4,8 @@ import android.R
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
@@ -98,7 +100,11 @@ class FileDownloadWorker(
             .setOngoing(true)
             .setProgress(100, 0, true)
 
-        return ForegroundInfo(notificationId, notificationBuilder.build())
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(19, notificationBuilder.build(), FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            ForegroundInfo(19, notificationBuilder.build())
+        }
     }
 
     private suspend fun downloadFile(url: String, file: File, fileName: String, notificationId: Int) {
