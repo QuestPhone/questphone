@@ -73,7 +73,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.Serializable
-import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
 import neth.iecal.questphone.app.screens.quest.setup.external_integration.ExternalIntegrationQuestVM.Companion.ACTION_QUEST_CREATED
@@ -179,7 +178,7 @@ class ExternalIntegrationQuestVM @Inject constructor(
 
     fun generateNewToken() = viewModelScope.launch {
         try {
-            if(!userRepository.userInfo.isAnonymous && !BuildConfig.IS_FDROID) {
+            if(!userRepository.userInfo.isAnonymous) {
                 isLoading.value = true
                 val generateExtIntToken = GenerateExtIntToken()
                 val result = suspendCancellableCoroutine<Result<String>> { cont ->

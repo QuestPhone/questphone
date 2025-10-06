@@ -2,6 +2,7 @@ package neth.iecal.questphone.app.screens.quest.templates
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -246,6 +247,9 @@ fun SelectFromTemplates(
                             } else {
                                 viewModel.selectTemplate(template)
                                 if(template.integration == IntegrationId.EXTERNAL_INTEGRATION){
+                                    Toast.makeText(context,"Make sure your browser is unlocked",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                     val intent = Intent(Intent.ACTION_VIEW).apply {
                                         data = Uri.parse(template.setupLink)
                                     }

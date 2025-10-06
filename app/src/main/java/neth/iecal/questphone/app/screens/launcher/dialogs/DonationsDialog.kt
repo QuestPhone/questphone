@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -46,7 +45,6 @@ fun DonationsDialog(onDismiss: ()-> Unit) {
                 Text(
                     text = "Hi, I'm Nethical, 17, and the creator of QuestPhone & DigiPaws. I’ve spent countless hours building these apps to help people take control of their screen time and also made it foss. " +
                             "But as a student with limited resources, I can’t do it alone. Your support, big or small. Can keep this dream alive and help me make these tools even better.",
-                    color = Color.White,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .padding(bottom = 16.dp)
