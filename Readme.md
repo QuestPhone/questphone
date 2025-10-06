@@ -4,7 +4,7 @@
 
   <a href="https://github.com/questphone/questphone/graphs/contributors">
     <img src="https://img.shields.io/github/contributors/questphone/questphone" alt="GitHub contributors" />
-  </a>
+  </a><!--  -->
   <a href="https://discord.gg/RGuqaMHxAw">
     <img src="https://img.shields.io/badge/Discord%20Server-white?style=flat&logo=discord" alt="Discord Server" />
   </a>
