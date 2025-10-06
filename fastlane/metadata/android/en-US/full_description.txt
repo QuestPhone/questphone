@@ -1,0 +1,30 @@
+**QuestPhone** is an open-source gamified habit tracker that helps you fight screen addiction and build habits that actually stick. It turns your daily goals into quests, rewarding real progress with screen time, XP, and collectibles.
+
+<b>Core Features</b>
+
+- **Productivity Enhancement:** Build sustainable habits, reduce screen addiction, and regain control of your digital life.
+- **Gamified Experience:** Level up, maintain streaks, collect objects, and earn rewards as you progress.
+- **Minimal Launcher (Optional):** Transform your phone into a distraction-free productivity device.
+- **Unlimited Possibilities:** Convert nearly *any* real-world task into a quest — from studying to exercising.
+- **Strict Verification:** No fake checkboxes — QuestPhone uses **integrations** to verify tasks automatically.
+- **Optionally Works without internet or login**
+
+<b>Integrations</b>
+
+Integrations are how your quests get verified.
+
+- **Health Connect:** Syncs with your fitness watch or health apps to track steps, sleep, hydration, calories, and more.
+- **AI Snap:** Prompts you to snap a photo after completing a quest for visual verification.
+- **Deep Focus:** Blocks all but selected apps to create undisturbed focus sessions.
+- **Swift Mark:** Simple tap-to-complete mode — perfect for light habits.
+- **External Integration:** Connect external apps or custom scripts via the **QuestPhone API**.
+
+
+<b>Extra Goodies</b>
+
+- **Full Launcher Support:** Clean minimal launcher with widget support.
+- **Screentime & Quest Stats:** Track your progress and visualize your digital habits.
+- **On-Device AI:** Smart on-device model for AI Quest Verification *(still in progress — help wanted)*.
+- **AI Reminders:** On-device AI reminders that nudge you to stay consistent.
+- **Cool Animations:** Smooth, dynamic visuals that make progress feel rewarding.
+- **Shareable Profiles:** Show off your stats and progress to friends. Example: [https://questphone.app/@nethical](https://questphone.app/@nethical)
