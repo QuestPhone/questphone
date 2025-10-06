@@ -1,3 +1,4 @@
+
 package neth.iecal.questphone.app.screens.quest.setup.ai_snap
 
 import android.annotation.SuppressLint
@@ -62,9 +63,9 @@ import neth.iecal.questphone.app.screens.quest.setup.CommonSetBaseQuest
 import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.app.screens.quest.setup.ai_snap.model.ModelDownloadDialog
-import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.backed.repositories.QuestRepository
 import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.data.IntegrationId
 import nethical.questphone.data.BaseIntegrationId
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap
@@ -194,10 +195,10 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewM
                     OutlinedTextField(
                         value = taskDescription,
                         onValueChange = { viewModel.taskDescription.value = it },
-                        label = { Text("Task Description") },
+                        label = { Text("Task Description in extreme details. Explain it as if explaining to a 5yo") },
                         placeholder = { Text("e.g., A Clean Bedroom, An organized desk") },
                         modifier = Modifier.fillMaxWidth(),
-                        minLines = 2
+                        minLines = 4
                     )
 
 
