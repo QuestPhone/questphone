@@ -8,6 +8,9 @@
   <a href="https://discord.gg/RGuqaMHxAw">
     <img src="https://img.shields.io/badge/Discord%20Server-white?style=flat&logo=discord" alt="Discord Server" />
   </a>
+  <a href="https://t.me/questphone">
+    <img src="https://img.shields.io/badge/Telegram%20Group-blue?style=flat&logo=telegram" alt="Telegram Group" />
+  </a>
   <a href="https://github.com/questphone/questphone/releases">
     <img src="https://img.shields.io/github/downloads/questphone/questphone/total" alt="Total Downloads" />
   </a>
@@ -77,11 +80,42 @@ Press on any title to get a detailed explanation about them
 - [ ] Add friends and social features.
 - [x] AI-generated motivational reminders.
 
+## Features
+- Full Blown minimal launcher with support for widgets 
+- Track Steps, Distance covered, Hydration, Sleep, and Calories burned via Health Connect
+- Habit tracker cum Habit former
+- On Device AI model for Ai Quest Verification (doesn't work properly rn, need help :sob:)
+- Reminders from our on device ai 
+- Supports external integrations via the questphone api
+- Screentime statistics
+- Quest Statistics
+- Shareable profiles [example](https://questphone.app/@nethical)
+- Cool Animations
+
+## Faq
+
+### Q: Is QuesPhone safe?
+
+**A:** Yes, way safer than any closed source app blocker and habit trackers on play-store.
+
+
+### Q: Why is Questphone a launcher?
+**A:** The only way for us to make app blocker service always run without using accessibility service was through this
+
+### Q: Can i use it as a simple habit tracker?
+**A:** yes! you can simply select no apps as distractive and enjoy your habit tracker
+
+
+
+
+
+
 ## Tech Stack
 - Compose
 - Room 
 - Supabase
 - Dagger Hilt
 ---
+
 
 We can def win over brainrot
