@@ -33,7 +33,8 @@ class PitchBlackTheme(): BaseTheme{
     override fun getExtraColorScheme(): CustomColor {
         return CustomColor(
             toolBoxContainer = Color(0xFF2A2A2A),
-            heatMapCells = Color(0xFFFFFFFF)
+            heatMapCells = Color(0xFFFFFFFF),
+            dialogText = Color.White
         )
     }
 

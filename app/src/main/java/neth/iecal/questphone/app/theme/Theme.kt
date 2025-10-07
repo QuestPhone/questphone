@@ -5,10 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import neth.iecal.questphone.app.theme.customThemes.BaseTheme
-import neth.iecal.questphone.app.theme.customThemes.CherryBlossomsTheme
+import neth.iecal.questphone.app.theme.customThemes.PitchBlackTheme
 
-val cherryBlossomsTheme = CherryBlossomsTheme()
-val LocalCustomTheme = staticCompositionLocalOf <BaseTheme>{ cherryBlossomsTheme }
+val pitchBlackTheme = PitchBlackTheme()
+val LocalCustomTheme = staticCompositionLocalOf <BaseTheme>{ pitchBlackTheme }
 
 @Composable
 fun LauncherTheme(

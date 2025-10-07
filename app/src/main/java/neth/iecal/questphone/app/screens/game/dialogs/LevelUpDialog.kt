@@ -158,7 +158,6 @@ fun LevelUpDialog(
                             Text(
                                 text = previousLevel.toString(),
                                 fontSize = 120.sp,
-                                fontWeight = FontWeight.Black,
                                 color = textColor.copy(alpha = (1f - animatedOffset * 1.2f).coerceAtLeast(0f)),
                                 lineHeight = 120.sp,
                                 modifier = Modifier.offset(y = (-offsetY * 0.8f).dp)

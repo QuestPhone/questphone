@@ -35,7 +35,9 @@ class HackerTheme(): BaseTheme {
     override fun getExtraColorScheme(): CustomColor {
         return CustomColor(
             toolBoxContainer = Color(0xFF1A1F1D),
-            heatMapCells = Color(0xFF00FF9F)
+            heatMapCells = Color(0xFF00FF9F),
+            dialogText = Color.White
+
         )
     }
 
