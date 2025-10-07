@@ -19,14 +19,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
-import nethical.questphone.ai.padTokenIds
-import nethical.questphone.ai.preprocessBitmapToFloatBuffer
-import nethical.questphone.ai.tokenizeText
-import neth.iecal.questphone.core.Supabase
-import nethical.questphone.backend.TaskValidationClient
 import neth.iecal.questphone.backed.repositories.QuestRepository
 import neth.iecal.questphone.backed.repositories.StatsRepository
 import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.core.Supabase
+import nethical.questphone.ai.padTokenIds
+import nethical.questphone.ai.preprocessBitmapToFloatBuffer
+import nethical.questphone.ai.tokenizeText
+import nethical.questphone.backend.TaskValidationClient
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap
 import java.io.File
@@ -46,7 +46,7 @@ enum class EvaluationStep(val message: String, val progress: Float) {
     COMPLETED("Evaluation completed", 1.0f)
 }
 
-const val MINIMUM_ZERO_SHOT_THRESHOLD = 0.5
+const val MINIMUM_ZERO_SHOT_THRESHOLD = 0.08
 
 @HiltViewModel
 class AiSnapQuestViewVM @Inject constructor(
@@ -74,7 +74,7 @@ class AiSnapQuestViewVM @Inject constructor(
 
     private lateinit var modelId: String
 
-    private var isOnlineInferencing = true
+    private var isOnlineInferencing = false
 
     private val client = TaskValidationClient()
     init {
@@ -103,6 +103,7 @@ class AiSnapQuestViewVM @Inject constructor(
                 error.value = "No model selected"
                 return false
             }
+            Log.d("Loading mode",modelId)
             if(modelId == "online"){
                 isModelLoaded = true
                 isOnlineInferencing = true
@@ -130,7 +131,7 @@ class AiSnapQuestViewVM @Inject constructor(
 
             modelSession = env!!.createSession(modelFile.absolutePath, opts)
             isModelLoaded = true
-            true
+            return true
         } catch (e: Exception) {
             error.value = "Failed to load model: ${e.message}"
             false
@@ -247,11 +248,11 @@ class AiSnapQuestViewVM @Inject constructor(
 
             results.value = TaskValidationClient.ValidationResult(
                 sorted[0].second > MINIMUM_ZERO_SHOT_THRESHOLD,
-                sorted[0].second.toString()
+                "Result Rate: " + sorted[0].second.toString()
             )
             currentStep.value = EvaluationStep.COMPLETED
 
-            if (sorted[0].second > MINIMUM_ZERO_SHOT_THRESHOLD) {
+            if (sorted[0].second * 5> MINIMUM_ZERO_SHOT_THRESHOLD) {
                 onEvaluationComplete()
             }
 
