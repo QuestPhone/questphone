@@ -4,6 +4,7 @@ import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -66,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import neth.iecal.questphone.app.screens.launcher.widget.picker.PersistedWidget
 import neth.iecal.questphone.app.screens.launcher.widget.picker.WidgetViewModel
+import nethical.questphone.core.core.utils.managers.isSetToDefaultLauncher
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -128,11 +130,16 @@ fun WidgetManagementScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    val appWidgetId = appWidgetHost.allocateAppWidgetId()
-                    val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK).apply {
-                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                    if(isSetToDefaultLauncher(context)) {
+                        val appWidgetId = appWidgetHost.allocateAppWidgetId()
+                        val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK).apply {
+                            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                        }
+                        pickWidgetLauncher.launch(pickIntent)
+                    }else{
+                        Toast.makeText(context,"Please set QuestPhone as your default launcher first",
+                            Toast.LENGTH_SHORT).show()
                     }
-                    pickWidgetLauncher.launch(pickIntent)
                 }
             ) {
                 Icon(

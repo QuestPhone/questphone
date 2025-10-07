@@ -80,6 +80,7 @@ import neth.iecal.questphone.app.screens.quest.stats.components.HeatMapChart
 import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.backed.repositories.UserRepository
 import neth.iecal.questphone.backed.triggerProfileSync
+import neth.iecal.questphone.backed.triggerQuestSync
 import nethical.questphone.backend.BuildConfig
 import nethical.questphone.core.core.utils.formatNumber
 import nethical.questphone.data.UserInfo
@@ -122,6 +123,13 @@ class UserInfoViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 onLoggedOut()
             }
+        }
+    }
+
+    fun onForcePull() {
+        if (!userInfo.isAnonymous) {
+            triggerProfileSync(application, true)
+            triggerQuestSync(application, true)
         }
     }
 
@@ -192,7 +200,9 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
                             context.startActivity(intent)
                             (context as Activity).finish()
                         }
-                    },navController)
+                    },navController,{
+                        viewModel.onForcePull()
+                    })
                 }
                 Spacer(Modifier.size(32.dp))
 
@@ -327,7 +337,7 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Menu(isAnonymous: Boolean,onLogout: () -> Unit,navController: NavController ) {
+private fun Menu(isAnonymous: Boolean,onLogout: () -> Unit,navController: NavController,onForcePull: ()->Unit ) {
     var expanded by remember { mutableStateOf(false) }
     var isLogoutInfoVisible by remember { mutableStateOf(false) }
 
@@ -375,6 +385,12 @@ private fun Menu(isAnonymous: Boolean,onLogout: () -> Unit,navController: NavCon
             text = { Text("Share Crash Log") },
             onClick = {
                 shareCrashLog(context)
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Force Pull from servers") },
+            onClick = {
+                onForcePull()
             }
         )
     }
