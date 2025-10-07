@@ -134,7 +134,7 @@ dependencies {
     ksp(libs.hilt.android.compiler)
 
     ksp(libs.androidx.room.compiler)
-    implementation (libs.androidx.ui.text.google.fonts)
+//    implementation (libs.androidx.ui.text.google.fonts)
 
     add("playImplementation", platform("com.google.firebase:firebase-bom:34.3.0"))
     add("playImplementation", "com.google.firebase:firebase-messaging")
