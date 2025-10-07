@@ -169,7 +169,7 @@ fun UserInfoScreen(viewModel: UserInfoViewModel = hiltViewModel(),navController:
                         painter = painterResource(R.drawable.outline_share_24),
                         contentDescription = "Share Profile",
                         modifier = Modifier.clickable(true, onClick = {
-                            if(!neth.iecal.questphone.BuildConfig.IS_FDROID) {
+                            if(!viewModel.userInfo.isAnonymous) {
                                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
                                     type = "text/plain"
                                     putExtra(
