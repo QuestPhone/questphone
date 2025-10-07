@@ -13,6 +13,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -25,6 +26,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import neth.iecal.questphone.MainActivity
 import neth.iecal.questphone.backed.repositories.UserRepository
 import nethical.questphone.core.R
@@ -64,6 +66,11 @@ class AppBlockerService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, createNotification(),FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        }else{
+            startForeground(NOTIFICATION_ID, createNotification())
+        }
         Log.d(TAG, "AppBlockService onCreate")
         usageStatsManager = getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager
         handler = Handler(Looper.getMainLooper())
@@ -72,7 +79,7 @@ class AppBlockerService : Service() {
         loadLockedApps()
         loadUnlockedAppsFromServer()
         if (AppBlockerServiceInfo.deepFocus.isRunning) turnDeepFocus()
-        startForeground(NOTIFICATION_ID, createNotification())
+
         startMonitoringApps()
         AppBlockerServiceInfo.appBlockerService = this
     }
@@ -451,13 +458,15 @@ class AppBlockerService : Service() {
                 allApps = allApps.filter {
                     !AppBlockerServiceInfo.deepFocus.exceptionApps.contains(it.packageName) && !keyboardApps.contains(
                         it.packageName
-                    ) && it.packageName != "launcher.launcher"
+                    ) && it.packageName != "neth.iecal.questphone"
                 }
 
                 lockedApps.clear()
                 lockedApps.addAll(allApps.map { it.packageName })
                 Log.d("AppBlockerServiceFg", "Turning on FocusMode ${lockedApps.toString()}")
-
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(applicationContext, "Deep Focus Activated", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
@@ -476,10 +485,12 @@ class AppBlockerService : Service() {
                     startCooldownTimer("deepfocus", AppBlockerServiceInfo.deepFocus.duration)
                     Log.d("Turning deep focus", AppBlockerServiceInfo.deepFocus.duration.toString())
                     turnDeepFocus()
+                    Toast.makeText(applicationContext,"Initializing Deep Focus", Toast.LENGTH_SHORT).show()
                     setReminderInMinutes(AppBlockerServiceInfo.deepFocus.duration)
                 }
 
                 INTENT_ACTION_STOP_DEEP_FOCUS -> {
+                    Toast.makeText(applicationContext,"Stopping Deep Focus", Toast.LENGTH_SHORT).show()
                     AppBlockerServiceInfo.deepFocus.isRunning = false
                     AppBlockerServiceInfo.deepFocus.exceptionApps = hashSetOf<String>()
                     AppBlockerServiceInfo.deepFocus.duration = 0
@@ -704,7 +715,11 @@ class AppBlockerService : Service() {
 
     private fun cancelTimerNotification() {
         try {
-            startForeground(NOTIFICATION_ID, createNotification())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(NOTIFICATION_ID, createNotification(),FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            }else{
+                startForeground(NOTIFICATION_ID, createNotification())
+            }
             Log.d("AppBlockerService", "Notification cancelled")
         } catch (e: Exception) {
             Log.e("AppBlockerService", "Failed to cancel notification: ${e.message}")
