@@ -1,0 +1,12 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+datadir=${prefix}/share/sentencepiece
+
+Name: sentencepiece
+Description: Unsupervised text tokenizer and detokenizer for Neural Network-based text generation.
+Version: 0.2.2
+Libs: -L${libdir} -lsentencepiece -lsentencepiece_train
+Cflags: -I${includedir}
+Requires.private: protobuf-lite
