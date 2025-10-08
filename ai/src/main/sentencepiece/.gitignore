@@ -75,7 +75,7 @@ _sentencepiece.*.so
 third_party/abseil-cpp
 
 python/sentencepiece
-/build_*
+/build_ar
 /android_build_output/
 /CMakeFiles/
 /CMakeCache.txt
