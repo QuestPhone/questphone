@@ -63,6 +63,8 @@ dist/
 *.swp
 *.swo
 *.pyc
+*.so
+*.bin
 
 m.model
 m.vocab
