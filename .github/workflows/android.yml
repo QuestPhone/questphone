@@ -51,7 +51,7 @@ jobs:
           VERSION=$(grep versionName app/build.gradle | head -1 | sed 's/.*versionName *= *"\(.*\)".*/\1/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Upload APKs per ABI
+      - name: Upload APKs
         run: |
           APK_DIR=app/build/outputs/apk/fdroid/release
           for apk in $APK_DIR/*.apk; do
@@ -61,6 +61,13 @@ jobs:
             else
               ABI=$(echo "$filename" | sed -E 's/.*-([a-z0-9_]+)\.apk/\1/')
             fi
-            echo "Uploading $apk as QuestPhone-${{ steps.version.outputs.version }}-$ABI.apk"
-            gh actions upload-artifact "$apk" --name "QuestPhone-${{ steps.version.outputs.version }}-$ABI.apk"
+            echo "Found APK: $apk with ABI: $ABI"
+            # Copy to a standardized name for upload
+            cp "$apk" "QuestPhone-${{ steps.version.outputs.version }}-$ABI.apk"
           done
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuestPhone-APKs-${{ steps.version.outputs.version }}
+          path: QuestPhone-*.apk
