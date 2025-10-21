@@ -8,13 +8,12 @@ import neth.iecal.questphone.R
 import neth.iecal.questphone.app.screens.quest.setup.ai_snap.SetAiSnap
 import neth.iecal.questphone.app.screens.quest.setup.deep_focus.SetDeepFocus
 import neth.iecal.questphone.app.screens.quest.setup.external_integration.SetExtIntegration
-import neth.iecal.questphone.app.screens.quest.setup.health_connect.SetHealthConnect
 import neth.iecal.questphone.app.screens.quest.setup.swift_mark.SetSwiftMark
 import neth.iecal.questphone.app.screens.quest.view.DeepFocusQuestView
+import neth.iecal.questphone.app.screens.quest.view.DeprecatedQuest
 import neth.iecal.questphone.app.screens.quest.view.ExternalIntegrationQuestView
 import neth.iecal.questphone.app.screens.quest.view.SwiftMarkQuestView
 import neth.iecal.questphone.app.screens.quest.view.ai_snap.AiSnapQuestView
-import neth.iecal.questphone.app.screens.quest.view.health_connect.HealthQuestView
 import nethical.questphone.data.BaseIntegrationId
 
 /**
@@ -41,6 +40,7 @@ enum class IntegrationId(
         )
     },
     val isLoginRequired: Boolean = false,
+    val isDeprecated: Boolean = false,
     val rewardCoins: Int = 5,
     val docLink : String = "https://raw.githubusercontent.com/questphone/docs/refs/heads/main/integration/AiSnap.md"
 ) {
@@ -64,15 +64,11 @@ enum class IntegrationId(
         label = "Health Connect",
         description = "Earn coins for performing health related stuff like steps, water intake and more",
         setupScreen = { id,navController ->
-            SetHealthConnect(
-                id, navController
-            )
         },
         viewScreen = { baseQuest ->
-            HealthQuestView(
-                baseQuest
-            )
+            DeprecatedQuest(baseQuest)
         },
+        isDeprecated = true,
         docLink = "https://raw.githubusercontent.com/questphone/docs/refs/heads/main/integration/HealthConnect.md"
     ),
 

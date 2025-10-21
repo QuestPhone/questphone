@@ -45,6 +45,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -100,7 +101,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(kotlin("reflect"))
 
-    implementation(libs.androidx.connect.client)
 
     implementation(libs.kotlinx.datetime)
 

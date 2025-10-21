@@ -43,8 +43,8 @@ import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.screens.etc.DocumentViewerScreen
-import neth.iecal.questphone.data.IntegrationId
 import neth.iecal.questphone.backed.repositories.UserRepository
+import neth.iecal.questphone.data.IntegrationId
 import nethical.questphone.core.core.utils.VibrationHelper
 import javax.inject.Inject
 
@@ -116,7 +116,7 @@ fun SetIntegration(navController: NavHostController, viewModel: SetIntegrationVM
                                 style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                             )
                         }
-                        items(IntegrationId.entries) { item ->
+                        items(IntegrationId.entries.filter { !it.isDeprecated }) { item ->
 
                             Card(
                                 shape = RoundedCornerShape(16.dp),
