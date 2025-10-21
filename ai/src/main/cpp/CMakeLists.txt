@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18.1)
 project("sentencepiece_jni")
-
+add_link_options("LINKER:--build-id=none")
 # Use prebuilt shared library
 add_library(sentencepiece SHARED IMPORTED)
 set_target_properties(sentencepiece PROPERTIES
