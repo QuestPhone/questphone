@@ -17,8 +17,8 @@ android {
         applicationId = "neth.iecal.questphone"
         minSdk = 26
         targetSdk = 36
-        versionCode = 24
-        versionName = "2.6.6"
+        versionCode = 27
+        versionName = "2.6.8"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
@@ -45,7 +45,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
