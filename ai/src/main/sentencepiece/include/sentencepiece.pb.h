@@ -1,1 +1,0 @@
-../src/builtin_pb/sentencepiece.pb.h
