@@ -59,7 +59,7 @@ tasks.register<Exec>("buildSentencePiece") {
     environment("SENTENCEPIECE_SRC", workingDir.absolutePath)
     environment("ANDROID_API", "21")
     environment("ABIS", "armeabi-v7a arm64-v8a x86 x86_64")
-    commandLine("/usr/bin/bash", "build.sh")
+    commandLine("bash", "build.sh")
     onlyIf {
         val outputDir = file("$projectDir/src/main/sentencepiece/")
         val abis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
