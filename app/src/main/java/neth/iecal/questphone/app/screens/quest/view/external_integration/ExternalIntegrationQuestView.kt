@@ -1,4 +1,4 @@
-package neth.iecal.questphone.app.screens.quest.view
+package neth.iecal.questphone.app.screens.quest.view.external_integration
 
 import android.app.Application
 import androidx.compose.foundation.Image
@@ -30,11 +30,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.screens.game.quickRewardUser
+import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
 import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
-import neth.iecal.questphone.app.screens.quest.view.external_integration.WebView
+import neth.iecal.questphone.app.screens.quest.view.external_integration.webview.ExtIntWebview
 import neth.iecal.questphone.app.theme.LocalCustomTheme
 import neth.iecal.questphone.app.theme.smoothYellow
 import neth.iecal.questphone.backed.repositories.QuestRepository
@@ -43,7 +47,9 @@ import neth.iecal.questphone.backed.repositories.UserRepository
 import neth.iecal.questphone.data.CommonQuestInfo
 import nethical.questphone.core.core.utils.VibrationHelper
 import nethical.questphone.core.core.utils.formatHour
+import nethical.questphone.data.R
 import nethical.questphone.data.game.InventoryItem
+import nethical.questphone.data.json
 import nethical.questphone.data.xpToRewardForQuest
 import javax.inject.Inject
 
@@ -55,6 +61,15 @@ class ExternalIntegrationQuestViewVM @Inject constructor (questRepository: Quest
     val isFullScreen = MutableStateFlow(false)
     fun addQuickReward(coins:Int){
         quickRewardUser(coins)
+    }
+    fun getUserData():String{
+        return json.encodeToString(userRepository.userInfo)
+    }
+    suspend fun getQuestStats(onDone:(String)->Unit){
+        val stats = statsRepository.getStatsByQuestId(commonQuestInfo.id).first()
+        withContext(Dispatchers.Main) {
+            onDone( json.encodeToString(stats))
+        }
     }
 }
 
@@ -90,7 +105,7 @@ fun ExternalIntegrationQuestView(
             ) {
                 if (!isQuestComplete && viewModel.getInventoryItemCount(InventoryItem.QUEST_SKIPPER) > 0) {
                     Image(
-                        painter = painterResource(nethical.questphone.data.R.drawable.quest_skipper),
+                        painter = painterResource(R.drawable.quest_skipper),
                         contentDescription = "use quest skipper",
                         modifier = Modifier.size(30.dp)
                             .clickable {
@@ -104,7 +119,7 @@ fun ExternalIntegrationQuestView(
         }) { innerPadding ->
 
         Box(Modifier.fillMaxSize().zIndex(-1f)) {
-            WebView(commonQuestInfo, viewModel)
+            ExtIntWebview(commonQuestInfo, viewModel)
         }
         QuestSkipperDialog(viewModel)
         if (!isFullScreen) {

@@ -11,7 +11,7 @@ import neth.iecal.questphone.app.screens.quest.setup.external_integration.SetExt
 import neth.iecal.questphone.app.screens.quest.setup.swift_mark.SetSwiftMark
 import neth.iecal.questphone.app.screens.quest.view.DeepFocusQuestView
 import neth.iecal.questphone.app.screens.quest.view.DeprecatedQuest
-import neth.iecal.questphone.app.screens.quest.view.ExternalIntegrationQuestView
+import neth.iecal.questphone.app.screens.quest.view.external_integration.ExternalIntegrationQuestView
 import neth.iecal.questphone.app.screens.quest.view.SwiftMarkQuestView
 import neth.iecal.questphone.app.screens.quest.view.ai_snap.AiSnapQuestView
 import nethical.questphone.data.BaseIntegrationId
