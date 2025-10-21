@@ -1,0 +1,3 @@
+[submodule "ai/src/main/sentencepiece"]
+	path = ai/src/main/sentencepiece
+	url = https://github.com/QuestPhone/libsentencepiece.git
