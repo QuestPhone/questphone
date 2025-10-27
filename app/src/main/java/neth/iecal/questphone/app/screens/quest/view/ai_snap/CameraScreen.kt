@@ -137,19 +137,20 @@ fun CameraScreen(onPicClicked: ()->Unit) {
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                IconButton(
-                    onClick = {
-                        isModelDownloadDialogVisible.value = true
-                    },
-                    modifier = Modifier
-                        .size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Build,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        contentDescription = "Choose Model"
-                    )
+                if(neth.iecal.questphone.BuildConfig.IS_FDROID) {
+                    IconButton(
+                        onClick = {
+                            isModelDownloadDialogVisible.value = true
+                        },
+                        modifier = Modifier
+                            .size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Build,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            contentDescription = "Choose Model"
+                        )
+                    }
                 }
                 IconButton(
                     onClick = {

@@ -1,4 +1,4 @@
-package neth.iecal.questphone.app.screens.quest.view.ai_snap
+package neth.iecal.questphone
 
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
@@ -6,23 +6,20 @@ import ai.onnxruntime.OrtSession
 import ai.onnxruntime.OrtSession.SessionOptions
 import android.app.Application
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Log
-import androidx.core.graphics.scale
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
+import neth.iecal.questphone.app.screens.quest.view.ai_snap.AI_SNAP_PIC
+import neth.iecal.questphone.app.screens.quest.view.ai_snap.EvaluationStep
+import neth.iecal.questphone.app.screens.quest.view.ai_snap.getBitmapFromPath
 import neth.iecal.questphone.backed.repositories.QuestRepository
 import neth.iecal.questphone.backed.repositories.StatsRepository
 import neth.iecal.questphone.backed.repositories.UserRepository
-import neth.iecal.questphone.core.Supabase
 import nethical.questphone.ai.padTokenIds
 import nethical.questphone.ai.preprocessBitmapToFloatBuffer
 import nethical.questphone.ai.tokenizeText
@@ -30,21 +27,9 @@ import nethical.questphone.backend.TaskValidationClient
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap
 import java.io.File
-import java.io.FileOutputStream
 import java.nio.LongBuffer
 import javax.inject.Inject
-import kotlin.random.Random
 
-enum class EvaluationStep(val message: String, val progress: Float) {
-    INITIALIZING("Initializing...", 0.1f),
-    LOADING_IMAGE("Loading image...", 0.2f),
-    CHECKING_MODEL("Checking model availability...", 0.3f),
-    LOADING_MODEL("Loading AI model...", 0.4f),
-    PREPROCESSING("Preprocessing image...", 0.6f),
-    TOKENIZING("Processing text...", 0.7f),
-    EVALUATING("Running AI evaluation...", 0.9f),
-    COMPLETED("Evaluation completed", 1.0f)
-}
 
 const val MINIMUM_ZERO_SHOT_THRESHOLD = 0.08
 
@@ -143,8 +128,6 @@ class AiSnapQuestViewVM @Inject constructor(
             if (!isModelLoaded && !loadModel()) return@launch
             if(!isOnlineInferencing) {
                 runOfflineInference(onEvaluationComplete)
-            } else {
-                runOnlineInference(onEvaluationComplete)
             }
 
         }
@@ -154,34 +137,6 @@ class AiSnapQuestViewVM @Inject constructor(
         isAiEvaluating.value = true
         results.value = null
     }
-    private suspend fun runOnlineInference(onEvaluationComplete: () -> Unit) {
-
-        currentStep.value = EvaluationStep.INITIALIZING
-        currentStep.value = EvaluationStep.LOADING_MODEL
-        val photoFile = File(application.filesDir, AI_SNAP_PIC)
-        val compressedFile = resizeAndCompressImage(photoFile, 1080, 50)
-        client.validateTask(
-            compressedFile,
-            aiQuest.taskDescription,
-            aiQuest.features.joinToString(","),
-            Supabase.supabase.auth.currentAccessTokenOrNull()!!.toString()
-        ) {
-            results.value = it.getOrNull()
-            currentStep.value = EvaluationStep.COMPLETED
-            if(results.value?.isValid == true) {
-                onEvaluationComplete()
-            }
-        }
-        val allSteps = EvaluationStep.entries
-        var currentStepInt = 0
-        while(results.value != null){
-            delay(Random.nextInt(500,2000).toLong())
-            currentStep.value = EvaluationStep.valueOf( allSteps[currentStepInt].name)
-            if(currentStepInt != EvaluationStep.EVALUATING.ordinal) currentStepInt++
-        }
-
-    }
-
 
     private fun runOfflineInference(onEvaluationComplete: () -> Unit){
         try {
@@ -275,29 +230,3 @@ class AiSnapQuestViewVM @Inject constructor(
 
 
 }
-fun resizeAndCompressImage(file: File, maxSize: Int = 1080, quality: Int = 70): File {
-    val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-
-    // Maintain aspect ratio
-    val ratio = bitmap.width.toFloat() / bitmap.height.toFloat()
-    val width: Int
-    val height: Int
-    if (ratio > 1) {
-        width = maxSize
-        height = (maxSize / ratio).toInt()
-    } else {
-        height = maxSize
-        width = (maxSize * ratio).toInt()
-    }
-
-    val scaledBitmap = bitmap.scale(width, height)
-
-    val compressedFile = File(file.parent, "compressed_upload.jpg")
-    val out = FileOutputStream(compressedFile)
-    scaledBitmap.compress(Bitmap.CompressFormat.JPEG, quality, out)
-    out.flush()
-    out.close()
-
-    return compressedFile
-}
-

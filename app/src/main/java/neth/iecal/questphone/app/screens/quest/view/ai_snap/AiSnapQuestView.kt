@@ -29,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import neth.iecal.questphone.AiSnapQuestViewVM
 import neth.iecal.questphone.app.screens.components.TopBarActions
 import neth.iecal.questphone.app.screens.quest.view.components.MdPad
 import neth.iecal.questphone.app.screens.quest.view.dialogs.QuestSkipperDialog
@@ -52,10 +53,8 @@ fun AiSnapQuestView(
 
 
     val isInTimeRange by viewModel.isInTimeRange.collectAsState()
-    val progress by viewModel.progress.collectAsState()
     val coins by viewModel.coins.collectAsState()
 
-    val activeBoosts by viewModel.activeBoosts.collectAsState()
     val isHideStartButton = isQuestComplete || !isInTimeRange
 
     val scrollState = rememberScrollState()

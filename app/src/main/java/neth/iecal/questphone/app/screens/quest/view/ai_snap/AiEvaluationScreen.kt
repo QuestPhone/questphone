@@ -50,7 +50,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import neth.iecal.questphone.AiSnapQuestViewVM
 import neth.iecal.questphone.R
+import nethical.questphone.data.EvaluationStep
 import java.io.File
 
 @SuppressLint("DefaultLocale")

@@ -55,6 +55,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import neth.iecal.questphone.AiSnapQuestViewVM
 import neth.iecal.questphone.BuildConfig
 import neth.iecal.questphone.R
 import neth.iecal.questphone.app.navigation.RootRoute
@@ -66,7 +67,6 @@ import neth.iecal.questphone.app.screens.quest.setup.QuestSetupViewModel
 import neth.iecal.questphone.app.screens.quest.setup.ReviewDialog
 import neth.iecal.questphone.app.screens.quest.setup.ai_snap.model.ModelDownloadDialog
 import neth.iecal.questphone.app.screens.quest.view.ai_snap.AiEvaluationScreen
-import neth.iecal.questphone.app.screens.quest.view.ai_snap.AiSnapQuestViewVM
 import neth.iecal.questphone.app.screens.quest.view.ai_snap.CameraScreen
 import neth.iecal.questphone.backed.repositories.QuestRepository
 import neth.iecal.questphone.backed.repositories.UserRepository

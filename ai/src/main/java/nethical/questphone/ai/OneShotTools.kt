@@ -19,8 +19,6 @@ object SentencePieceProcessor {
     external fun encodeAsIds(input: String): IntArray
 }
 
-
-
 fun preprocessBitmapToFloatBuffer(bitmap: Bitmap): FloatBuffer {
     val width = 224
     val height = 224

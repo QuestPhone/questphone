@@ -141,7 +141,7 @@ class SetupProfileViewModel @Inject constructor(
     }
 
     fun updateUsername(username: String) {
-        val filtered = username.filter { ch -> ch.isLetterOrDigit() || ch == '_' || ch == '-' }
+        val filtered = username.filter { ch -> ch.isLetterOrDigit() || ch == '_' }
         if (filtered == username) {
             _username.value = filtered.lowercase()
             _errorMessage.value = null

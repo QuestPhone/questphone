@@ -6,7 +6,7 @@ plugins {
     kotlin("plugin.serialization") version "2.0.20"
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
-//    id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -45,6 +45,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -77,7 +78,6 @@ android {
 
 dependencies {
 
-    implementation (libs.onnxruntime.android)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -114,7 +114,6 @@ dependencies {
 
     implementation(libs.compose.markdown)
 
-
     implementation (libs.androidx.camera.core)
     implementation (libs.androidx.camera.camera2)
     implementation (libs.androidx.camera.lifecycle)
@@ -136,8 +135,10 @@ dependencies {
 
     add("playImplementation", platform("com.google.firebase:firebase-bom:34.3.0"))
     add("playImplementation", "com.google.firebase:firebase-messaging")
+    add("fdroidImplementation",libs.onnxruntime.android)
+    add("fdroidImplementation",project(":ai"))
+
     implementation(project(":data"))
     implementation(project(":core"))
     implementation(project(":backend"))
-    implementation(project(":ai"))
 }
