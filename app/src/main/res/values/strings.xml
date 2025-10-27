@@ -7,4 +7,38 @@
     <string name="title_activity_onboard">OnboardActivity</string>
     <string name="lock_screen_service_description">Double tap to lock screen via accessibility service</string>
     <string name="title_activity_theme_preview">ThemePreview</string>
+
+
+    <string name="antiquit_1">Hey… breathe. You just started. Don’t let fear speak louder than your promise.</string>
+    <string name="antiquit_2">It’s okay to feel like this. It’s not failure — it’s your brain detoxing. Stay with me.</string>
+    <string name="antiquit_3">You’re not running from pain, you’re running from progress. Hold your ground.</string>
+    <string name="antiquit_4">That panic you feel? It’s just the old habit screaming for attention. Don’t feed it.</string>
+    <string name="antiquit_5">You’ve taken the hardest step — starting. Don’t throw that courage away now.</string>
+    <string name="antiquit_6">Remember why you began this. You wanted your control back. You’re earning it right now.</string>
+    <string name="antiquit_7">You can quit anytime. But not right now. Not when you’ve already come this far.</string>
+    <string name="antiquit_8">It’s just discomfort. Let it pass. You’re still in control — not the impulse.</string>
+    <string name="antiquit_9">Look how far you’ve come already. You don’t need to escape — you need to finish.</string>
+    <string name="antiquit_10">If you leave now, that same guilt will come crawling back. Don’t let it win again.</string>
+    <string name="antiquit_15">You’ve failed before because you ran. This time, you’re staying — even if it’s hard.</string>
+    <string name="antiquit_20">Don’t ruin your story halfway through. Future you is watching, waiting for this win.</string>
+    <string name="antiquit_25">You’re not weak. You’re rewiring your mind to be unstoppable. That’s never easy.</string>
+    <string name="antiquit_30">You’ve already survived worse than this moment. Breathe. Hold the line.</string>
+    <string name="antiquit_35">This exact urge is what you came to defeat. Face it. Don’t blink.</string>
+    <string name="antiquit_40">If you quit, you’ll have to relive this same pain tomorrow. End it here — by staying.</string>
+    <string name="antiquit_45">You don’t need to be perfect — just strong for a few more breaths.</string>
+    <string name="antiquit_50">Halfway done. You’re no longer escaping your thoughts. You’re mastering them.</string>
+    <string name="antiquit_55">You’ve got the control everyone else wishes they had. Don’t throw it away now.</string>
+    <string name="antiquit_60">You’re proving to yourself that you can actually change. That’s huge.</string>
+    <string name="antiquit_65">The hard part isn’t over — it’s transforming you right now. Don’t step out.</string>
+    <string name="antiquit_70">You’ve broken 70% of your limits. The last 30% is your victory lap.</string>
+    <string name="antiquit_75">This panic isn’t real danger. It’s your brain begging for the easy way out.</string>
+    <string name="antiquit_80">Imagine your future self watching this moment — proud that you didn’t give up.</string>
+    <string name="antiquit_85">You’ll never forgive yourself if you quit this close. Just hold on a bit longer.</string>
+    <string name="antiquit_90">This resistance? It’s the final boss. You beat it by not moving.</string>
+    <string name="antiquit_93">Take one deep breath. Feel that heartbeat? That’s you — alive, fighting, winning.</string>
+    <string name="antiquit_96">You’re seconds away from proving you’re stronger than your impulses.</string>
+    <string name="antiquit_97">Don’t ruin a victory this close. Finish strong, then rest like a warrior.</string>
+    <string name="antiquit_98">You’ve endured every second till now — don’t stop one step from peace.</string>
+    <string name="antiquit_99">Hey… look at you. You made it through hell. Don’t quit here — finish it.</string>
+
 </resources>

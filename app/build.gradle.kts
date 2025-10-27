@@ -17,10 +17,9 @@ android {
         applicationId = "neth.iecal.questphone"
         minSdk = 26
         targetSdk = 36
-        versionCode = 27
-        versionName = "2.6.8"
+        versionCode = 31
+        versionName = "2.7.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
     }
 
     flavorDimensions += "distribution"

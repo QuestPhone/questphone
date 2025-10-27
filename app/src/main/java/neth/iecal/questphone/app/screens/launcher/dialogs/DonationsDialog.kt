@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
+import neth.iecal.questphone.BuildConfig
 
 @Composable
 fun DonationsDialog(onDismiss: ()-> Unit) {
@@ -43,7 +44,8 @@ fun DonationsDialog(onDismiss: ()-> Unit) {
                 )
 
                 Text(
-                    text = "Hi, I'm Nethical, 17, and the creator of QuestPhone & DigiPaws. I’ve spent countless hours building these apps to help people take control of their screen time and also made it foss. " +
+                    text = "Hi, I'm Nethical, 17, and the creator of QuestPhone" + if(BuildConfig.IS_FDROID) " and Digipaws" else "" +
+                            ". I’ve spent countless hours building these apps to help people take control of their screen time and also made it foss. " +
                             "But as a student with limited resources, I can’t do it alone. Your support, big or small. Can keep this dream alive and help me make these tools even better.",
                     textAlign = TextAlign.Center,
                     modifier = Modifier
