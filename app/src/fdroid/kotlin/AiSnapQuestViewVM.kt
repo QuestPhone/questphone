@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.questphone.app.screens.quest.view.ViewQuestVM
 import neth.iecal.questphone.app.screens.quest.view.ai_snap.AI_SNAP_PIC
-import neth.iecal.questphone.app.screens.quest.view.ai_snap.EvaluationStep
 import neth.iecal.questphone.app.screens.quest.view.ai_snap.getBitmapFromPath
 import neth.iecal.questphone.backed.repositories.QuestRepository
 import neth.iecal.questphone.backed.repositories.StatsRepository
@@ -24,6 +23,7 @@ import nethical.questphone.ai.padTokenIds
 import nethical.questphone.ai.preprocessBitmapToFloatBuffer
 import nethical.questphone.ai.tokenizeText
 import nethical.questphone.backend.TaskValidationClient
+import nethical.questphone.data.EvaluationStep
 import nethical.questphone.data.json
 import nethical.questphone.data.quest.ai.snap.AiSnap
 import java.io.File
