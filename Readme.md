@@ -94,7 +94,7 @@ Press on any title to get a detailed explanation about them
 
 ## Faq
 
-### Q: Is QuesPhone safe?
+### Q: Is QuestPhone safe?
 
 **A:** Yes, way safer than any closed source app blocker and habit trackers on play-store.
 
