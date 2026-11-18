@@ -57,11 +57,22 @@ android {
         buildConfig = true
 
     }
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
     dependenciesInfo {
         // Disables dependency metadata when building APKs.
         includeInApk = false
         // Disables dependency metadata when building Android App Bundles.
         includeInBundle = false
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
     }
 
     splits {
@@ -133,8 +144,8 @@ dependencies {
 
     add("playImplementation", platform("com.google.firebase:firebase-bom:34.3.0"))
     add("playImplementation", "com.google.firebase:firebase-messaging")
-    add("fdroidImplementation",libs.onnxruntime.android)
-    add("fdroidImplementation",project(":ai"))
+    implementation(libs.onnxruntime.android)
+    implementation(project(":ai"))
 
     implementation(project(":data"))
     implementation(project(":core"))

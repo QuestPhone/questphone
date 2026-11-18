@@ -99,19 +99,8 @@ class MainActivity : ComponentActivity() {
         val isTokenizerDownloaded = modelSp.getBoolean("is_downloaded_tokenizer",false)
         val tokenizer = File(filesDir, "tokenizer.model")
 
-        if(!isTokenizerDownloaded || !tokenizer.exists()){
-            val inputData = Data.Builder()
-                .putString(FileDownloadWorker.KEY_URL, "https://huggingface.co/onnx-community/siglip2-base-patch16-224-ONNX/resolve/main/tokenizer.model")
-                .putString(FileDownloadWorker.KEY_FILE_NAME, "tokenizer.model")
-                .putString(FileDownloadWorker.KEY_MODEL_ID, "tokenizer")
-                .build()
-            val workRequest = OneTimeWorkRequestBuilder<FileDownloadWorker>()
-                .setInputData(inputData)
-                .setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
-                .build()
-
-            WorkManager.getInstance(applicationContext).enqueue(workRequest)
-
+        if (!isTokenizerDownloaded || !tokenizer.exists()) {
+            FileDownloadWorker.enqueueTokenizerDownload(applicationContext)
         }
 
         val currentTheme = themes[userRepository.userInfo.customization_info.equippedTheme]!!
