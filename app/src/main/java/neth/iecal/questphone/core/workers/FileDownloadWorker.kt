@@ -4,6 +4,7 @@ import android.R
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
 import android.os.Build
 import android.util.Log
@@ -138,6 +139,46 @@ class FileDownloadWorker(
             }
             return totalRead
         }
+
+        private val downloadingPrefLock = Any()
+
+        internal fun updatePrefsOnSuccess(
+            sp: SharedPreferences,
+            modelId: String,
+            version: String,
+            isOneShotModel: Boolean
+        ) {
+            synchronized(downloadingPrefLock) {
+                val activeDownload = sp.getString("downloading", null)
+                sp.edit(commit = true) {
+                    if (isOneShotModel) {
+                        if (activeDownload == null || activeDownload == modelId) {
+                            putString("selected_one_shot_model", modelId)
+                        }
+                        if (activeDownload == modelId) {
+                            remove("downloading")
+                        }
+                    }
+                    putBoolean("is_downloaded_$modelId", true)
+                    putString("version_$modelId", version)
+                }
+            }
+        }
+
+        internal fun updatePrefsOnFailure(
+            sp: SharedPreferences,
+            modelId: String,
+            isOneShotModel: Boolean
+        ) {
+            if (!isOneShotModel) return
+            synchronized(downloadingPrefLock) {
+                if (sp.getString("downloading", null) == modelId) {
+                    sp.edit(commit = true) {
+                        remove("downloading")
+                    }
+                }
+            }
+        }
     }
 
     private val client = OkHttpClient.Builder()
@@ -154,10 +195,14 @@ class FileDownloadWorker(
 
     override suspend fun doWork(): Result {
         // Extract input data; fail if essential data is missing.
-        val url = inputData.getString(KEY_URL) ?: return Result.failure()
-        val fileName = inputData.getString(KEY_FILE_NAME) ?: "downloaded_file.zip"
         val modelId = inputData.getString(KEY_MODEL_ID) ?: return Result.failure()
         val isOneShotModel = inputData.getBoolean(KEY_IS_ONE_SHOT, false)
+        val url = inputData.getString(KEY_URL)
+        if (url == null) {
+            updateSharedPrefsOnFailure(modelId, isOneShotModel)
+            return Result.failure()
+        }
+        val fileName = inputData.getString(KEY_FILE_NAME) ?: "downloaded_file.zip"
         val modelVersion = inputData.getString(KEY_MODEL_VERSION) ?: "0.0.0"
 
         val notificationId = fileName.hashCode()
@@ -182,11 +227,11 @@ class FileDownloadWorker(
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException || e is java.util.concurrent.CancellationException) {
                 Log.i(TAG, "Download cancelled for $fileName.")
-                updateSharedPrefsOnFailure(isOneShotModel)
+                updateSharedPrefsOnFailure(modelId, isOneShotModel)
                 throw e
             }
             Log.e(TAG, "Download failed permanently for $fileName.", e)
-            updateSharedPrefsOnFailure(isOneShotModel)
+            updateSharedPrefsOnFailure(modelId, isOneShotModel)
             showErrorNotification(fileName, notificationId, e.message ?: "An unknown error occurred")
             Result.failure()
         }
@@ -338,22 +383,16 @@ class FileDownloadWorker(
         version: String,
         isOneShotModel: Boolean
     ) {
-        applicationContext.getSharedPreferences("models", Context.MODE_PRIVATE).edit(commit = true) {
-            if (isOneShotModel) {
-                putString("selected_one_shot_model", modelId)
-                remove("downloading")
-            }
-            putBoolean("is_downloaded_$modelId", true)
-            putString("version_$modelId", version)
-        }
+        val sp = applicationContext.getSharedPreferences("models", Context.MODE_PRIVATE)
+        Companion.updatePrefsOnSuccess(sp, modelId, version, isOneShotModel)
     }
 
-    private fun updateSharedPrefsOnFailure(isOneShotModel: Boolean) {
-        if (isOneShotModel) {
-            applicationContext.getSharedPreferences("models", Context.MODE_PRIVATE).edit(commit = true) {
-                remove("downloading")
-            }
-        }
+    private fun updateSharedPrefsOnFailure(
+        modelId: String,
+        isOneShotModel: Boolean
+    ) {
+        val sp = applicationContext.getSharedPreferences("models", Context.MODE_PRIVATE)
+        Companion.updatePrefsOnFailure(sp, modelId, isOneShotModel)
     }
 
     // --- Notification Management ---
