@@ -12,6 +12,8 @@ add_library(sentencepiece_jni SHARED sentencepiece_jni.cpp)
 
 # Add include path
 target_include_directories(sentencepiece_jni PRIVATE
+        "${CMAKE_SOURCE_DIR}/../sentencepiece/src"
+        "${CMAKE_SOURCE_DIR}/../sentencepiece/src/builtin_pb"
         "${CMAKE_SOURCE_DIR}/../sentencepiece/include"
 )
 
@@ -23,3 +25,6 @@ target_link_libraries(sentencepiece_jni
         sentencepiece
         ${log-lib}
 )
+
+# 16 KB page alignment for Android 15+
+target_link_options(sentencepiece_jni PRIVATE "-Wl,-z,max-page-size=16384")

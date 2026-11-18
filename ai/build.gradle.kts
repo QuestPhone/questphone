@@ -31,7 +31,11 @@ android {
         jvmTarget = "11"
     }
 
-    sourceSets["main"].jniLibs.srcDirs("src/main/jniLibs")
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("src/main/jniLibs")
+        }
+    }
 
     externalNativeBuild {
         cmake {
@@ -39,7 +43,7 @@ android {
         }
     }
 
-    ndkVersion = "29.0.13599879 rc2"
+    ndkVersion = "25.2.9519653"
 }
 
 dependencies {
@@ -54,11 +58,11 @@ dependencies {
 tasks.register<Exec>("buildSentencePiece") {
     workingDir = file("$projectDir/src/main/sentencepiece")
     environment("ANDROID_NDK", android.ndkDirectory.absolutePath)
-    environment("ANDROID_NDK", android.ndkDirectory.absolutePath)
-    environment("OUTPUT_DIR", "${layout.buildDirectory}/sentencepiece_output")
+    environment("OUTPUT_DIR", "${layout.buildDirectory.get().asFile.absolutePath}/sentencepiece_output")
     environment("SENTENCEPIECE_SRC", workingDir.absolutePath)
     environment("ANDROID_API", "21")
     environment("ABIS", "armeabi-v7a arm64-v8a x86 x86_64")
+    environment("CMAKE_POLICY_VERSION_MINIMUM", "3.5")
     commandLine("bash", "build.sh")
     onlyIf {
         val outputDir = file("$projectDir/src/main/sentencepiece/")
