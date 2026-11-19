@@ -14,6 +14,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,7 +64,7 @@ fun AiEvaluationScreen(
     viewModel: AiSnapQuestViewVM
 ) {
     val context = LocalContext.current
-    val photoFile = File(context.getExternalFilesDir(null), AI_SNAP_PIC)
+    val photoFile = File(context.filesDir, AI_SNAP_PIC)
 
     // State variables
     val currentStep by viewModel.currentStep.collectAsState()
@@ -81,6 +83,7 @@ fun AiEvaluationScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

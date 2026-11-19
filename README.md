@@ -81,7 +81,7 @@ Press on any title to get a detailed explanation about them
 - Full Blown minimal launcher with support for widgets 
 - Track Steps, Distance covered, Hydration, Sleep, and Calories burned via Health Connect
 - Habit tracker cum Habit former
-- On Device AI model for Ai Quest Verification (doesn't work properly rn, need help :sob:)
+- On Device AI model for Ai Quest Verification (SigLIP 2 ONNX zero-shot image-text verification)
 - Reminders from our on device ai 
 - Supports external integrations via the questphone api
 - Screentime statistics

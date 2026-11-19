@@ -117,15 +117,6 @@ fun SetAiSnap(editQuestId:String? = null,navController: NavHostController, viewM
 
     val isCameraScreen by tester.isCameraScreen.collectAsState()
     val isAiEvaluating by tester.isAiEvaluating.collectAsState()
-    if (isAiEvaluating) {
-        AiEvaluationScreen(
-            {
-                tester.isCameraScreen.value = false
-                tester.isAiEvaluating.value = false
-            },
-            tester
-        )
-    }
     BackHandler(isMdEditorVisible || isCameraScreen || isAiEvaluating) {
         isMdEditorVisible = false
         tester.isCameraScreen.value = false

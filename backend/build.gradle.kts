@@ -26,9 +26,19 @@ android {
         consumerProguardFiles("consumer-rules.pro")
 
 
-        buildConfigField("String", "SUPABASE_URL", "\"${localProperties["SUPABASE_URL"]}\"")
-        buildConfigField("String", "SUPABASE_API_KEY", "\"${localProperties["SUPABASE_API_KEY"]}\"")
-        buildConfigField("String", "API_URL", "\"${localProperties["API_URL"]}\"")
+        val supabaseUrl = localProperties.getProperty("SUPABASE_URL")
+            ?: System.getenv("SUPABASE_URL")
+            ?: "https://placeholder.supabase.co"
+        val supabaseApiKey = localProperties.getProperty("SUPABASE_API_KEY")
+            ?: System.getenv("SUPABASE_API_KEY")
+            ?: "placeholder-key"
+        val apiUrl = localProperties.getProperty("API_URL")
+            ?: System.getenv("API_URL")
+            ?: "https://placeholder.api.com"
+
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+        buildConfigField("String", "SUPABASE_API_KEY", "\"$supabaseApiKey\"")
+        buildConfigField("String", "API_URL", "\"$apiUrl\"")
     }
 
     buildTypes {
